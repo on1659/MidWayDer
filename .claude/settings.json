@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cat *)",
+      "Bash(pwd)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
+      "WebFetch(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(del /s *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f *)"
+    ]
+  }
+}
