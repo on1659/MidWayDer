@@ -46,8 +46,9 @@ export default function MapContainer({
   selectedWaypointId,
   onWaypointSelect,
 }: MapContainerProps) {
-  // 환경 변수에서 지도 프로바이더 결정 (기본: kakao)
-  const mapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER || 'kakao';
+  // 환경 변수 기본값 + 런타임 전환 가능
+  const defaultProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER || 'kakao';
+  const [mapProvider, setMapProvider] = useState<string>(defaultProvider);
 
   // 지도 인스턴스 상태 (타입을 union으로 관리)
   const [naverMap, setNaverMap] = useState<naver.maps.Map | null>(null);
@@ -66,9 +67,36 @@ export default function MapContainer({
   // Kakao Maps 사용 시 줌 레벨 조정 (Naver: 12 ≈ Kakao: 7)
   const kakaoZoom = zoom ? Math.max(1, 13 - zoom) : 7;
 
+  // 프로바이더 토글 버튼
+  const providerToggle = (
+    <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-1 flex gap-1">
+      <button
+        onClick={() => { setMapProvider('kakao'); setNaverMap(null); }}
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          mapProvider === 'kakao'
+            ? 'bg-yellow-400 text-black'
+            : 'text-gray-500 hover:bg-gray-100'
+        }`}
+      >
+        카카오
+      </button>
+      <button
+        onClick={() => { setMapProvider('naver'); setKakaoMap(null); }}
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          mapProvider === 'naver'
+            ? 'bg-green-500 text-white'
+            : 'text-gray-500 hover:bg-gray-100'
+        }`}
+      >
+        네이버
+      </button>
+    </div>
+  );
+
   if (mapProvider === 'naver') {
     return (
-      <>
+      <div className="relative w-full h-full">
+        {providerToggle}
         <NaverMap
           center={center}
           zoom={zoom}
@@ -89,13 +117,14 @@ export default function MapContainer({
             onMarkerClick={onWaypointSelect}
           />
         )}
-      </>
+      </div>
     );
   }
 
   // 기본값: Kakao Maps
   return (
-    <>
+    <div className="relative w-full h-full">
+      {providerToggle}
       <KakaoMap
         center={center}
         zoom={kakaoZoom}
@@ -116,6 +145,6 @@ export default function MapContainer({
           onMarkerClick={onWaypointSelect}
         />
       )}
-    </>
+    </div>
   );
 }

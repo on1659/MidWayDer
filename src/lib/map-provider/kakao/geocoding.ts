@@ -5,7 +5,7 @@
  */
 
 import { kakaoLocalClient, extractKakaoErrorMessage } from './client';
-import { KakaoAddressSearchResponse, KakaoCoord2AddressResponse } from './types';
+import { KakaoAddressSearchResponse, KakaoCoord2AddressResponse, KakaoLocalSearchResponse } from './types';
 import { Coordinates } from '@/types/location';
 import { IGeocodingProvider } from '../types';
 import { AxiosError } from 'axios';
@@ -49,11 +49,22 @@ export class KakaoGeocodingProvider implements IGeocodingProvider {
         }
       );
 
+      // 주소 검색 결과가 없으면 키워드 검색으로 폴백
       if (!response.data.documents || response.data.documents.length === 0) {
-        throw new KakaoGeocodingApiError(
-          `주소를 찾을 수 없습니다: ${address}`,
-          'NO_ADDRESS_FOUND'
+        const keywordResponse = await kakaoLocalClient.get<KakaoLocalSearchResponse>(
+          '/v2/local/search/keyword.json',
+          { params: { query: address.trim(), size: 1 } }
         );
+
+        if (!keywordResponse.data.documents || keywordResponse.data.documents.length === 0) {
+          throw new KakaoGeocodingApiError(
+            `주소를 찾을 수 없습니다: ${address}`,
+            'NO_ADDRESS_FOUND'
+          );
+        }
+
+        const kwResult = keywordResponse.data.documents[0];
+        return { lat: parseFloat(kwResult.y), lng: parseFloat(kwResult.x) };
       }
 
       const result = response.data.documents[0];
