@@ -7,11 +7,9 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Search, MapPin } from 'lucide-react';
-import NaverMap from '@/components/map/NaverMap';
-import RoutePolyline from '@/components/map/RoutePolyline';
-import WaypointMarker from '@/components/map/WaypointMarker';
+import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
 import ResultList from '@/components/search/ResultList';
@@ -19,7 +17,6 @@ import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 
 export default function HomePage() {
-  const [map, setMap] = useState<naver.maps.Map | null>(null);
 
   // Route Store
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
@@ -65,11 +62,6 @@ export default function HomePage() {
       setOriginalRoute(waypoint.routes.original);
     }
   }, [selectWaypoint, setOriginalRoute]);
-
-  // 지도 준비 완료 콜백
-  const handleMapReady = useCallback((mapInstance: naver.maps.Map) => {
-    setMap(mapInstance);
-  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -143,37 +135,22 @@ export default function HomePage() {
 
       {/* 우측 패널: 지도 */}
       <main className="flex-1 relative">
-        <NaverMap
+        <MapContainer
           center={start?.coordinates || { lat: 37.5665, lng: 126.978 }}
           zoom={12}
-          onMapReady={handleMapReady}
+          originalRoute={originalRoute}
+          detourRoute={
+            selectedWaypoint
+              ? {
+                  toWaypoint: selectedWaypoint.routes.toWaypoint,
+                  fromWaypoint: selectedWaypoint.routes.fromWaypoint,
+                }
+              : null
+          }
+          waypoints={results}
+          selectedWaypointId={selectedWaypoint?.place.id || null}
+          onWaypointSelect={handleWaypointSelect}
         />
-
-        {/* 경로 폴리라인 */}
-        {originalRoute && (
-          <RoutePolyline
-            map={map}
-            originalRoute={originalRoute}
-            detourRoute={
-              selectedWaypoint
-                ? {
-                    toWaypoint: selectedWaypoint.routes.toWaypoint,
-                    fromWaypoint: selectedWaypoint.routes.fromWaypoint,
-                  }
-                : null
-            }
-          />
-        )}
-
-        {/* 경유지 마커 */}
-        {results.length > 0 && (
-          <WaypointMarker
-            map={map}
-            waypoints={results}
-            selectedId={selectedWaypoint?.place.id || null}
-            onMarkerClick={handleWaypointSelect}
-          />
-        )}
 
         {/* 범례 (좌하단) */}
         {originalRoute && (

@@ -6,9 +6,21 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { directionsRequestSchema } from '@/lib/validation/schemas';
-import { getRoute } from '@/lib/naver-maps/directions';
+import { getDirectionsProvider } from '@/lib/map-provider';
+import type { RouteOption } from '@/lib/map-provider';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { DirectionsResponse } from '@/types/api';
+
+/** Naver 경로 옵션 → 공통 RouteOption 매핑 */
+function mapToRouteOption(option?: string): RouteOption | undefined {
+  if (!option) return undefined;
+  switch (option) {
+    case 'trafast': return 'fast';
+    case 'tracomfort': return 'comfort';
+    case 'traoptimal':
+    default: return 'optimal';
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // 3. 경로 조회
     try {
-      const route = await getRoute(start, end, option);
+      const route = await getDirectionsProvider().getRoute(start, end, mapToRouteOption(option));
 
       const response: DirectionsResponse = {
         success: true,

@@ -14,8 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { searchRequestSchema } from '@/lib/validation/schemas';
-import { getRoute } from '@/lib/naver-maps/directions';
-import { geocodeAddress } from '@/lib/naver-maps/geocoding';
+import { getDirectionsProvider, getGeocodingProvider } from '@/lib/map-provider';
 import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { Coordinates } from '@/types/location';
@@ -52,13 +51,13 @@ export async function POST(request: NextRequest) {
       if (start.coordinates) {
         startCoords = start.coordinates;
       } else {
-        startCoords = await geocodeAddress(start.address!);
+        startCoords = await getGeocodingProvider().geocodeAddress(start.address!);
       }
 
       if (end.coordinates) {
         endCoords = end.coordinates;
       } else {
-        endCoords = await geocodeAddress(end.address!);
+        endCoords = await getGeocodingProvider().geocodeAddress(end.address!);
       }
     } catch (error: any) {
       const errorResponse: SearchWaypointsErrorResponse = {
@@ -74,7 +73,7 @@ export async function POST(request: NextRequest) {
     // 4. A→B 원본 경로 조회
     let originalRoute;
     try {
-      originalRoute = await getRoute(startCoords, endCoords);
+      originalRoute = await getDirectionsProvider().getRoute(startCoords, endCoords);
     } catch (error: any) {
       const errorResponse: SearchWaypointsErrorResponse = {
         success: false,

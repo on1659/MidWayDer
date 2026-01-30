@@ -7,7 +7,7 @@
 
 import { Route, Place, Coordinates } from '@/types/location';
 import { DetourResult, SpatialFilterOptions } from '@/types/detour';
-import { getRoute } from '@/lib/naver-maps/directions';
+import { getDirectionsProvider } from '@/lib/map-provider';
 import { filterPlacesByRoute } from './spatial-filter';
 import { samplePolyline, getOptimalSampleInterval } from './polyline-sampler';
 import { filterByProximity } from './proximity-scorer';
@@ -107,8 +107,8 @@ export async function calculateDetourCosts(
     proximityFiltered.map(async ({ place, proximityScore }) => {
       try {
         const [toWaypoint, fromWaypoint] = await Promise.all([
-          getRoute(originalRoute.start, place.coordinates),
-          getRoute(place.coordinates, originalRoute.end),
+          getDirectionsProvider().getRoute(originalRoute.start, place.coordinates),
+          getDirectionsProvider().getRoute(place.coordinates, originalRoute.end),
         ]);
 
         // Detour Cost 계산
@@ -217,8 +217,8 @@ export async function calculateSingleDetourCost(
 }> {
   try {
     const [toWaypoint, fromWaypoint] = await Promise.all([
-      getRoute(originalRoute.start, waypoint),
-      getRoute(waypoint, originalRoute.end),
+      getDirectionsProvider().getRoute(originalRoute.start, waypoint),
+      getDirectionsProvider().getRoute(waypoint, originalRoute.end),
     ]);
 
     const detourDistance =

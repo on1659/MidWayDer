@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { seedPlacesRequestSchema } from '@/lib/validation/schemas';
-import { searchPlacesByRegion } from '@/lib/naver-maps/search';
+import { getSearchProvider } from '@/lib/map-provider';
 import { prisma } from '@/lib/db/prisma';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { SeedPlacesResponse } from '@/types/api';
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       for (const city of cities) {
         try {
           console.log(`[Seed] Searching: ${category} in ${city}...`);
-          const places = await searchPlacesByRegion(category, city, 100);
+          const places = await getSearchProvider().searchPlacesByRegion(category, city, 100);
 
           if (places.length === 0) {
             console.log(`[Seed] No results for ${category} in ${city}`);
