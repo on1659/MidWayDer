@@ -1,92 +1,90 @@
 /**
- * PostGIS 공간 필터링
+ * 공간 필터링 (Haversine 기반)
  *
- * ST_DWithin을 사용하여 경로 주변 매장을 효율적으로 필터링합니다.
- * 1차 필터링 단계로 1000개 후보 → 50개로 축소합니다.
+ * 경로 주변 매장을 Haversine 거리 계산으로 필터링합니다.
+ * 1차 필터링 단계로 전체 후보 → 경로 근처 매장으로 축소합니다.
  */
 
 import { prisma } from '@/lib/db/prisma';
 import { Route, Place } from '@/types/location';
+import { Coordinates } from '@/types/location';
+import { haversineDistance } from '@/lib/utils';
 
 /**
- * PostGIS ST_DWithin으로 경로 주변 매장 필터링
+ * 경로 주변 매장 필터링 (Haversine 거리 기반)
  *
- * 쿼리 예시:
- * SELECT * FROM Place
- * WHERE ST_DWithin(
- *   coordinates,
- *   ST_GeomFromText('LINESTRING(...)'),
- *   1000  -- 1km 버퍼
- * )
+ * 1) DB에서 카테고리별 매장을 조회 (bounding box로 1차 필터)
+ * 2) 앱 레벨에서 경로 polyline과의 최소 거리를 Haversine으로 계산
+ * 3) bufferDistance 이내 매장만 반환
  *
  * @param route - 검색 대상 경로
  * @param category - 매장 카테고리 (예: "다이소", "스타벅스")
  * @param bufferDistance - 경로 주변 버퍼 거리 (미터, 기본 1000m)
- * @returns PostGIS 공간 쿼리로 필터링된 매장 목록
- *
- * @example
- * const route = await getRoute(start, end);
- * const candidates = await filterPlacesByRoute(route, '다이소', 1000);
- * // => 경로 1km 이내의 다이소 매장들 (최대 100개)
+ * @returns 경로 근처 매장 목록 (최대 100개)
  */
 export async function filterPlacesByRoute(
   route: Route,
   category: string,
   bufferDistance: number = 1000
 ): Promise<Place[]> {
-  // Polyline → PostGIS LineString 변환
-  // 형식: LINESTRING(lng1 lat1, lng2 lat2, ...)
-  // 주의: PostGIS는 lng, lat 순서 (X, Y)
-  const lineString = `LINESTRING(${route.path
-    .map((p) => `${p.lng} ${p.lat}`)
-    .join(',')})`;
-
   try {
-    // PostGIS 공간 쿼리 (Raw SQL)
-    // ST_DWithin: geography 타입으로 미터 단위 거리 계산
-    const places = await prisma.$queryRaw<
-      Array<{
-        id: string;
-        name: string;
-        category: string;
-        address: string;
-        roadAddress: string | null;
-        phone: string | null;
-        lat: number;
-        lng: number;
-      }>
-    >`
-      SELECT
-        id,
-        name,
-        category,
-        address,
-        "roadAddress",
-        phone,
-        ST_Y(coordinates::geometry) as lat,
-        ST_X(coordinates::geometry) as lng
-      FROM "Place"
-      WHERE category = ${category}
-        AND ST_DWithin(
-          coordinates::geography,
-          ST_GeomFromText(${lineString}, 4326)::geography,
-          ${bufferDistance}
-        )
-      LIMIT 100
-    `;
+    // Bounding box 계산 (경로의 min/max 좌표 + 버퍼)
+    const lats = route.path.map((p) => p.lat);
+    const lngs = route.path.map((p) => p.lng);
+    // 약 0.01도 ≈ 1.1km
+    const bufferDeg = (bufferDistance / 111000) * 1.2;
+    const minLat = Math.min(...lats) - bufferDeg;
+    const maxLat = Math.max(...lats) + bufferDeg;
+    const minLng = Math.min(...lngs) - bufferDeg;
+    const maxLng = Math.max(...lngs) + bufferDeg;
 
-    // Place 타입으로 변환
-    return places.map((p) => ({
-      id: p.id,
-      name: p.name,
-      category: p.category,
-      address: p.address,
-      roadAddress: p.roadAddress || undefined,
-      phone: p.phone || undefined,
-      coordinates: { lat: p.lat, lng: p.lng },
-    }));
+    // DB에서 bounding box 내 매장 조회
+    const dbPlaces = await prisma.place.findMany({
+      where: {
+        category,
+        lat: { gte: minLat, lte: maxLat },
+        lng: { gte: minLng, lte: maxLng },
+      },
+    });
+
+    // 경로 polyline과의 최소 거리로 2차 필터링
+    const filtered: Place[] = [];
+    for (const p of dbPlaces) {
+      const placeCoord: Coordinates = { lat: p.lat, lng: p.lng };
+      const minDist = minDistanceToPolyline(placeCoord, route.path);
+      if (minDist <= bufferDistance) {
+        filtered.push({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+          address: p.address,
+          roadAddress: p.roadAddress || undefined,
+          phone: p.phone || undefined,
+          coordinates: placeCoord,
+        });
+      }
+      if (filtered.length >= 100) break;
+    }
+
+    return filtered;
   } catch (error) {
-    console.error('[Spatial Filter] PostGIS query failed:', error);
+    console.error('[Spatial Filter] Query failed:', error);
     throw new Error('DATABASE_ERROR');
   }
+}
+
+/**
+ * 점과 polyline 간 최소 거리 (Haversine)
+ */
+function minDistanceToPolyline(
+  point: Coordinates,
+  polyline: Coordinates[]
+): number {
+  let min = Infinity;
+  for (const seg of polyline) {
+    const d = haversineDistance(point, seg);
+    if (d < min) min = d;
+    if (min < 10) break; // 충분히 가까우면 조기 종료
+  }
+  return min;
 }

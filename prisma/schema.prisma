@@ -2,13 +2,11 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider   = "postgresql"
-  extensions = [postgis(version: "3.6.1")]
+  provider = "postgresql"
 }
 
 model Place {
@@ -19,13 +17,14 @@ model Place {
   roadAddress String?
   phone       String?
 
-  // PostGIS Geography Point (SRID 4326: WGS84)
-  coordinates Unsupported("geography(Point, 4326)")
+  // WGS84 좌표 (PostGIS 대신 앱 레벨 Haversine 계산 사용)
+  lat Float
+  lng Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([name, category, address])
   @@index([category])
-  @@index([coordinates], type: Gist) // 공간 인덱스
+  @@index([lat, lng])
 }

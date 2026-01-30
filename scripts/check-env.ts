@@ -37,15 +37,6 @@ async function checkDatabase() {
     const { rows } = await client.query('SELECT version()');
     log(PASS, `PostgreSQL connected: ${(rows[0].version as string).split(',')[0]}`);
 
-    // PostGIS
-    try {
-      const postgis = await client.query("SELECT PostGIS_Version()");
-      log(PASS, `PostGIS: ${postgis.rows[0].postgis_version}`);
-    } catch {
-      log(FAIL, 'PostGIS extension not installed. Run: CREATE EXTENSION postgis;');
-      failures++;
-    }
-
     // Check Place table
     try {
       const tables = await client.query(

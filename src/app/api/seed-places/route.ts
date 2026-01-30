@@ -115,11 +115,9 @@ async function insertPlaces(places: Place[], category: string): Promise<number> 
 
   for (const place of places) {
     try {
-      // Raw SQL로 PostGIS geography 포인트 삽입
-      // ON CONFLICT: name + category + address 유니크 제약 조건
       const id = generateCuid();
       const result = await prisma.$executeRaw`
-        INSERT INTO "Place" (id, name, category, address, "roadAddress", phone, coordinates, "createdAt", "updatedAt")
+        INSERT INTO "Place" (id, name, category, address, "roadAddress", phone, lat, lng, "createdAt", "updatedAt")
         VALUES (
           ${id},
           ${place.name},
@@ -127,7 +125,8 @@ async function insertPlaces(places: Place[], category: string): Promise<number> 
           ${place.address},
           ${place.roadAddress ?? null},
           ${place.phone ?? null},
-          ST_SetSRID(ST_MakePoint(${place.coordinates.lng}, ${place.coordinates.lat}), 4326)::geography,
+          ${place.coordinates.lat},
+          ${place.coordinates.lng},
           NOW(),
           NOW()
         )
@@ -138,7 +137,6 @@ async function insertPlaces(places: Place[], category: string): Promise<number> 
         insertedCount++;
       }
     } catch (error) {
-      // 개별 삽입 실패는 무시 (중복 등)
       console.warn(`[Seed] Failed to insert ${place.name}:`, error);
     }
   }
