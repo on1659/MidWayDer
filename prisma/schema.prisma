@@ -16,6 +16,7 @@ model Place {
   address     String
   roadAddress String?
   phone       String?
+  kakaoPlaceId String?  @unique
 
   // WGS84 좌표 (PostGIS 대신 앱 레벨 Haversine 계산 사용)
   lat Float
