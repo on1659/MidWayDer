@@ -43,15 +43,15 @@ export default function AddressInput({
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</label>
       <div className="relative">
-        <div className="absolute left-3.5 top-1/2 -translate-y-1/2">
-          {icon || <MapPin className="w-4 h-4 text-gray-400" />}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+          {icon || <MapPin className="w-5 h-5 text-gray-400" />}
         </div>
         <input
           type="text"
           value={localValue}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-all"
+          className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[17px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-all"
         />
       </div>
     </div>

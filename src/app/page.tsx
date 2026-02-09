@@ -15,6 +15,7 @@ import CategorySelect from '@/components/search/CategorySelect';
 import ResultList from '@/components/search/ResultList';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
+import PlaceDetail from '@/components/place/PlaceDetail';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 
@@ -170,6 +171,18 @@ export default function HomePage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ========== PLACE DETAIL ========== */}
+        {selectedWaypoint && (
+          <PlaceDetail
+            waypoint={selectedWaypoint}
+            onClose={() => selectWaypoint(null)}
+            onConfirm={(wp) => {
+              selectWaypoint(wp);
+              if (wp.routes.original) setOriginalRoute(wp.routes.original);
+            }}
+          />
         )}
 
         {/* ========== MOBILE SEARCH BAR (overlay on map) ========== */}
