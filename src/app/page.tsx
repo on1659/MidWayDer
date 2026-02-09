@@ -16,6 +16,7 @@ import ResultList from '@/components/search/ResultList';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
 import PlaceDetail from '@/components/place/PlaceDetail';
+import MapClickSheet from '@/components/place/MapClickSheet';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 
@@ -28,6 +29,7 @@ export default function HomePage() {
   // Mobile UI state
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
+  const [mapClickInfo, setMapClickInfo] = useState<{ address: string; coords: { lat: number; lng: number } } | null>(null);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -38,23 +40,17 @@ export default function HomePage() {
     setEnd({ address: result.address, coordinates: result.coordinates });
   }, [setEnd]);
 
-  // 지도 클릭 → 역지오코딩 → 출발지/도착지 자동 입력
+  // 지도 클릭 → 역지오코딩 → 바텀시트에 주소 표시
   const handleMapClick = useCallback(async (coords: { lat: number; lng: number }) => {
     try {
       const res = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
       const data = await res.json();
       if (!data.address) return;
-
-      const location = { address: data.address, coordinates: coords };
-      if (!start?.address) {
-        setStart(location);
-      } else if (!end?.address) {
-        setEnd(location);
-      }
+      setMapClickInfo({ address: data.address, coords });
     } catch (err) {
       console.error('Reverse geocode failed:', err);
     }
-  }, [start, end, setStart, setEnd]);
+  }, []);
 
   const handleSearch = async () => {
     if (!start?.address || !end?.address) return;
@@ -198,6 +194,23 @@ export default function HomePage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ========== MAP CLICK SHEET ========== */}
+        {mapClickInfo && !selectedWaypoint && (
+          <MapClickSheet
+            address={mapClickInfo.address}
+            coords={mapClickInfo.coords}
+            onSetStart={() => {
+              setStart({ address: mapClickInfo.address, coordinates: mapClickInfo.coords });
+              setMapClickInfo(null);
+            }}
+            onSetEnd={() => {
+              setEnd({ address: mapClickInfo.address, coordinates: mapClickInfo.coords });
+              setMapClickInfo(null);
+            }}
+            onClose={() => setMapClickInfo(null)}
+          />
         )}
 
         {/* ========== PLACE DETAIL ========== */}
