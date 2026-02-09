@@ -1,24 +1,20 @@
 /**
- * AddressInput - 주소 입력 컴포넌트
+ * AddressInput - 주소 입력 컴포넌트 (리디자인)
  *
- * 출발지/도착지 주소를 입력받는 컴포넌트입니다.
- * 300ms 디바운스를 적용하여 불필요한 업데이트를 방지합니다.
+ * 모바일 퍼스트, 큰 터치 타겟, 깔끔한 디자인
  */
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { MapPin } from 'lucide-react';
 
 interface AddressInputProps {
-  /** 라벨 텍스트 */
   label: string;
-  /** 현재 값 */
   value: string;
-  /** 값 변경 콜백 (300ms 디바운스) */
   onChange: (value: string) => void;
-  /** 플레이스홀더 */
   placeholder?: string;
+  icon?: ReactNode;
 }
 
 export default function AddressInput({
@@ -26,6 +22,7 @@ export default function AddressInput({
   value,
   onChange,
   placeholder = '주소를 입력하세요',
+  icon,
 }: AddressInputProps) {
   const [localValue, setLocalValue] = useState(value);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -38,28 +35,23 @@ export default function AddressInput({
     const newValue = e.target.value;
     setLocalValue(newValue);
 
-    // 이전 타이머 취소
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    // 300ms 디바운스
-    debounceTimer.current = setTimeout(() => {
-      onChange(newValue);
-    }, 300);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => onChange(newValue), 300);
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</label>
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="absolute left-3.5 top-1/2 -translate-y-1/2">
+          {icon || <MapPin className="w-4 h-4 text-gray-400" />}
+        </div>
         <input
           type="text"
           value={localValue}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-all"
         />
       </div>
     </div>

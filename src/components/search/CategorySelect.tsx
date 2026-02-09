@@ -1,7 +1,7 @@
 /**
- * CategorySelect - 카테고리 선택 컴포넌트
+ * CategorySelect - 카테고리 선택 (리디자인)
  *
- * 매장 카테고리를 선택하는 버튼 그룹입니다.
+ * 가로 스크롤 칩 스타일, 모바일 최적화
  */
 
 'use client';
@@ -9,47 +9,41 @@
 import { Store, Coffee, ShoppingBag } from 'lucide-react';
 
 interface CategorySelectProps {
-  /** 선택된 카테고리 */
   selected: string;
-  /** 카테고리 변경 콜백 */
   onChange: (category: string) => void;
 }
 
-const categoryIcons: Record<string, typeof Store> = {
-  '다이소': Store,
-  '스타벅스': Coffee,
-  '이디야': Coffee,
-  'CU': ShoppingBag,
-  'GS25': ShoppingBag,
-  '올리브영': Store,
-};
+const categories = [
+  { name: '다이소', icon: Store },
+  { name: '스타벅스', icon: Coffee },
+  { name: '이디야', icon: Coffee },
+  { name: 'CU', icon: ShoppingBag },
+  { name: 'GS25', icon: ShoppingBag },
+  { name: '올리브영', icon: Store },
+];
 
 export default function CategorySelect({ selected, onChange }: CategorySelectProps) {
-  const categories = ['다이소', '스타벅스', '이디야', 'CU', 'GS25', '올리브영'];
-
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-gray-700">카테고리</label>
-      <div className="grid grid-cols-3 gap-2">
-        {categories.map((category) => {
-          const Icon = categoryIcons[category] || Store;
-          const isSelected = selected === category;
-
+    <div className="space-y-2">
+      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">카테고리</label>
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+        {categories.map(({ name, icon: Icon }) => {
+          const isSelected = selected === name;
           return (
             <button
-              key={category}
-              onClick={() => onChange(category)}
+              key={name}
+              onClick={() => onChange(name)}
               className={`
-                flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition-all
-                ${
-                  isSelected
-                    ? 'bg-blue-500 text-white border-blue-500 shadow-md'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300 hover:bg-blue-50'
+                flex items-center gap-1.5 px-4 py-2.5 rounded-full whitespace-nowrap text-sm font-medium
+                transition-all active:scale-95 shrink-0
+                ${isSelected
+                  ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }
               `}
             >
               <Icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{category}</span>
+              {name}
             </button>
           );
         })}
