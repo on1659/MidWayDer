@@ -70,13 +70,13 @@ export default function MapContainer({
   // 카카오맵 클릭 이벤트 (지도 클릭으로 장소 선택)
   useEffect(() => {
     if (!kakaoMap || !onMapClick) return;
-    const handler = (mouseEvent: kakao.maps.event.MouseEvent) => {
+    const handler = (mouseEvent: any) => {
       const latlng = mouseEvent.latLng;
       onMapClick({ lat: latlng.getLat(), lng: latlng.getLng() });
     };
-    kakao.maps.event.addListener(kakaoMap, 'click', handler);
+    kakao.maps.event.addListener(kakaoMap, 'click', handler as any);
     return () => {
-      kakao.maps.event.removeListener(kakaoMap, 'click', handler);
+      kakao.maps.event.removeListener(kakaoMap, 'click', handler as any);
     };
   }, [kakaoMap, onMapClick]);
 
