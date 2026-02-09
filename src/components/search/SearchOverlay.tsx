@@ -18,6 +18,8 @@ interface SearchOverlayProps {
   category: string;
   onStartChange: (v: string) => void;
   onEndChange: (v: string) => void;
+  onStartSelect?: (result: { address: string; coordinates: { lat: number; lng: number } }) => void;
+  onEndSelect?: (result: { address: string; coordinates: { lat: number; lng: number } }) => void;
   onCategoryChange: (v: string) => void;
   onSearch: () => void;
   isLoading: boolean;
@@ -32,6 +34,8 @@ export default function SearchOverlay({
   category,
   onStartChange,
   onEndChange,
+  onStartSelect,
+  onEndSelect,
   onCategoryChange,
   onSearch,
   isLoading,
@@ -72,6 +76,7 @@ export default function SearchOverlay({
                 label="출발지"
                 value={startAddress}
                 onChange={onStartChange}
+                onSelect={onStartSelect}
                 placeholder="예: 서울시청"
                 icon={<Navigation className="w-4 h-4 text-blue-500" />}
               />
@@ -79,6 +84,7 @@ export default function SearchOverlay({
                 label="도착지"
                 value={endAddress}
                 onChange={onEndChange}
+                onSelect={onEndSelect}
                 placeholder="예: 강남역"
                 icon={<MapPin className="w-4 h-4 text-red-500" />}
               />

@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import NaverMap from './NaverMap';
 import KakaoMap from './KakaoMap';
 import RoutePolyline from './RoutePolyline';
@@ -35,6 +35,8 @@ interface MapContainerProps {
   selectedWaypointId: string | null;
   /** 경유지 선택 핸들러 */
   onWaypointSelect: (waypoint: DetourResult) => void;
+  /** 지도 클릭 핸들러 (좌표 반환) */
+  onMapClick?: (coords: Coordinates) => void;
 }
 
 export default function MapContainer({
@@ -45,6 +47,7 @@ export default function MapContainer({
   waypoints,
   selectedWaypointId,
   onWaypointSelect,
+  onMapClick,
 }: MapContainerProps) {
   // 환경 변수 기본값 + 런타임 전환 가능
   const defaultProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER || 'kakao';
@@ -63,6 +66,19 @@ export default function MapContainer({
   const handleKakaoMapReady = useCallback((map: kakao.maps.Map) => {
     setKakaoMap(map);
   }, []);
+
+  // 카카오맵 클릭 이벤트 (지도 클릭으로 장소 선택)
+  useEffect(() => {
+    if (!kakaoMap || !onMapClick) return;
+    const handler = (mouseEvent: kakao.maps.event.MouseEvent) => {
+      const latlng = mouseEvent.latLng;
+      onMapClick({ lat: latlng.getLat(), lng: latlng.getLng() });
+    };
+    kakao.maps.event.addListener(kakaoMap, 'click', handler);
+    return () => {
+      kakao.maps.event.removeListener(kakaoMap, 'click', handler);
+    };
+  }, [kakaoMap, onMapClick]);
 
   // Kakao Maps 사용 시 줌 레벨 조정 (Naver: 12 ≈ Kakao: 7)
   const kakaoZoom = zoom ? Math.max(1, 13 - zoom) : 7;

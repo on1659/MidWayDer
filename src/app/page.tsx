@@ -31,6 +31,30 @@ export default function HomePage() {
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
+  const handleStartSelect = useCallback((result: { address: string; coordinates: { lat: number; lng: number } }) => {
+    setStart({ address: result.address, coordinates: result.coordinates });
+  }, [setStart]);
+  const handleEndSelect = useCallback((result: { address: string; coordinates: { lat: number; lng: number } }) => {
+    setEnd({ address: result.address, coordinates: result.coordinates });
+  }, [setEnd]);
+
+  // 지도 클릭 → 역지오코딩 → 출발지/도착지 자동 입력
+  const handleMapClick = useCallback(async (coords: { lat: number; lng: number }) => {
+    try {
+      const res = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
+      const data = await res.json();
+      if (!data.address) return;
+
+      const location = { address: data.address, coordinates: coords };
+      if (!start?.address) {
+        setStart(location);
+      } else if (!end?.address) {
+        setEnd(location);
+      }
+    } catch (err) {
+      console.error('Reverse geocode failed:', err);
+    }
+  }, [start, end, setStart, setEnd]);
 
   const handleSearch = async () => {
     if (!start?.address || !end?.address) return;
@@ -95,6 +119,7 @@ export default function HomePage() {
                 label="출발지"
                 value={start?.address || ''}
                 onChange={handleStartChange}
+                onSelect={handleStartSelect}
                 placeholder="예: 서울시청"
                 icon={<Navigation className="w-4 h-4 text-blue-500" />}
               />
@@ -102,6 +127,7 @@ export default function HomePage() {
                 label="도착지"
                 value={end?.address || ''}
                 onChange={handleEndChange}
+                onSelect={handleEndSelect}
                 placeholder="예: 강남역"
                 icon={<MapPin className="w-4 h-4 text-red-500" />}
               />
@@ -155,6 +181,7 @@ export default function HomePage() {
           waypoints={results}
           selectedWaypointId={selectedWaypoint?.place.id || null}
           onWaypointSelect={handleWaypointSelect}
+          onMapClick={handleMapClick}
         />
 
         {/* Legend (desktop) */}
@@ -209,6 +236,8 @@ export default function HomePage() {
             category={category}
             onStartChange={handleStartChange}
             onEndChange={handleEndChange}
+            onStartSelect={handleStartSelect}
+            onEndSelect={handleEndSelect}
             onCategoryChange={setCategory}
             onSearch={handleSearch}
             isLoading={isLoading}
