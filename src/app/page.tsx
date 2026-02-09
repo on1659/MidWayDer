@@ -76,6 +76,7 @@ export default function HomePage() {
     setBottomSheetSnap('collapsed');
   }, [selectWaypoint, setOriginalRoute]);
 
+  const mapCenter = start?.coordinates || { lat: 37.5665, lng: 126.978 };
   const hasResults = results.length > 0 || isLoading || !!error;
   const canSearch = !!(start?.address && end?.address);
 
@@ -118,6 +119,7 @@ export default function HomePage() {
                 onSelect={handleStartSelect}
                 placeholder="예: 서울시청"
                 icon={<Navigation className="w-4 h-4 text-blue-500" />}
+                mapCenter={mapCenter}
               />
               <AddressInput
                 label="도착지"
@@ -126,6 +128,7 @@ export default function HomePage() {
                 onSelect={handleEndSelect}
                 placeholder="예: 강남역"
                 icon={<MapPin className="w-4 h-4 text-red-500" />}
+                mapCenter={mapCenter}
               />
             </div>
           </div>
@@ -251,6 +254,7 @@ export default function HomePage() {
             onEndChange={handleEndChange}
             onStartSelect={handleStartSelect}
             onEndSelect={handleEndSelect}
+            mapCenter={mapCenter}
             onCategoryChange={setCategory}
             onSearch={handleSearch}
             isLoading={isLoading}

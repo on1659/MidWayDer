@@ -24,6 +24,8 @@ interface AddressInputProps {
   onSelect?: (result: { address: string; coordinates: { lat: number; lng: number } }) => void;
   placeholder?: string;
   icon?: ReactNode;
+  /** 지도 중심 좌표 (근처 결과 우선 정렬) */
+  mapCenter?: { lat: number; lng: number };
 }
 
 export default function AddressInput({
@@ -33,6 +35,7 @@ export default function AddressInput({
   onSelect,
   placeholder = '장소나 주소를 검색하세요',
   icon,
+  mapCenter,
 }: AddressInputProps) {
   const [localValue, setLocalValue] = useState(value);
   const [results, setResults] = useState<AutocompleteResult[]>([]);
@@ -67,7 +70,11 @@ export default function AddressInput({
 
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/autocomplete?query=${encodeURIComponent(query)}`);
+      let url = `/api/autocomplete?query=${encodeURIComponent(query)}`;
+      if (mapCenter) {
+        url += `&lat=${mapCenter.lat}&lng=${mapCenter.lng}`;
+      }
+      const res = await fetch(url);
       const data = await res.json();
       setResults(data.results || []);
       setIsOpen((data.results || []).length > 0);

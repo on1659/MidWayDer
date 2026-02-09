@@ -12,11 +12,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 
+  const lat = req.nextUrl.searchParams.get('lat');
+  const lng = req.nextUrl.searchParams.get('lng');
+
   try {
-    const res = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=5`,
-      { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
-    );
+    let url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=7`;
+    if (lat && lng) {
+      url += `&y=${lat}&x=${lng}&sort=distance`;
+    }
+
+    const res = await fetch(url, {
+      headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` },
+    });
 
     if (!res.ok) {
       console.error('[Autocomplete] Kakao API error:', res.status);
