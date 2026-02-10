@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   try {
     let url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=7`;
     if (lat && lng) {
-      url += `&y=${lat}&x=${lng}&sort=distance`;
+      url += `&y=${lat}&x=${lng}&sort=accuracy`;
     }
 
     const res = await fetch(url, {
