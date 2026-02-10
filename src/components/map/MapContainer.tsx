@@ -98,8 +98,8 @@ export default function MapContainer({
     const el = document.createElement('div');
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
-        <div style="width:14px;height:14px;background:#FF8FA3;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>
-        <div style="width:2px;height:16px;background:#FF8FA3;margin-top:-2px;"></div>
+        <div style="width:24px;height:24px;background:#FF8FA3;border:4px solid white;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,0.3);"></div>
+        <div style="width:3px;height:20px;background:#FF8FA3;margin-top:-3px;border-radius:0 0 2px 2px;"></div>
       </div>
     `;
 
@@ -107,7 +107,7 @@ export default function MapContainer({
       position: new window.kakao.maps.LatLng(clickedCoords.lat, clickedCoords.lng),
       content: el,
       xAnchor: 0.5,
-      yAnchor: 1,
+      yAnchor: 1.0,
       zIndex: 900,
     });
 
