@@ -23,6 +23,8 @@ interface AddressInputProps {
   placeholder?: string;
   icon?: ReactNode;
   mapCenter?: { lat: number; lng: number };
+  /** 입력란 왼쪽에 표시할 색깔 점 */
+  dotColor?: string;
 }
 
 export default function AddressInput({
@@ -33,6 +35,7 @@ export default function AddressInput({
   placeholder = '장소나 주소를 검색하세요',
   icon,
   mapCenter,
+  dotColor,
 }: AddressInputProps) {
   const [localValue, setLocalValue] = useState(value);
   const [results, setResults] = useState<AutocompleteResult[]>([]);
@@ -134,7 +137,12 @@ export default function AddressInput({
 
   return (
     <div className="relative" ref={containerRef}>
-      <div className="relative">
+      {label && <label className="text-xs font-semibold mb-1.5 block" style={{ color: '#8B95A5' }}>{label}</label>}
+      <div className="relative flex items-center">
+        {dotColor && (
+          <div className="w-3 h-3 rounded-full shrink-0 mr-3" style={{ background: dotColor }} />
+        )}
+        <div className="relative flex-1">
         <input
           ref={inputRef}
           type="text"
@@ -167,7 +175,6 @@ export default function AddressInput({
             </button>
           ) : null}
         </div>
-      </div>
 
       {isOpen && results.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto">
@@ -193,6 +200,8 @@ export default function AddressInput({
           ))}
         </div>
       )}
+      </div>{/* close flex-1 */}
+      </div>{/* close flex items-center */}
     </div>
   );
 }
