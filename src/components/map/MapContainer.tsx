@@ -37,6 +37,8 @@ interface MapContainerProps {
   onWaypointSelect: (waypoint: DetourResult) => void;
   /** 지도 클릭 핸들러 (좌표 반환) */
   onMapClick?: (coords: Coordinates) => void;
+  /** 클릭한 위치 표시용 좌표 */
+  clickedCoords?: Coordinates | null;
 }
 
 export default function MapContainer({
@@ -48,6 +50,7 @@ export default function MapContainer({
   selectedWaypointId,
   onWaypointSelect,
   onMapClick,
+  clickedCoords,
 }: MapContainerProps) {
   // 환경 변수 기본값 + 런타임 전환 가능
   const defaultProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER || 'kakao';
@@ -79,6 +82,42 @@ export default function MapContainer({
       kakao.maps.event.removeListener(kakaoMap, 'click', handler as any);
     };
   }, [kakaoMap, onMapClick]);
+
+  // 클릭 위치 마커 표시
+  useEffect(() => {
+    if (!kakaoMap || !window.kakao) return;
+
+    // 이전 마커 제거
+    if ((kakaoMap as any).__clickMarker) {
+      (kakaoMap as any).__clickMarker.setMap(null);
+      (kakaoMap as any).__clickMarker = null;
+    }
+
+    if (!clickedCoords) return;
+
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
+        <div style="width:14px;height:14px;background:#FF8FA3;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>
+        <div style="width:2px;height:16px;background:#FF8FA3;margin-top:-2px;"></div>
+      </div>
+    `;
+
+    const overlay = new window.kakao.maps.CustomOverlay({
+      position: new window.kakao.maps.LatLng(clickedCoords.lat, clickedCoords.lng),
+      content: el,
+      xAnchor: 0.5,
+      yAnchor: 1,
+      zIndex: 900,
+    });
+
+    overlay.setMap(kakaoMap);
+    (kakaoMap as any).__clickMarker = overlay;
+
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [kakaoMap, clickedCoords]);
 
   // Kakao Maps 사용 시 줌 레벨 조정 (Naver: 12 ≈ Kakao: 7)
   const kakaoZoom = zoom ? Math.max(1, 13 - zoom) : 7;

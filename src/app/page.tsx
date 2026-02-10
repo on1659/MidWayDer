@@ -163,6 +163,7 @@ export default function HomePage() {
           selectedWaypointId={selectedWaypoint?.place.id || null}
           onWaypointSelect={handleWaypointSelect}
           onMapClick={handleMapClick}
+          clickedCoords={mapClickInfo?.coords || null}
         />
 
         {/* Legend (desktop) */}
