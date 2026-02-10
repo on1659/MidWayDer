@@ -51,20 +51,24 @@ export function calculateProximityScore(
   // 경로 진행률 계산 (0-1)
   const routeProgress = closestPointIndex / (sampledPoints.length - 1);
 
-  // 경로 후반부(80% 이후) 매장 제외
-  // 목적지 근처 매장은 경유할 의미가 없음
-  if (routeProgress > 0.8) {
+  // 도착지 거의 다 온 곳만 제외 (95% 이후)
+  if (routeProgress > 0.95) {
     return 0;
   }
 
-  // 거리 기반 점수 변환
-  // 0m → 100점, 1000m → 0점 (선형)
-  const MAX_DISTANCE = 1000;
-  const distanceScore = Math.max(0, 100 - (minDistance / MAX_DISTANCE) * 100);
+  // 거리 기반 점수 변환 (비선형 — 가까울수록 훨씬 높은 점수)
+  // 0m → 100점, 100m → 85점, 300m → 50점, 500m → 20점, 800m+ → ~0점
+  const MAX_DISTANCE = 800;
+  const normalizedDist = Math.min(minDistance / MAX_DISTANCE, 1);
+  const distanceScore = Math.max(0, 100 * (1 - normalizedDist * normalizedDist));
 
-  // 경로 중반(40-60%)에 가중치 부여 (선택사항)
-  // 경로의 중간 지점 매장을 더 선호
-  const positionWeight = routeProgress >= 0.4 && routeProgress <= 0.6 ? 1.1 : 1.0;
+  // 도착지 근처(80-95%)는 약간 보너스 (도착 직전에 들르기 편함)
+  let positionWeight = 1.0;
+  if (routeProgress >= 0.3 && routeProgress <= 0.7) {
+    positionWeight = 1.05; // 경로 중반 약간 선호
+  } else if (routeProgress >= 0.8 && routeProgress <= 0.95) {
+    positionWeight = 0.95; // 도착 근처는 약간 감점
+  }
 
   return Math.min(100, distanceScore * positionWeight);
 }

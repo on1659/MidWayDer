@@ -61,7 +61,7 @@ export async function calculateDetourCosts(
 
   // 옵션 기본값
   const {
-    bufferDistance = 1000,
+    bufferDistance = 500,
     maxDetourDistance = 5000,
     sampleInterval = getOptimalSampleInterval(originalRoute.distance),
   } = options;

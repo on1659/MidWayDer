@@ -142,12 +142,16 @@ async function fetchFromKakao(
 ): Promise<Place[]> {
   const sampleCount = getSampleCount(route.distance);
   const samplePoints = sampleRoutePoints(route, sampleCount);
-  const radius = Math.min(bufferDistance, 20000); // 카카오 API 최대 반경 20km
+  const radius = Math.min(bufferDistance, 20000);
 
-  console.log(`[Spatial Filter] 카카오 검색: ${sampleCount}개 포인트, radius=${radius}m`);
+  // 도착지 주변도 추가 검색 (도착지 1km 반경)
+  const endPoint = route.end;
+
+  console.log(`[Spatial Filter] 카카오 검색: ${sampleCount}개 포인트 + 도착지 주변, radius=${radius}m`);
 
   const allPlaces: Place[] = [];
 
+  // 경로 샘플 포인트 검색
   for (const center of samplePoints) {
     try {
       const places = await kakaoSearch.searchPlaces(category, {
@@ -161,10 +165,24 @@ async function fetchFromKakao(
     }
   }
 
-  // 경로 버퍼 내 필터링
+  // 도착지 주변 추가 검색 (1km 반경, 도착 직전/직후 매장)
+  try {
+    const endPlaces = await kakaoSearch.searchPlaces(category, {
+      center: endPoint,
+      radius: 1000,
+      maxResults: 10,
+    });
+    allPlaces.push(...endPlaces);
+    console.log(`[Spatial Filter] 도착지 주변: ${endPlaces.length}개`);
+  } catch (err) {
+    console.warn(`[Spatial Filter] 도착지 주변 검색 실패:`, err);
+  }
+
+  // 경로 버퍼 내 필터링 (도착지 근처는 1km까지 허용)
   return allPlaces.filter((p) => {
-    const minDist = minDistanceToPolyline(p.coordinates, route.path);
-    return minDist <= bufferDistance;
+    const minDistToRoute = minDistanceToPolyline(p.coordinates, route.path);
+    const distToEnd = haversineDistance(p.coordinates, endPoint);
+    return minDistToRoute <= bufferDistance || distToEnd <= 1000;
   });
 }
 
