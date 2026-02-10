@@ -98,8 +98,8 @@ export default function MapContainer({
     const el = document.createElement('div');
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
-        <div style="width:24px;height:24px;background:#FF8FA3;border:4px solid white;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,0.3);"></div>
-        <div style="width:3px;height:20px;background:#FF8FA3;margin-top:-3px;border-radius:0 0 2px 2px;"></div>
+        <div style="width:44px;height:44px;background:#FF8FA3;border:5px solid white;border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,0.3);"></div>
+        <div style="width:5px;height:28px;background:#FF8FA3;margin-top:-4px;border-radius:0 0 3px 3px;"></div>
       </div>
     `;
 
