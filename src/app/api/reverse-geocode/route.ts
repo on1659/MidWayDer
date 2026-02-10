@@ -1,5 +1,8 @@
 /**
- * 역지오코딩 API - 좌표 → 장소이름/주소 변환
+ * 역지오코딩 API - 좌표 → 장소이름 + 주소 변환
+ * 
+ * 1. 좌표→주소 변환
+ * 2. 주소로 키워드 검색 → 가장 가까운 장소 이름 추출
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,45 +18,44 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 1. 근처 장소 검색 (카카오 카테고리 검색 - 반경 30m)
-    const categoryRes = await fetch(
-      `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=&x=${lng}&y=${lat}&radius=30&sort=distance&size=1`,
-      { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
-    );
-
-    if (categoryRes.ok) {
-      const catData = await categoryRes.json();
-      const place = catData.documents?.[0];
-      if (place && parseFloat(place.distance) <= 30) {
-        return NextResponse.json({
-          name: place.place_name,
-          address: place.road_address_name || place.address_name,
-          lat: parseFloat(lat),
-          lng: parseFloat(lng),
-        });
-      }
-    }
-
-    // 2. 폴백: 좌표→주소 변환
-    const res = await fetch(
+    // 1. 좌표→주소 변환
+    const addrRes = await fetch(
       `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
       { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
     );
 
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Kakao API error' }, { status: 502 });
+    let address: string | null = null;
+    let region: string | null = null;
+    if (addrRes.ok) {
+      const addrData = await addrRes.json();
+      const doc = addrData.documents?.[0];
+      address = doc?.road_address?.address_name || doc?.address?.address_name || null;
+      // 동네 이름 추출 (예: "중구 무교동")
+      const addr = doc?.address;
+      if (addr) {
+        region = `${addr.region_2depth_name} ${addr.region_3depth_name}`.trim();
+      }
     }
 
-    const data = await res.json();
-    const doc = data.documents?.[0];
+    // 2. 동네 이름으로 키워드 검색 → 좌표 가까운 순 정렬
+    let placeName: string | null = null;
+    if (region) {
+      const searchRes = await fetch(
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(region)}&x=${lng}&y=${lat}&radius=50&sort=distance&size=1`,
+        { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
+      );
 
-    if (!doc) {
-      return NextResponse.json({ name: null, address: null });
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        const place = searchData.documents?.[0];
+        if (place && parseFloat(place.distance) <= 50) {
+          placeName = place.place_name;
+        }
+      }
     }
 
-    const address = doc.road_address?.address_name || doc.address?.address_name || null;
     return NextResponse.json({
-      name: address,
+      name: placeName || address,
       address,
       lat: parseFloat(lat),
       lng: parseFloat(lng),
