@@ -49,8 +49,8 @@ export default function KakaoRoutePolyline({
       map,
       path,
       strokeColor: '#3B82F6', // 파란색
-      strokeWeight: 5,
-      strokeOpacity: 0.7,
+      strokeWeight: 8,
+      strokeOpacity: 0.85,
       strokeStyle: 'solid',
     });
 
@@ -61,7 +61,7 @@ export default function KakaoRoutePolyline({
     originalRoute.path.forEach((point) => {
       bounds.extend(new window.kakao.maps.LatLng(point.lat, point.lng));
     });
-    map.setBounds(bounds, 50, 50, 50, 50);
+    map.setBounds(bounds, 80, 80, 200, 80);
 
     return () => {
       if (originalPolylineRef.current) {
