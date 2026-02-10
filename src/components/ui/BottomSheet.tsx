@@ -1,8 +1,5 @@
 /**
- * BottomSheet - 모바일 바텀시트 컴포넌트
- *
- * 드래그로 올리고 내릴 수 있는 바텀시트입니다.
- * snap points: collapsed(peek), half, full
+ * BottomSheet - 파스텔 스타일 바텀시트
  */
 
 'use client';
@@ -13,13 +10,9 @@ type SnapPoint = 'collapsed' | 'half' | 'full';
 
 interface BottomSheetProps {
   children: React.ReactNode;
-  /** 접혔을 때 보이는 높이 (px) */
   peekHeight?: number;
-  /** 현재 snap point (외부 제어) */
   snap?: SnapPoint;
-  /** snap 변경 콜백 */
   onSnapChange?: (snap: SnapPoint) => void;
-  /** 시트가 보이는지 여부 */
   visible?: boolean;
 }
 
@@ -36,7 +29,6 @@ export default function BottomSheet({
   const [isDragging, setIsDragging] = useState(false);
   const [currentTranslate, setCurrentTranslate] = useState(0);
 
-  // Calculate translate from snap point
   const getTranslateForSnap = useCallback((s: SnapPoint) => {
     if (typeof window === 'undefined') return 0;
     const vh = window.innerHeight;
@@ -77,7 +69,6 @@ export default function BottomSheet({
       { point: 'collapsed', value: vh - peekHeight },
     ];
 
-    // Find closest snap point
     let closest = snapPoints[0];
     for (const sp of snapPoints) {
       if (Math.abs(currentTranslate - sp.value) < Math.abs(currentTranslate - closest.value)) {
@@ -89,12 +80,10 @@ export default function BottomSheet({
     onSnapChange?.(closest.point);
   }, [isDragging, currentTranslate, peekHeight, onSnapChange]);
 
-  // Touch events
   const onTouchStart = (e: React.TouchEvent) => handleDragStart(e.touches[0].clientY);
   const onTouchMove = (e: React.TouchEvent) => handleDragMove(e.touches[0].clientY);
   const onTouchEnd = () => handleDragEnd();
 
-  // Mouse events (for desktop testing)
   const onMouseDown = (e: React.MouseEvent) => {
     handleDragStart(e.clientY);
     const onMouseMove = (ev: MouseEvent) => handleDragMove(ev.clientY);
@@ -112,12 +101,13 @@ export default function BottomSheet({
   return (
     <div
       ref={sheetRef}
-      className="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-bottom"
+      className="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-3xl safe-bottom"
       style={{
         transform: `translateY(${currentTranslate}px)`,
         transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         height: '100dvh',
         touchAction: 'none',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
       }}
     >
       {/* Drag handle */}
@@ -131,7 +121,6 @@ export default function BottomSheet({
         <div className="bottom-sheet-handle" />
       </div>
 
-      {/* Content */}
       <div className="overflow-y-auto scrollbar-hide" style={{ height: 'calc(100% - 28px)' }}>
         {children}
       </div>

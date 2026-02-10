@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --primary-blue: #3b82f6;
-  --primary-blue-dark: #2563eb;
-  --primary-blue-light: #60a5fa;
+  --pastel-blue: #6C9CFF;
+  --pastel-pink: #FF8FA3;
+  --pastel-green: #7ED6A8;
+  --bg-main: #F8F9FB;
+  --text-dark: #2D3748;
+  --text-light: #8B95A5;
 }
 
 * {
@@ -21,6 +24,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+  background: var(--bg-main);
 }
 
 /* Bottom Sheet drag handle */
@@ -46,4 +50,24 @@ body {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
 }

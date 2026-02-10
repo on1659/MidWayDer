@@ -1,8 +1,5 @@
 /**
- * PlaceDetail - 장소 상세 바텀시트/카드
- *
- * 모바일: 하단 슬라이드업 시트
- * 데스크탑: 좌측 하단 플로팅 카드
+ * PlaceDetail - 경유지 상세 바텀시트 (파스텔 스타일)
  */
 
 'use client';
@@ -34,7 +31,6 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const address = place.roadAddress || place.address;
 
   useEffect(() => {
-    // trigger enter animation
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
@@ -49,12 +45,16 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   };
 
   const scoreColor =
-    finalScore >= 70 ? 'text-green-600' :
-    finalScore >= 40 ? 'text-yellow-600' : 'text-red-500';
+    finalScore >= 70 ? '#2D8F5E' :
+    finalScore >= 40 ? '#D4850F' : '#E85D5D';
+
+  const scoreBg =
+    finalScore >= 70 ? '#E6F7ED' :
+    finalScore >= 40 ? '#FFF4E5' : '#FFF0F3';
 
   return (
     <>
-      {/* Backdrop (mobile only) */}
+      {/* Backdrop */}
       <div
         className={`md:hidden fixed inset-0 z-40 bg-black/20 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={handleClose}
@@ -63,34 +63,34 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
       {/* Card */}
       <div
         className={[
-          // shared
           'z-50 bg-white rounded-2xl shadow-lg transition-all duration-300 ease-out',
-          // mobile: bottom sheet
           'fixed inset-x-0 bottom-0 md:inset-auto',
           'md:absolute md:left-6 md:bottom-6 md:w-[360px]',
-          // animation
           visible
             ? 'translate-y-0 opacity-100'
             : 'translate-y-full md:translate-y-4 opacity-0',
         ].join(' ')}
       >
-        {/* Drag handle (mobile) */}
+        {/* Drag handle */}
         <div className="md:hidden flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-gray-300" />
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
         </div>
 
         <div className="px-5 pt-3 pb-5 md:p-5">
-          {/* Header: name + close */}
+          {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-bold text-gray-900 truncate">{place.name}</h2>
-                <span className="shrink-0 px-2 py-0.5 text-[11px] font-medium rounded-full bg-gray-100 text-gray-500">
+                <h2 className="text-lg font-bold truncate" style={{ color: '#2D3748' }}>{place.name}</h2>
+                <span
+                  className="shrink-0 px-2.5 py-0.5 text-[11px] font-medium rounded-full"
+                  style={{ background: '#F0F4FF', color: '#6C9CFF' }}
+                >
                   {place.category}
                 </span>
               </div>
               {address && (
-                <p className="mt-1 text-sm text-gray-500 flex items-center gap-1">
+                <p className="mt-1 text-[13px] flex items-center gap-1" style={{ color: '#8B95A5' }}>
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{address}</span>
                 </p>
@@ -98,27 +98,33 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             </div>
             <button
               onClick={handleClose}
-              className="shrink-0 p-1.5 -m-1.5 rounded-full hover:bg-gray-100 transition-colors"
+              className="shrink-0 p-1.5 -m-1.5 rounded-full hover:bg-gray-50 transition-colors"
               aria-label="닫기"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5" style={{ color: '#8B95A5' }} />
             </button>
           </div>
 
-          {/* Badges row */}
+          {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap mb-4">
-            {/* Distance badge */}
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-600">
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full"
+              style={{ background: '#E8F0FE', color: '#4A7AE8' }}
+            >
               <Navigation className="w-3 h-3" />
               {formatDistance(detourCost.distance)}
             </span>
-            {/* Duration badge */}
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-50 text-orange-600">
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full"
+              style={{ background: '#FFF4E5', color: '#D4850F' }}
+            >
               <Clock className="w-3 h-3" />
               {formatDuration(detourCost.duration)}
             </span>
-            {/* Score */}
-            <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-50 ${scoreColor}`}>
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full"
+              style={{ background: scoreBg, color: scoreColor }}
+            >
               <Star className="w-3 h-3" />
               추천 {Math.round(finalScore)}점
             </span>
@@ -128,7 +134,8 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           {place.phone && (
             <a
               href={`tel:${place.phone}`}
-              className="flex items-center gap-2 text-sm text-gray-600 mb-4 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-2 text-sm mb-4 transition-colors"
+              style={{ color: '#6C9CFF' }}
             >
               <Phone className="w-4 h-4" />
               {place.phone}
@@ -138,9 +145,10 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           {/* CTA */}
           <button
             onClick={handleConfirm}
-            className="w-full py-3 bg-blue-500 text-white text-sm font-semibold rounded-xl hover:bg-blue-600 active:scale-[0.98] transition-all"
+            className="w-full py-3.5 text-white text-sm font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
+            style={{ background: '#7ED6A8' }}
           >
-            경유지로 설정
+            경유지로 선택
           </button>
         </div>
       </div>

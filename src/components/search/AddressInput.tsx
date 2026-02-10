@@ -1,5 +1,5 @@
 /**
- * AddressInput - 주소 입력 + 자동완성 컴포넌트
+ * AddressInput - 주소 입력 + 자동완성 (파스텔 스타일)
  */
 
 'use client';
@@ -134,7 +134,6 @@ export default function AddressInput({
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="text-xs font-semibold text-gray-500 mb-1.5 block">{label}</label>
       <div className="relative">
         <input
           ref={inputRef}
@@ -144,38 +143,49 @@ export default function AddressInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-[16px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-all pr-10"
+          className="w-full px-4 py-3 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-10"
+          style={{
+            background: '#F8F9FB',
+            color: '#2D3748',
+            border: '1px solid #E8ECF1',
+          }}
+          onFocusCapture={(e) => {
+            e.currentTarget.style.borderColor = '#6C9CFF';
+            e.currentTarget.style.background = '#FFFFFF';
+          }}
+          onBlurCapture={(e) => {
+            e.currentTarget.style.borderColor = '#E8ECF1';
+            e.currentTarget.style.background = '#F8F9FB';
+          }}
         />
-        {/* 로딩/클리어 */}
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {isLoading ? (
-            <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#8B95A5' }} />
           ) : localValue ? (
-            <button onClick={handleClear} className="p-1 rounded-full hover:bg-gray-200 transition-colors">
-              <X className="w-4 h-4 text-gray-400" />
+            <button onClick={handleClear} className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+              <X className="w-4 h-4" style={{ color: '#8B95A5' }} />
             </button>
           ) : null}
         </div>
       </div>
 
-      {/* 자동완성 드롭다운 */}
       {isOpen && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto">
           {results.map((result, i) => (
             <button
               key={`${result.lat}-${result.lng}-${i}`}
               onClick={() => handleSelect(result)}
               className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${
                 i === activeIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
-              } ${i > 0 ? 'border-t border-gray-100' : ''}`}
+              } ${i > 0 ? 'border-t border-gray-50' : ''}`}
             >
-              <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+              <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#6C9CFF' }} />
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-medium text-gray-900 truncate">{result.name}</p>
-                <p className="text-[13px] text-gray-500 truncate mt-0.5">
+                <p className="text-[14px] font-medium truncate" style={{ color: '#2D3748' }}>{result.name}</p>
+                <p className="text-[12px] truncate mt-0.5" style={{ color: '#8B95A5' }}>
                   {result.address}
                   {result.category && (
-                    <span className="ml-1.5 text-gray-400">· {result.category}</span>
+                    <span className="ml-1.5">· {result.category}</span>
                   )}
                 </p>
               </div>

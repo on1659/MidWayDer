@@ -1,12 +1,9 @@
 /**
- * ResultList - 키즈 프렌들리 결과 카드
- *
- * 큰 글씨, 심플한 카드, +몇분/+몇km 배지
+ * ResultList - 파스텔톤 카드형 결과 리스트
  */
 
 'use client';
 
-import { MapPin } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 
 interface ResultListProps {
@@ -26,13 +23,15 @@ export default function ResultList({
 }: ResultListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="p-5 bg-white rounded-3xl animate-pulse">
-            <div className="h-6 bg-gray-200 rounded-xl w-2/3 mb-3" />
-            <div className="flex gap-2">
-              <div className="h-8 bg-gray-100 rounded-xl w-20" />
-              <div className="h-8 bg-gray-100 rounded-xl w-20" />
+          <div key={i} className="p-4 bg-white rounded-2xl animate-pulse shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-gray-100 rounded-full" />
+              <div className="flex-1">
+                <div className="h-4 bg-gray-100 rounded-lg w-2/3 mb-2" />
+                <div className="h-3 bg-gray-50 rounded-lg w-1/2" />
+              </div>
             </div>
           </div>
         ))}
@@ -42,8 +41,8 @@ export default function ResultList({
 
   if (error) {
     return (
-      <div className="p-5 bg-red-50 rounded-3xl">
-        <p className="text-base text-red-500 font-medium">😢 {error}</p>
+      <div className="p-4 rounded-2xl" style={{ background: '#FFF0F3' }}>
+        <p className="text-sm font-medium" style={{ color: '#FF8FA3' }}>😢 {error}</p>
       </div>
     );
   }
@@ -51,58 +50,80 @@ export default function ResultList({
   if (results.length === 0) {
     return (
       <div className="py-16 text-center">
-        <div className="text-5xl mb-4">🗺️</div>
-        <p className="text-lg text-gray-400 font-medium">
-          출발지와 도착지를 넣고<br />검색 버튼을 눌러보세요!
+        <div className="text-4xl mb-3">🗺️</div>
+        <p className="text-sm" style={{ color: '#8B95A5' }}>
+          출발지와 도착지를 설정하고<br />경유지를 검색해보세요
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {results.map((result, index) => {
         const isSelected = selectedId === result.place.id;
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
         const detourMin = Math.round(result.detourCost.duration / 60);
-        const routeLabel = (result as any).routeType === 'shortest' ? '🛣️ 최단거리' : (result as any).routeType === 'fastest' ? '⚡ 최단시간' : null;
+        const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
 
         return (
           <button
             key={result.place.id}
             onClick={() => onSelect(result)}
-            className={`
-              w-full p-5 rounded-3xl text-left transition-all active:scale-[0.97]
-              ${isSelected
-                ? 'bg-blue-50 ring-3 ring-blue-400 shadow-lg'
-                : 'bg-white shadow-sm hover:shadow-md'
-              }
-            `}
+            className="w-full p-4 rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm"
+            style={{
+              background: isSelected ? '#EEF4FF' : '#FFFFFF',
+              border: isSelected ? '1.5px solid #6C9CFF' : '1px solid #F0F2F5',
+            }}
           >
-            {/* Rank + Name */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-lg font-black shrink-0
-                ${index === 0 ? 'bg-yellow-400 text-white' : index < 3 ? 'bg-gray-200 text-gray-600' : 'bg-gray-100 text-gray-400'}
-              `}>
+            <div className="flex items-start gap-3">
+              {/* Rank badge */}
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                style={{
+                  background: index === 0 ? '#6C9CFF' : '#F0F4FF',
+                  color: index === 0 ? '#FFFFFF' : '#6C9CFF',
+                }}
+              >
                 {index + 1}
               </div>
-              <h3 className="text-lg font-bold text-gray-900 truncate flex-1">{result.place.name}</h3>
-            </div>
 
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">
-                🚗 +{detourKm}km
-              </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-bold">
-                ⏱️ +{detourMin}분
-              </span>
-              {routeLabel && (
-                <span className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-bold">
-                  {routeLabel}
-                </span>
-              )}
+              <div className="flex-1 min-w-0">
+                {/* Name */}
+                <h3 className="text-[15px] font-bold truncate" style={{ color: '#2D3748' }}>
+                  {result.place.name}
+                </h3>
+                {/* Address */}
+                {(result.place.roadAddress || result.place.address) && (
+                  <p className="text-[12px] mt-0.5 truncate" style={{ color: '#8B95A5' }}>
+                    {result.place.roadAddress || result.place.address}
+                  </p>
+                )}
+
+                {/* Badges */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                    style={{ background: '#E8F0FE', color: '#4A7AE8' }}
+                  >
+                    +{detourKm}km
+                  </span>
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                    style={{ background: '#FFF4E5', color: '#D4850F' }}
+                  >
+                    +{detourMin}분
+                  </span>
+                  {routeLabel && (
+                    <span
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                      style={{ background: '#E6F7ED', color: '#2D8F5E' }}
+                    >
+                      {routeLabel}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </button>
         );
