@@ -15,6 +15,26 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // 1. 근처 장소 검색 (카카오 카테고리 검색)
+    const placeRes = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?query=장소&x=${lng}&y=${lat}&radius=50&sort=distance&size=1`,
+      { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
+    );
+
+    if (placeRes.ok) {
+      const placeData = await placeRes.json();
+      const place = placeData.documents?.[0];
+      if (place) {
+        return NextResponse.json({
+          address: place.place_name,
+          roadAddress: place.road_address_name || place.address_name,
+          lat: parseFloat(lat),
+          lng: parseFloat(lng),
+        });
+      }
+    }
+
+    // 2. 장소 없으면 주소 변환 폴백
     const res = await fetch(
       `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
       { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }

@@ -38,9 +38,6 @@ export default function MapClickSheet({
             <MapPin className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-semibold text-gray-900 leading-snug">{address}</p>
-              <p className="text-[12px] text-gray-400 mt-0.5">
-                {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
-              </p>
             </div>
           </div>
         </div>
