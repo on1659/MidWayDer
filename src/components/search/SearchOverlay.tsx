@@ -1,12 +1,10 @@
 /**
  * SearchOverlay - 모바일 풀스크린 검색 오버레이
- *
- * 검색바를 탭하면 나타나는 풀스크린 입력 화면입니다.
  */
 
 'use client';
 
-import { X, MapPin, Navigation, Search } from 'lucide-react';
+import { X, Search } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 
@@ -51,10 +49,10 @@ export default function SearchOverlay({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900">경유지 검색</h2>
+      <div className="flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] py-3 border-b border-gray-100">
+        <h2 className="text-lg font-bold text-gray-900">경유지 검색</h2>
         <button
           onClick={onClose}
           className="p-2 -mr-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -64,44 +62,33 @@ export default function SearchOverlay({
       </div>
 
       {/* Form */}
-      <div className="flex-1 px-5 py-6 space-y-5 overflow-y-auto">
-        {/* Route inputs */}
-        <div className="space-y-3">
-          <div className="flex gap-3">
-            <div className="flex flex-col items-center pt-10 gap-1">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <div className="w-0.5 flex-1 bg-gray-200" />
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <AddressInput
-                label="출발지"
-                value={startAddress}
-                onChange={onStartChange}
-                onSelect={onStartSelect}
-                placeholder="예: 서울시청"
-                icon={<Navigation className="w-4 h-4 text-blue-500" />}
-                mapCenter={mapCenter}
-              />
-              <AddressInput
-                label="도착지"
-                value={endAddress}
-                onChange={onEndChange}
-                onSelect={onEndSelect}
-                placeholder="예: 강남역"
-                icon={<MapPin className="w-4 h-4 text-red-500" />}
-                mapCenter={mapCenter}
-              />
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 px-4 py-5 space-y-4 overflow-y-auto">
+        <AddressInput
+          label="출발지"
+          value={startAddress}
+          onChange={onStartChange}
+          onSelect={onStartSelect}
+          placeholder="출발지를 검색하세요"
+          mapCenter={mapCenter}
+        />
+        <AddressInput
+          label="도착지"
+          value={endAddress}
+          onChange={onEndChange}
+          onSelect={onEndSelect}
+          placeholder="도착지를 검색하세요"
+          mapCenter={mapCenter}
+        />
 
         {/* Category */}
-        <CategorySelect selected={category} onChange={onCategoryChange} />
+        <div className="pt-1">
+          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">카테고리</label>
+          <CategorySelect selected={category} onChange={onCategoryChange} />
+        </div>
       </div>
 
       {/* Search button (sticky bottom) */}
-      <div className="px-5 py-4 border-t border-gray-100 safe-bottom">
+      <div className="px-4 py-4 border-t border-gray-100 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button
           onClick={handleSearch}
           disabled={isLoading || !canSearch}

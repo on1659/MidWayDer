@@ -103,34 +103,24 @@ export default function HomePage() {
         </header>
 
         {/* Search controls */}
-        <div className="px-6 pb-4 space-y-4 border-b border-gray-100">
-          {/* Route inputs with visual connector */}
-          <div className="flex gap-3">
-            <div className="flex flex-col items-center pt-7 gap-0.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-              <div className="w-0.5 flex-1 bg-gray-200" />
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <AddressInput
-                label="출발지"
-                value={start?.address || ''}
-                onChange={handleStartChange}
-                onSelect={handleStartSelect}
-                placeholder="예: 서울시청"
-                icon={<Navigation className="w-4 h-4 text-blue-500" />}
-                mapCenter={mapCenter}
-              />
-              <AddressInput
-                label="도착지"
-                value={end?.address || ''}
-                onChange={handleEndChange}
-                onSelect={handleEndSelect}
-                placeholder="예: 강남역"
-                icon={<MapPin className="w-4 h-4 text-red-500" />}
-                mapCenter={mapCenter}
-              />
-            </div>
+        <div className="px-5 pb-4 space-y-4 border-b border-gray-100">
+          <div className="space-y-3">
+            <AddressInput
+              label="출발지"
+              value={start?.address || ''}
+              onChange={handleStartChange}
+              onSelect={handleStartSelect}
+              placeholder="출발지를 검색하세요"
+              mapCenter={mapCenter}
+            />
+            <AddressInput
+              label="도착지"
+              value={end?.address || ''}
+              onChange={handleEndChange}
+              onSelect={handleEndSelect}
+              placeholder="도착지를 검색하세요"
+              mapCenter={mapCenter}
+            />
           </div>
 
           <CategorySelect selected={category} onChange={setCategory} />

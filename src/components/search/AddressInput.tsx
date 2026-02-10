@@ -1,7 +1,5 @@
 /**
  * AddressInput - 주소 입력 + 자동완성 컴포넌트
- *
- * 카카오 키워드 검색 기반 실시간 자동완성 드롭다운
  */
 
 'use client';
@@ -24,7 +22,6 @@ interface AddressInputProps {
   onSelect?: (result: { address: string; coordinates: { lat: number; lng: number } }) => void;
   placeholder?: string;
   icon?: ReactNode;
-  /** 지도 중심 좌표 (근처 결과 우선 정렬) */
   mapCenter?: { lat: number; lng: number };
 }
 
@@ -50,7 +47,6 @@ export default function AddressInput({
     setLocalValue(value);
   }, [value]);
 
-  // 외부 클릭 시 닫기
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -84,7 +80,7 @@ export default function AddressInput({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [mapCenter]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -137,12 +133,9 @@ export default function AddressInput({
   };
 
   return (
-    <div className="flex flex-col gap-1.5" ref={containerRef}>
-      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</label>
+    <div className="relative" ref={containerRef}>
+      <label className="text-xs font-semibold text-gray-500 mb-1.5 block">{label}</label>
       <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-          {icon || <MapPin className="w-5 h-5 text-gray-400" />}
-        </div>
         <input
           ref={inputRef}
           type="text"
@@ -151,9 +144,9 @@ export default function AddressInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full pl-11 pr-10 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[17px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-all"
+          className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-[16px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-all pr-10"
         />
-        {/* 로딩/클리어 버튼 */}
+        {/* 로딩/클리어 */}
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {isLoading ? (
             <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
@@ -163,33 +156,33 @@ export default function AddressInput({
             </button>
           ) : null}
         </div>
-
-        {/* 자동완성 드롭다운 */}
-        {isOpen && results.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden z-50 max-h-[280px] overflow-y-auto">
-            {results.map((result, i) => (
-              <button
-                key={`${result.lat}-${result.lng}-${i}`}
-                onClick={() => handleSelect(result)}
-                className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${
-                  i === activeIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
-                } ${i > 0 ? 'border-t border-gray-100' : ''}`}
-              >
-                <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-medium text-gray-900 truncate">{result.name}</p>
-                  <p className="text-[13px] text-gray-500 truncate mt-0.5">
-                    {result.address}
-                    {result.category && (
-                      <span className="ml-1.5 text-gray-400">· {result.category}</span>
-                    )}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* 자동완성 드롭다운 */}
+      {isOpen && results.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto">
+          {results.map((result, i) => (
+            <button
+              key={`${result.lat}-${result.lng}-${i}`}
+              onClick={() => handleSelect(result)}
+              className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${
+                i === activeIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
+              } ${i > 0 ? 'border-t border-gray-100' : ''}`}
+            >
+              <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-medium text-gray-900 truncate">{result.name}</p>
+                <p className="text-[13px] text-gray-500 truncate mt-0.5">
+                  {result.address}
+                  {result.category && (
+                    <span className="ml-1.5 text-gray-400">· {result.category}</span>
+                  )}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
