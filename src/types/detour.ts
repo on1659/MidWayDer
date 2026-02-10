@@ -47,6 +47,9 @@ export interface DetourResult {
 
   /** 최종 점수 (0-100, 높을수록 추천) */
   finalScore: number;
+
+  /** 경로 타입 (최단거리/최단시간) */
+  routeType?: 'shortest' | 'fastest';
 }
 
 /**

@@ -12,7 +12,7 @@ import { Route, Coordinates, Place } from '@/types/location';
 // ========================
 
 /** 경로 옵션 (공통) */
-export type RouteOption = 'optimal' | 'fast' | 'comfort';
+export type RouteOption = 'optimal' | 'fast' | 'comfort' | 'shortest' | 'fastest';
 
 /**
  * 경로 조회 프로바이더 인터페이스

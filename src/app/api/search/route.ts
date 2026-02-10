@@ -70,11 +70,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // 4. A→B 원본 경로 조회
-    let originalRoute;
-    try {
-      originalRoute = await getDirectionsProvider().getRoute(startCoords, endCoords);
-    } catch (error: any) {
+    // 4. A→B 경로 조회 (최단거리 + 최단시간 병렬)
+    const directionsProvider = getDirectionsProvider();
+    const routeResults = await Promise.allSettled([
+      directionsProvider.getRoute(startCoords, endCoords, 'shortest'),
+      directionsProvider.getRoute(startCoords, endCoords, 'fastest'),
+    ]);
+
+    // 성공한 경로들 수집
+    const routeEntries: Array<{ route: typeof routeResults[0] extends PromiseSettledResult<infer T> ? T : never; type: 'shortest' | 'fastest' }> = [];
+    if (routeResults[0].status === 'fulfilled') routeEntries.push({ route: routeResults[0].value, type: 'shortest' });
+    if (routeResults[1].status === 'fulfilled') routeEntries.push({ route: routeResults[1].value, type: 'fastest' });
+
+    if (routeEntries.length === 0) {
       const errorResponse: SearchWaypointsErrorResponse = {
         success: false,
         error: {
@@ -85,24 +93,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 404 });
     }
 
-    // 5. Detour Cost 계산 (PostGIS 필터링 + 근접도 + API 호출)
-    const { results, totalCandidates, apiCallsUsed } = await calculateDetourCosts(
-      originalRoute,
-      category,
-      {
-        bufferDistance: options?.bufferDistance,
-        maxDetourDistance: options?.maxDetourDistance,
-      }
+    // 5. 각 경로별 Detour Cost 계산 (병렬)
+    const detourResults = await Promise.allSettled(
+      routeEntries.map(({ route, type }) =>
+        calculateDetourCosts(route, category, {
+          bufferDistance: options?.bufferDistance,
+          maxDetourDistance: options?.maxDetourDistance,
+        }).then(res => ({ ...res, routeType: type, originalRoute: route }))
+      )
     );
+
+    // 결과 합치기 + 중복 제거 (place.id 기준, 더 높은 점수 유지)
+    const seenPlaces = new Map<string, typeof allResults[0]>();
+    let totalCandidates = 0;
+    let apiCallsUsed = 0;
+    let primaryOriginalRoute = routeEntries[0].route;
+
+    const allResults: Array<any> = [];
+    for (const dr of detourResults) {
+      if (dr.status !== 'fulfilled') continue;
+      totalCandidates += dr.value.totalCandidates;
+      apiCallsUsed += dr.value.apiCallsUsed;
+      for (const result of dr.value.results) {
+        const tagged = { ...result, routeType: dr.value.routeType };
+        const existing = seenPlaces.get(result.place.id);
+        if (!existing || existing.finalScore < tagged.finalScore) {
+          seenPlaces.set(result.place.id, tagged);
+        }
+      }
+    }
+
+    const mergedResults = Array.from(seenPlaces.values()).sort((a, b) => b.finalScore - a.finalScore);
 
     // 6. 결과 반환 (maxResults 적용)
     const maxResults = options?.maxResults ?? 10;
-    const trimmedResults = results.slice(0, maxResults);
+    const trimmedResults = mergedResults.slice(0, maxResults);
 
     const response: SearchWaypointsResponse = {
       success: true,
       data: {
-        originalRoute,
+        originalRoute: primaryOriginalRoute,
         results: trimmedResults,
         totalCandidates,
         apiCallsUsed,

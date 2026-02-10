@@ -110,6 +110,10 @@ function mapOptionToKakaoPriority(option: RouteOption): string {
   switch (option) {
     case 'fast':
       return 'FAST';
+    case 'fastest':
+      return 'TIME';
+    case 'shortest':
+      return 'DISTANCE';
     case 'comfort':
       return 'COMFORT';
     case 'optimal':

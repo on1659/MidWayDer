@@ -1,12 +1,10 @@
 /**
- * CategorySelect - 카테고리 선택 (리디자인)
+ * CategorySelect - 키즈 프렌들리 카테고리 선택
  *
- * 가로 스크롤 칩 스타일, 모바일 최적화
+ * 큰 이모지 + 큰 터치 타겟, 7세도 쓸 수 있는 UI
  */
 
 'use client';
-
-import { Store, Coffee, ShoppingBag } from 'lucide-react';
 
 interface CategorySelectProps {
   selected: string;
@@ -14,40 +12,39 @@ interface CategorySelectProps {
 }
 
 const categories = [
-  { name: '다이소', icon: Store },
-  { name: '스타벅스', icon: Coffee },
-  { name: '이디야', icon: Coffee },
-  { name: 'CU', icon: ShoppingBag },
-  { name: 'GS25', icon: ShoppingBag },
-  { name: '올리브영', icon: Store },
+  { name: '카페', emoji: '☕', query: '카페' },
+  { name: '편의점', emoji: '🏪', query: 'CU' },
+  { name: '다이소', emoji: '🛒', query: '다이소' },
+  { name: '올리브영', emoji: '💄', query: '올리브영' },
+  { name: '스타벅스', emoji: '⭐', query: '스타벅스' },
+  { name: '이디야', emoji: '🏠', query: '이디야' },
 ];
 
 export default function CategorySelect({ selected, onChange }: CategorySelectProps) {
   return (
-    <div className="space-y-2">
-      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">카테고리</label>
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-        {categories.map(({ name, icon: Icon }) => {
-          const isSelected = selected === name;
-          return (
-            <button
-              key={name}
-              onClick={() => onChange(name)}
-              className={`
-                flex items-center gap-1.5 px-4 py-2.5 rounded-full whitespace-nowrap text-sm font-medium
-                transition-all active:scale-95 shrink-0
-                ${isSelected
-                  ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }
-              `}
-            >
-              <Icon className="w-4 h-4" />
+    <div className="grid grid-cols-3 gap-3">
+      {categories.map(({ name, emoji, query }) => {
+        const isSelected = selected === query;
+        return (
+          <button
+            key={query}
+            onClick={() => onChange(query)}
+            className={`
+              flex flex-col items-center justify-center gap-1.5 py-4 px-2 rounded-2xl
+              transition-all active:scale-95 min-h-[80px]
+              ${isSelected
+                ? 'bg-blue-100 ring-3 ring-blue-400 shadow-lg shadow-blue-200/50'
+                : 'bg-white shadow-sm hover:shadow-md hover:bg-gray-50'
+              }
+            `}
+          >
+            <span className="text-3xl">{emoji}</span>
+            <span className={`text-sm font-bold ${isSelected ? 'text-blue-600' : 'text-gray-700'}`}>
               {name}
-            </button>
-          );
-        })}
-      </div>
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

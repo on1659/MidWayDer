@@ -8,7 +8,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Search, MapPin, Navigation, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -88,55 +88,56 @@ export default function HomePage() {
   return (
     <div className="h-dvh flex flex-col md:flex-row overflow-hidden bg-gray-50">
       {/* ========== DESKTOP SIDE PANEL (md+) ========== */}
-      <aside className="hidden md:flex md:w-[400px] md:shrink-0 flex-col bg-white border-r border-gray-100 z-10">
+      <aside className="hidden md:flex md:w-[420px] md:shrink-0 flex-col bg-amber-50 border-r border-amber-100 z-10">
         {/* Header */}
         <header className="px-6 pt-6 pb-4">
-          <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">MidWayDer</h1>
-              <p className="text-[11px] text-gray-400">가는 길 중간에 필요한 곳을 더하다</p>
-            </div>
-          </div>
+          <h1 className="text-2xl font-black text-gray-800">🗺️ MidWayDer</h1>
+          <p className="text-sm text-gray-500 mt-1">가는 길에 어디 들를까?</p>
         </header>
 
         {/* Search controls */}
-        <div className="px-5 pb-4 space-y-4 border-b border-gray-100">
+        <div className="px-5 pb-5 space-y-5 border-b border-amber-200/50">
           <div className="space-y-3">
+            <div className="text-base font-bold text-gray-700">📍 출발</div>
             <AddressInput
               label="출발지"
               value={start?.address || ''}
               onChange={handleStartChange}
               onSelect={handleStartSelect}
-              placeholder="출발지를 검색하세요"
+              placeholder="출발하는 곳"
               mapCenter={mapCenter}
             />
+          </div>
+          <div className="space-y-3">
+            <div className="text-base font-bold text-gray-700">🏁 도착</div>
             <AddressInput
               label="도착지"
               value={end?.address || ''}
               onChange={handleEndChange}
               onSelect={handleEndSelect}
-              placeholder="도착지를 검색하세요"
+              placeholder="가고 싶은 곳"
               mapCenter={mapCenter}
             />
           </div>
 
-          <CategorySelect selected={category} onChange={setCategory} />
+          <div className="space-y-3">
+            <div className="text-base font-bold text-gray-700">🏬 어디 들를까?</div>
+            <CategorySelect selected={category} onChange={setCategory} />
+          </div>
 
           <button
             onClick={handleSearch}
             disabled={isLoading || !canSearch}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-600 active:scale-[0.98] disabled:bg-gray-200 disabled:text-gray-400 transition-all"
+            className="w-full py-4 bg-blue-500 text-white rounded-3xl font-black text-lg
+              hover:bg-blue-600 active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400
+              transition-all shadow-lg shadow-blue-500/30"
           >
-            <Search className="w-5 h-5" />
-            {isLoading ? '검색 중...' : '경유지 검색'}
+            {isLoading ? '🔍 찾는 중...' : '🔍 검색하기!'}
           </button>
 
           {results.length > 0 && (
             <p className="text-xs text-gray-400 text-center">
-              {totalCandidates}개 중 상위 {results.length}개 추천 · API {apiCallsUsed}회
+              {totalCandidates}개 중 {results.length}개 추천
             </p>
           )}
         </div>
@@ -222,13 +223,13 @@ export default function HomePage() {
         <div className="md:hidden absolute top-4 inset-x-4 z-30">
           <button
             onClick={() => setSearchOverlayOpen(true)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform"
+            className="w-full flex items-center gap-3 px-5 py-4 bg-white rounded-3xl shadow-lg shadow-black/10 active:scale-[0.97] transition-transform"
           >
-            <Search className="w-5 h-5 text-gray-400 shrink-0" />
-            <span className={`flex-1 text-left text-sm truncate ${canSearch ? 'text-gray-900' : 'text-gray-400'}`}>
+            <span className="text-2xl shrink-0">🔍</span>
+            <span className={`flex-1 text-left text-base font-bold truncate ${canSearch ? 'text-gray-800' : 'text-gray-400'}`}>
               {searchSummary}
             </span>
-            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+            <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
           </button>
         </div>
 
