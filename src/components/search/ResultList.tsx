@@ -24,13 +24,20 @@ export default function ResultList({
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
+        <p className="text-sm text-center font-medium animate-pulse" style={{ color: '#6C9CFF' }}>
+          경유지를 찾고 있어요...
+        </p>
+        {[1, 2, 3, 4].map((i) => (
           <div key={i} className="p-4 bg-white rounded-2xl animate-pulse shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gray-100 rounded-full" />
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 bg-gray-100 rounded-full shrink-0" />
               <div className="flex-1">
                 <div className="h-4 bg-gray-100 rounded-lg w-2/3 mb-2" />
-                <div className="h-3 bg-gray-50 rounded-lg w-1/2" />
+                <div className="h-3 bg-gray-50 rounded-lg w-1/2 mb-3" />
+                <div className="flex gap-1.5">
+                  <div className="h-6 w-16 bg-blue-50 rounded-full" />
+                  <div className="h-6 w-14 bg-orange-50 rounded-full" />
+                </div>
               </div>
             </div>
           </div>

@@ -4,9 +4,11 @@
 
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, X, Clock } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
+import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -41,11 +43,30 @@ export default function SearchOverlay({
   isLoading,
   canSearch,
 }: SearchOverlayProps) {
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+
+  useEffect(() => {
+    if (open) setRecentSearches(getRecentSearches());
+  }, [open]);
+
   if (!open) return null;
 
   const handleSearch = () => {
     onSearch();
     onClose();
+  };
+
+  const handleRecentSelect = (item: RecentSearch) => {
+    onStartChange(item.startAddress);
+    onEndChange(item.endAddress);
+    if (item.startCoords && onStartSelect) onStartSelect({ address: item.startAddress, coordinates: item.startCoords });
+    if (item.endCoords && onEndSelect) onEndSelect({ address: item.endAddress, coordinates: item.endCoords });
+    onCategoryChange(item.category);
+  };
+
+  const handleRecentDelete = (id: string) => {
+    removeRecentSearch(id);
+    setRecentSearches(getRecentSearches());
   };
 
   return (
@@ -89,8 +110,42 @@ export default function SearchOverlay({
         <CategorySelect selected={category} onChange={onCategoryChange} />
       </div>
 
+      {/* Recent searches */}
+      {recentSearches.length > 0 && (
+        <div className="px-4 pb-3 flex-1 overflow-y-auto">
+          <p className="text-sm font-semibold mb-2 flex items-center gap-1.5" style={{ color: '#8B95A5' }}>
+            <Clock className="w-3.5 h-3.5" />
+            최근 검색
+          </p>
+          <div className="space-y-1.5">
+            {recentSearches.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
+              >
+                <button
+                  className="flex-1 text-left min-w-0"
+                  onClick={() => handleRecentSelect(item)}
+                >
+                  <p className="text-[13px] font-medium truncate" style={{ color: '#2D3748' }}>
+                    {item.startAddress} → {item.endAddress}
+                  </p>
+                  <p className="text-[11px] mt-0.5" style={{ color: '#8B95A5' }}>{item.category}</p>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
+                  className="shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" style={{ color: '#8B95A5' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Spacer */}
-      <div className="flex-1" />
+      {recentSearches.length === 0 && <div className="flex-1" />}
 
       {/* Search button */}
       <div className="px-4 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">

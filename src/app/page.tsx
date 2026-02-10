@@ -1,13 +1,13 @@
 /**
- * Main Page - MidWayDer v0.3.0
+ * Main Page - MidWayDer v0.4.0
  *
  * 네이버지도 스타일 - 전체화면 지도 + 검색바 오버레이
  */
 
 'use client';
 
-import { useCallback, useState } from 'react';
-import { Search } from 'lucide-react';
+import { useCallback, useState, useEffect, useRef } from 'react';
+import { Search, Share2, LocateFixed } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -18,6 +18,8 @@ import PlaceDetail from '@/components/place/PlaceDetail';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
+import { addRecentSearch } from '@/lib/recent-searches';
+import type { Route } from '@/types/location';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
@@ -28,6 +30,9 @@ export default function HomePage() {
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
   const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; coords: { lat: number; lng: number } } | null>(null);
+  const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const urlProcessed = useRef(false);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -49,11 +54,119 @@ export default function HomePage() {
     }
   }, []);
 
+  // Route preview: auto-fetch when both start/end have coordinates
+  useEffect(() => {
+    const sc = start?.coordinates;
+    const ec = end?.coordinates;
+    if (!sc || !ec) {
+      setPreviewRoute(null);
+      return;
+    }
+    // Don't show preview if we already have search results with originalRoute
+    if (originalRoute) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/directions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            start: { lng: sc.lng, lat: sc.lat },
+            end: { lng: ec.lng, lat: ec.lat },
+          }),
+        });
+        const data = await res.json();
+        if (!cancelled && data.success && data.data) {
+          setPreviewRoute(data.data);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [start?.coordinates, end?.coordinates, originalRoute]);
+
+  // URL params: auto-search from shared link
+  useEffect(() => {
+    if (urlProcessed.current) return;
+    urlProcessed.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const startAddr = params.get('start');
+    const endAddr = params.get('end');
+    const cat = params.get('cat');
+    const slat = params.get('slat');
+    const slng = params.get('slng');
+    const elat = params.get('elat');
+    const elng = params.get('elng');
+    if (startAddr && endAddr) {
+      const startLoc = { address: startAddr, ...(slat && slng ? { coordinates: { lat: +slat, lng: +slng } } : {}) };
+      const endLoc = { address: endAddr, ...(elat && elng ? { coordinates: { lat: +elat, lng: +elng } } : {}) };
+      setStart(startLoc);
+      setEnd(endLoc);
+      if (cat) setCategory(cat);
+      // Auto-search after a short delay
+      setTimeout(() => {
+        search(
+          { address: startAddr },
+          { address: endAddr },
+          cat || category
+        ).then(() => setBottomSheetSnap('half'));
+      }, 500);
+    }
+  }, []);
+
+  // GPS: get current location
+  const handleGPS = useCallback(async () => {
+    if (!navigator.geolocation) return;
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        try {
+          const res = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
+          const data = await res.json();
+          setStart({ address: data.name || data.address || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`, coordinates: coords });
+        } catch {
+          setStart({ address: `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`, coordinates: coords });
+        }
+        setGpsLoading(false);
+      },
+      () => setGpsLoading(false),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [setStart]);
+
+  // Share function
+  const handleShare = useCallback(async () => {
+    if (!start?.address || !end?.address) return;
+    const params = new URLSearchParams();
+    params.set('start', start.address);
+    params.set('end', end.address);
+    params.set('cat', category);
+    if (start.coordinates) { params.set('slat', String(start.coordinates.lat)); params.set('slng', String(start.coordinates.lng)); }
+    if (end.coordinates) { params.set('elat', String(end.coordinates.lat)); params.set('elng', String(end.coordinates.lng)); }
+    const url = `${window.location.origin}?${params.toString()}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: 'MidWayDer 경유지 검색', url }); } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(url);
+      alert('링크가 복사되었습니다!');
+    }
+  }, [start, end, category]);
+
   const handleSearch = async () => {
     if (!start?.address || !end?.address) return;
+    // Save to recent searches
+    addRecentSearch({
+      startAddress: start.address,
+      endAddress: end.address,
+      startCoords: start.coordinates,
+      endCoords: end.coordinates,
+      category,
+    });
     clearResults();
     selectWaypoint(null);
     setOriginalRoute(null);
+    setPreviewRoute(null);
     await search(
       { address: start.address },
       { address: end.address },
@@ -128,9 +241,19 @@ export default function HomePage() {
           </button>
 
           {results.length > 0 && (
-            <p className="text-xs text-center" style={{ color: '#8B95A5' }}>
-              {totalCandidates}개 중 {results.length}개 추천
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs" style={{ color: '#8B95A5' }}>
+                {totalCandidates}개 중 {results.length}개 추천
+              </p>
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
+                style={{ color: '#6C9CFF' }}
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                공유
+              </button>
+            </div>
           )}
         </div>
 
@@ -150,7 +273,7 @@ export default function HomePage() {
         <MapContainer
           center={start?.coordinates || { lat: 37.5665, lng: 126.978 }}
           zoom={12}
-          originalRoute={originalRoute}
+          originalRoute={originalRoute || previewRoute}
           detourRoute={
             selectedWaypoint
               ? {
@@ -165,6 +288,16 @@ export default function HomePage() {
           onMapClick={handleMapClick}
           clickedCoords={mapClickInfo?.coords || null}
         />
+
+        {/* GPS Button */}
+        <button
+          onClick={handleGPS}
+          disabled={gpsLoading}
+          className="absolute bottom-20 right-4 z-20 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50"
+          title="현재 위치"
+        >
+          <LocateFixed className={`w-5 h-5 ${gpsLoading ? 'animate-pulse' : ''}`} style={{ color: '#6C9CFF' }} />
+        </button>
 
         {/* Legend (desktop) */}
         {originalRoute && (
@@ -267,9 +400,17 @@ export default function HomePage() {
                   <p className="text-sm font-semibold" style={{ color: '#2D3748' }}>
                     검색 결과 <span style={{ color: '#6C9CFF' }}>{results.length}</span>
                   </p>
-                  <p className="text-xs" style={{ color: '#8B95A5' }}>
-                    {totalCandidates}개 중 추천
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs" style={{ color: '#8B95A5' }}>
+                      {totalCandidates}개 중 추천
+                    </p>
+                    <button
+                      onClick={handleShare}
+                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <Share2 className="w-4 h-4" style={{ color: '#6C9CFF' }} />
+                    </button>
+                  </div>
                 </div>
               )}
               <ResultList
@@ -286,7 +427,7 @@ export default function HomePage() {
         {/* Version */}
         <div className="absolute bottom-2 left-3 z-10">
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 backdrop-blur-sm" style={{ color: '#8B95A5' }}>
-            v0.3.0
+            v0.4.0
           </span>
         </div>
       </main>

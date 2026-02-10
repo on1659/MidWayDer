@@ -5,8 +5,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Phone, MapPin, Clock, Star, Navigation } from 'lucide-react';
+import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
+import { useRouteStore } from '@/store/route-store';
 
 interface PlaceDetailProps {
   waypoint: DetourResult;
@@ -27,6 +28,7 @@ function formatDuration(seconds: number): string {
 
 export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetailProps) {
   const [visible, setVisible] = useState(false);
+  const start = useRouteStore((s) => s.start);
   const { place, detourCost, finalScore } = waypoint;
   const address = place.roadAddress || place.address;
 
@@ -143,13 +145,37 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           )}
 
           {/* CTA */}
-          <button
-            onClick={handleConfirm}
-            className="w-full py-3.5 text-white text-sm font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
-            style={{ background: '#7ED6A8' }}
-          >
-            경유지로 선택
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleConfirm}
+              className="flex-1 py-3.5 text-white text-sm font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
+              style={{ background: '#7ED6A8' }}
+            >
+              경유지로 선택
+            </button>
+            <button
+              onClick={() => {
+                const wp = place.coordinates;
+                const name = encodeURIComponent(place.name);
+                if (start?.coordinates) {
+                  // Try kakaomap app first
+                  const appUrl = `kakaomap://route?sp=${start.coordinates.lat},${start.coordinates.lng}&ep=${wp.lat},${wp.lng}&by=CAR`;
+                  const webUrl = `https://map.kakao.com/link/to/${name},${wp.lat},${wp.lng}`;
+                  const w = window.open(appUrl, '_blank');
+                  setTimeout(() => {
+                    try { if (!w || w.closed) window.open(webUrl, '_blank'); } catch { window.open(webUrl, '_blank'); }
+                  }, 1500);
+                } else {
+                  window.open(`https://map.kakao.com/link/to/${name},${wp.lat},${wp.lng}`, '_blank');
+                }
+              }}
+              className="px-4 py-3.5 text-sm font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md flex items-center gap-1.5"
+              style={{ background: '#FEE500', color: '#3C1E1E' }}
+            >
+              <ExternalLink className="w-4 h-4" />
+              길안내
+            </button>
+          </div>
         </div>
       </div>
     </>

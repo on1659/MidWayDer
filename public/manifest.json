@@ -1,0 +1,21 @@
+{
+  "name": "MidWayDer",
+  "short_name": "미드웨이더",
+  "description": "가는 길 중간에 필요한 곳을 더하다",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#6C9CFF",
+  "background_color": "#F8F9FB",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
