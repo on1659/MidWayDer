@@ -29,7 +29,7 @@ export default function HomePage() {
   // Mobile UI state
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
-  const [mapClickInfo, setMapClickInfo] = useState<{ address: string; coords: { lat: number; lng: number } } | null>(null);
+  const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; coords: { lat: number; lng: number } } | null>(null);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -45,8 +45,8 @@ export default function HomePage() {
     try {
       const res = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
       const data = await res.json();
-      if (!data.address) return;
-      setMapClickInfo({ address: data.address, coords });
+      if (!data.name) return;
+      setMapClickInfo({ name: data.name, address: data.address, coords });
     } catch (err) {
       console.error('Reverse geocode failed:', err);
     }
@@ -193,14 +193,15 @@ export default function HomePage() {
         {/* ========== MAP CLICK SHEET ========== */}
         {mapClickInfo && !selectedWaypoint && (
           <MapClickSheet
+            name={mapClickInfo.name}
             address={mapClickInfo.address}
             coords={mapClickInfo.coords}
             onSetStart={() => {
-              setStart({ address: mapClickInfo.address, coordinates: mapClickInfo.coords });
+              setStart({ address: mapClickInfo.name, coordinates: mapClickInfo.coords });
               setMapClickInfo(null);
             }}
             onSetEnd={() => {
-              setEnd({ address: mapClickInfo.address, coordinates: mapClickInfo.coords });
+              setEnd({ address: mapClickInfo.name, coordinates: mapClickInfo.coords });
               setMapClickInfo(null);
             }}
             onClose={() => setMapClickInfo(null)}
@@ -220,16 +221,23 @@ export default function HomePage() {
         )}
 
         {/* ========== MOBILE SEARCH BAR (overlay on map) ========== */}
-        <div className="md:hidden absolute top-4 inset-x-4 z-30">
+        <div className="md:hidden absolute top-3 inset-x-3 z-30">
           <button
             onClick={() => setSearchOverlayOpen(true)}
-            className="w-full flex items-center gap-3 px-5 py-4 bg-white rounded-3xl shadow-lg shadow-black/10 active:scale-[0.97] transition-transform"
+            className="w-full bg-white rounded-2xl shadow-lg shadow-black/8 active:scale-[0.98] transition-transform overflow-hidden"
           >
-            <span className="text-2xl shrink-0">🔍</span>
-            <span className={`flex-1 text-left text-base font-bold truncate ${canSearch ? 'text-gray-800' : 'text-gray-400'}`}>
-              {searchSummary}
-            </span>
-            <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+            <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+              <span className={`flex-1 text-left text-[15px] truncate ${start?.address ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                {start?.address || '출발지'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" />
+              <span className={`flex-1 text-left text-[15px] truncate ${end?.address ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                {end?.address || '도착지'}
+              </span>
+            </div>
           </button>
         </div>
 

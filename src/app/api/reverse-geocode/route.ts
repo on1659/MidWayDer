@@ -1,5 +1,5 @@
 /**
- * 역지오코딩 API - 좌표 → 주소 변환
+ * 역지오코딩 API - 좌표 → 장소이름/주소 변환
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,26 +15,26 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 1. 근처 장소 검색 (카카오 카테고리 검색)
-    const placeRes = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=장소&x=${lng}&y=${lat}&radius=50&sort=distance&size=1`,
+    // 1. 근처 장소 검색 (카카오 카테고리 검색 - 반경 30m)
+    const categoryRes = await fetch(
+      `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=&x=${lng}&y=${lat}&radius=30&sort=distance&size=1`,
       { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
     );
 
-    if (placeRes.ok) {
-      const placeData = await placeRes.json();
-      const place = placeData.documents?.[0];
-      if (place) {
+    if (categoryRes.ok) {
+      const catData = await categoryRes.json();
+      const place = catData.documents?.[0];
+      if (place && parseFloat(place.distance) <= 30) {
         return NextResponse.json({
-          address: place.place_name,
-          roadAddress: place.road_address_name || place.address_name,
+          name: place.place_name,
+          address: place.road_address_name || place.address_name,
           lat: parseFloat(lat),
           lng: parseFloat(lng),
         });
       }
     }
 
-    // 2. 장소 없으면 주소 변환 폴백
+    // 2. 폴백: 좌표→주소 변환
     const res = await fetch(
       `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
       { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
@@ -48,11 +48,13 @@ export async function GET(req: NextRequest) {
     const doc = data.documents?.[0];
 
     if (!doc) {
-      return NextResponse.json({ address: null });
+      return NextResponse.json({ name: null, address: null });
     }
 
+    const address = doc.road_address?.address_name || doc.address?.address_name || null;
     return NextResponse.json({
-      address: doc.road_address?.address_name || doc.address?.address_name || null,
+      name: address,
+      address,
       lat: parseFloat(lat),
       lng: parseFloat(lng),
     });

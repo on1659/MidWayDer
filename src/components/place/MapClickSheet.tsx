@@ -7,7 +7,8 @@
 import { Navigation, MapPin, X } from 'lucide-react';
 
 interface MapClickSheetProps {
-  address: string;
+  name: string;
+  address?: string;
   coords: { lat: number; lng: number };
   onSetStart: () => void;
   onSetEnd: () => void;
@@ -15,6 +16,7 @@ interface MapClickSheetProps {
 }
 
 export default function MapClickSheet({
+  name,
   address,
   coords,
   onSetStart,
@@ -37,7 +39,10 @@ export default function MapClickSheet({
           <div className="flex items-start gap-2.5">
             <MapPin className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-semibold text-gray-900 leading-snug">{address}</p>
+              <p className="text-[15px] font-semibold text-gray-900 leading-snug">{name}</p>
+              {address && address !== name && (
+                <p className="text-[12px] text-gray-400 mt-0.5">{address}</p>
+              )}
             </div>
           </div>
         </div>
