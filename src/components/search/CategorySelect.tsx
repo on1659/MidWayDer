@@ -27,15 +27,15 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
           <button
             key={query}
             onClick={() => onChange(query)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full whitespace-nowrap
-              transition-all active:scale-95 shrink-0 text-sm font-medium"
+            className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
+              transition-all active:scale-95 shrink-0 text-base font-semibold"
             style={{
               background: isSelected ? activeBg : bg,
               color: isSelected ? '#FFFFFF' : '#2D3748',
               boxShadow: isSelected ? `0 2px 8px ${activeBg}40` : 'none',
             }}
           >
-            <span>{emoji}</span>
+            <span className="text-lg">{emoji}</span>
             <span>{name}</span>
           </button>
         );

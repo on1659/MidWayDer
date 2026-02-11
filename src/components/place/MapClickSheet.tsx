@@ -37,11 +37,11 @@ export default function MapClickSheet({
         {/* Address */}
         <div className="px-4 pb-3">
           <div className="flex items-start gap-2.5">
-            <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#FF8FA3' }} />
+            <MapPin className="w-6 h-6 mt-0.5 shrink-0" style={{ color: '#FF8FA3' }} />
             <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-bold leading-snug" style={{ color: '#2D3748' }}>{name}</p>
+              <p className="text-[17px] font-bold leading-snug" style={{ color: '#2D3748' }}>{name}</p>
               {address && address !== name && (
-                <p className="text-[12px] mt-0.5" style={{ color: '#8B95A5' }}>{address}</p>
+                <p className="text-[14px] mt-1" style={{ color: '#8B95A5' }}>{address}</p>
               )}
             </div>
           </div>
@@ -51,18 +51,18 @@ export default function MapClickSheet({
         <div className="flex gap-2 px-4 pb-4">
           <button
             onClick={onSetStart}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-[14px] text-white active:scale-[0.97] transition-transform"
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-[16px] text-white active:scale-[0.97] transition-transform"
             style={{ background: '#6C9CFF' }}
           >
-            <Navigation className="w-4 h-4" />
+            <Navigation className="w-5 h-5" />
             출발지로
           </button>
           <button
             onClick={onSetEnd}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-[14px] text-white active:scale-[0.97] transition-transform"
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-[16px] text-white active:scale-[0.97] transition-transform"
             style={{ background: '#FF8FA3' }}
           >
-            <MapPin className="w-4 h-4" />
+            <MapPin className="w-5 h-5" />
             도착지로
           </button>
         </div>

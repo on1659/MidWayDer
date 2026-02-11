@@ -317,10 +317,10 @@ export default function HomePage() {
         <button
           onClick={handleGPS}
           disabled={gpsLoading}
-          className="absolute bottom-20 right-4 z-20 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50"
+          className="absolute bottom-20 right-4 z-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50"
           title="현재 위치"
         >
-          <LocateFixed className={`w-5 h-5 ${gpsLoading ? 'animate-pulse' : ''}`} style={{ color: '#6C9CFF' }} />
+          <LocateFixed className={`w-7 h-7 ${gpsLoading ? 'animate-pulse' : ''}`} style={{ color: '#6C9CFF' }} />
         </button>
 
         {/* Legend (desktop) */}
@@ -375,15 +375,15 @@ export default function HomePage() {
             onClick={() => setSearchOverlayOpen(true)}
             className="w-full bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden"
           >
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
-              <div className="w-3 h-3 rounded-full shrink-0" style={{ background: '#6C9CFF' }} />
-              <span className="flex-1 text-left text-[15px] truncate" style={{ color: start?.address ? '#2D3748' : '#8B95A5' }}>
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+              <div className="w-4 h-4 rounded-full shrink-0" style={{ background: '#6C9CFF' }} />
+              <span className="flex-1 text-left text-[17px] truncate" style={{ color: start?.address ? '#2D3748' : '#8B95A5' }}>
                 {start?.address || '출발지'}
               </span>
             </div>
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className="w-3 h-3 rounded-full shrink-0" style={{ background: '#FF8FA3' }} />
-              <span className="flex-1 text-left text-[15px] truncate" style={{ color: end?.address ? '#2D3748' : '#8B95A5' }}>
+            <div className="flex items-center gap-3 px-5 py-4">
+              <div className="w-4 h-4 rounded-full shrink-0" style={{ background: '#FF8FA3' }} />
+              <span className="flex-1 text-left text-[17px] truncate" style={{ color: end?.address ? '#2D3748' : '#8B95A5' }}>
                 {end?.address || '도착지'}
               </span>
             </div>
@@ -453,12 +453,12 @@ export default function HomePage() {
           <div className="md:hidden absolute bottom-0 inset-x-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div className="mx-3 bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
               {/* 앱 소개 */}
-              <div className="px-4 pt-3 pb-2">
-                <p className="text-[13px] font-bold" style={{ color: '#2D3748' }}>🗺️ 가는 길에 어디 들를까요?</p>
-                <p className="text-[11px] mt-0.5" style={{ color: '#8B95A5' }}>출발지와 도착지를 설정하면 경로 위 편의시설을 찾아드려요</p>
+              <div className="px-4 pt-4 pb-2">
+                <p className="text-base font-bold" style={{ color: '#2D3748' }}>🗺️ 가는 길에 어디 들를까요?</p>
+                <p className="text-sm mt-1" style={{ color: '#8B95A5' }}>출발지와 도착지를 설정하면 경로 위 편의시설을 찾아드려요</p>
               </div>
               {/* 퀵 카테고리 */}
-              <div className="flex gap-1 px-3 pb-3 overflow-x-auto">
+              <div className="flex gap-2 px-4 pb-4 overflow-x-auto">
                 {[
                   { emoji: '☕', label: '카페' },
                   { emoji: '🏪', label: '편의점' },
@@ -472,10 +472,10 @@ export default function HomePage() {
                       setCategory(item.label);
                       setSearchOverlayOpen(true);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] font-medium whitespace-nowrap shrink-0 active:scale-95 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-[15px] font-medium whitespace-nowrap shrink-0 active:scale-95 transition-all"
                     style={{ background: '#F0F4FF', color: '#4A6FA5' }}
                   >
-                    <span>{item.emoji}</span>
+                    <span className="text-lg">{item.emoji}</span>
                     {item.label}
                   </button>
                 ))}

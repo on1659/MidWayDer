@@ -140,7 +140,7 @@ export default function AddressInput({
       {label && <label className="text-xs font-semibold mb-1.5 block" style={{ color: '#8B95A5' }}>{label}</label>}
       <div className="relative flex items-center">
         {dotColor && (
-          <div className="w-3 h-3 rounded-full shrink-0 mr-3" style={{ background: dotColor }} />
+          <div className="w-4 h-4 rounded-full shrink-0 mr-3" style={{ background: dotColor }} />
         )}
         <div className="relative flex-1">
         <input
@@ -151,7 +151,7 @@ export default function AddressInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full px-4 py-4 rounded-xl text-[17px] placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-10"
+          className="w-full px-5 py-4.5 rounded-xl text-lg placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-12"
           style={{
             background: '#F8F9FB',
             color: '#2D3748',
@@ -166,12 +166,12 @@ export default function AddressInput({
             e.currentTarget.style.background = '#F8F9FB';
           }}
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#8B95A5' }} />
+            <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#8B95A5' }} />
           ) : localValue ? (
-            <button onClick={handleClear} className="p-1 rounded-full hover:bg-gray-100 transition-colors">
-              <X className="w-4 h-4" style={{ color: '#8B95A5' }} />
+            <button onClick={handleClear} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+              <X className="w-5 h-5" style={{ color: '#8B95A5' }} />
             </button>
           ) : null}
         </div>
@@ -186,10 +186,10 @@ export default function AddressInput({
                 i === activeIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
               } ${i > 0 ? 'border-t border-gray-50' : ''}`}
             >
-              <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#6C9CFF' }} />
+              <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#6C9CFF' }} />
               <div className="min-w-0 flex-1">
-                <p className="text-[14px] font-medium truncate" style={{ color: '#2D3748' }}>{result.name}</p>
-                <p className="text-[12px] truncate mt-0.5" style={{ color: '#8B95A5' }}>
+                <p className="text-[16px] font-medium truncate" style={{ color: '#2D3748' }}>{result.name}</p>
+                <p className="text-[13px] truncate mt-0.5" style={{ color: '#8B95A5' }}>
                   {result.address}
                   {result.category && (
                     <span className="ml-1.5">· {result.category}</span>

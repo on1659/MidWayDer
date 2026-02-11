@@ -79,7 +79,7 @@ export default function SearchOverlay({
         >
           <ArrowLeft className="w-5 h-5" style={{ color: '#2D3748' }} />
         </button>
-        <h2 className="text-lg font-bold" style={{ color: '#2D3748' }}>경로 설정</h2>
+        <h2 className="text-xl font-bold" style={{ color: '#2D3748' }}>경로 설정</h2>
       </div>
 
       {/* Route inputs */}
@@ -106,37 +106,37 @@ export default function SearchOverlay({
 
       {/* Category chips */}
       <div className="px-4 pb-4 relative z-10">
-        <p className="text-sm font-semibold mb-3" style={{ color: '#2D3748' }}>어디 들를까요?</p>
+        <p className="text-base font-semibold mb-3" style={{ color: '#2D3748' }}>어디 들를까요?</p>
         <CategorySelect selected={category} onChange={onCategoryChange} />
       </div>
 
       {/* Recent searches */}
       {recentSearches.length > 0 && (
         <div className="px-4 pb-3 flex-1 overflow-y-auto">
-          <p className="text-sm font-semibold mb-2 flex items-center gap-1.5" style={{ color: '#8B95A5' }}>
-            <Clock className="w-3.5 h-3.5" />
+          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: '#8B95A5' }}>
+            <Clock className="w-5 h-5" />
             최근 검색
           </p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {recentSearches.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
               >
                 <button
                   className="flex-1 text-left min-w-0"
                   onClick={() => handleRecentSelect(item)}
                 >
-                  <p className="text-[13px] font-medium truncate" style={{ color: '#2D3748' }}>
+                  <p className="text-[15px] font-medium truncate" style={{ color: '#2D3748' }}>
                     {item.startAddress} → {item.endAddress}
                   </p>
-                  <p className="text-[11px] mt-0.5" style={{ color: '#8B95A5' }}>{item.category}</p>
+                  <p className="text-[13px] mt-1" style={{ color: '#8B95A5' }}>{item.category}</p>
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
-                  className="shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors"
+                  className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" style={{ color: '#8B95A5' }} />
+                  <X className="w-5 h-5" style={{ color: '#8B95A5' }} />
                 </button>
               </div>
             ))}
@@ -152,7 +152,7 @@ export default function SearchOverlay({
         <button
           onClick={handleSearch}
           disabled={isLoading || !canSearch}
-          className="w-full py-4 text-white rounded-2xl font-bold text-base active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md"
+          className="w-full py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md"
           style={{ background: isLoading || !canSearch ? undefined : '#6C9CFF' }}
         >
           {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}

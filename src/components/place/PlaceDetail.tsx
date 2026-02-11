@@ -83,17 +83,17 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-bold truncate" style={{ color: '#2D3748' }}>{place.name}</h2>
+                <h2 className="text-xl font-bold truncate" style={{ color: '#2D3748' }}>{place.name}</h2>
                 <span
-                  className="shrink-0 px-2.5 py-0.5 text-[11px] font-medium rounded-full"
+                  className="shrink-0 px-3 py-1 text-[13px] font-medium rounded-full"
                   style={{ background: '#F0F4FF', color: '#6C9CFF' }}
                 >
                   {place.category}
                 </span>
               </div>
               {address && (
-                <p className="mt-1 text-[13px] flex items-center gap-1" style={{ color: '#8B95A5' }}>
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <p className="mt-1.5 text-[15px] flex items-center gap-1.5" style={{ color: '#8B95A5' }}>
+                  <MapPin className="w-4 h-4 shrink-0" />
                   <span className="truncate">{address}</span>
                 </p>
               )}
@@ -110,24 +110,24 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap mb-4">
             <span
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full"
               style={{ background: '#E8F0FE', color: '#4A7AE8' }}
             >
-              <Navigation className="w-3 h-3" />
+              <Navigation className="w-4 h-4" />
               {formatDistance(detourCost.distance)}
             </span>
             <span
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full"
               style={{ background: '#FFF4E5', color: '#D4850F' }}
             >
-              <Clock className="w-3 h-3" />
+              <Clock className="w-4 h-4" />
               {formatDuration(detourCost.duration)}
             </span>
             <span
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full"
               style={{ background: scoreBg, color: scoreColor }}
             >
-              <Star className="w-3 h-3" />
+              <Star className="w-4 h-4" />
               추천 {Math.round(finalScore)}점
             </span>
           </div>
@@ -148,7 +148,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           <div className="flex gap-2">
             <button
               onClick={handleConfirm}
-              className="flex-1 py-3.5 text-white text-sm font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
+              className="flex-1 py-4 text-white text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
               style={{ background: '#7ED6A8' }}
             >
               경유지로 선택
@@ -169,7 +169,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
                   window.open(`https://map.kakao.com/link/to/${name},${wp.lat},${wp.lng}`, '_blank');
                 }
               }}
-              className="px-4 py-3.5 text-sm font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md flex items-center gap-1.5"
+              className="px-5 py-4 text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md flex items-center gap-2"
               style={{ background: '#FEE500', color: '#3C1E1E' }}
             >
               <ExternalLink className="w-4 h-4" />
