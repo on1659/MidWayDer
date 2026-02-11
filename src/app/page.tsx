@@ -192,27 +192,25 @@ export default function HomePage() {
   const hasResults = results.length > 0 || isLoading || !!error;
   const canSearch = !!(start?.address && end?.address);
 
-  if (!appReady) {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center" style={{ background: '#6C9CFF' }}>
-        <div className="animate-bounce mb-6">
-          <div className="w-24 h-24 bg-white rounded-3xl shadow-lg flex items-center justify-center">
-            <span className="text-5xl">🗺️</span>
-          </div>
-        </div>
-        <h1 className="text-2xl font-bold text-white tracking-wide">MidWayDer</h1>
-        <p className="text-white/70 text-sm mt-2">가는 길에 필요한 곳을 더하다</p>
-        <div className="mt-8 flex gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '200ms' }} />
-          <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '400ms' }} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-dvh flex flex-col md:flex-row overflow-hidden" style={{ background: '#F8F9FB' }}>
+      {/* Splash Screen Overlay */}
+      {!appReady && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300" style={{ background: '#6C9CFF' }}>
+          <div className="animate-bounce mb-6">
+            <div className="w-24 h-24 bg-white rounded-3xl shadow-lg flex items-center justify-center">
+              <span className="text-5xl">🗺️</span>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-wide">MidWayDer</h1>
+          <p className="text-white/70 text-sm mt-2">가는 길에 필요한 곳을 더하다</p>
+          <div className="mt-8 flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '200ms' }} />
+            <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '400ms' }} />
+          </div>
+        </div>
+      )}
       {/* ========== DESKTOP SIDE PANEL (md+) ========== */}
       <aside className="hidden md:flex md:w-[420px] md:shrink-0 flex-col bg-white border-r border-gray-100 z-10">
         <header className="px-6 pt-6 pb-4">
