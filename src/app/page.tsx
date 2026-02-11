@@ -424,12 +424,45 @@ export default function HomePage() {
           </BottomSheet>
         </div>
 
-        {/* Version */}
-        <div className="absolute bottom-2 left-3 z-10">
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 backdrop-blur-sm" style={{ color: '#8B95A5' }}>
-            v0.4.0
-          </span>
-        </div>
+        {/* Bottom Quick Bar (모바일, 검색 전) */}
+        {!hasResults && !selectedWaypoint && !mapClickInfo && (
+          <div className="md:hidden absolute bottom-0 inset-x-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="mx-3 bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
+              {/* 앱 소개 */}
+              <div className="px-4 pt-3 pb-2">
+                <p className="text-[13px] font-bold" style={{ color: '#2D3748' }}>🗺️ 가는 길에 어디 들를까요?</p>
+                <p className="text-[11px] mt-0.5" style={{ color: '#8B95A5' }}>출발지와 도착지를 설정하면 경로 위 편의시설을 찾아드려요</p>
+              </div>
+              {/* 퀵 카테고리 */}
+              <div className="flex gap-1 px-3 pb-3 overflow-x-auto">
+                {[
+                  { emoji: '☕', label: '카페' },
+                  { emoji: '🏪', label: '편의점' },
+                  { emoji: '🛒', label: '다이소' },
+                  { emoji: '💄', label: '올리브영' },
+                  { emoji: '⭐', label: '스타벅스' },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setCategory(item.label);
+                      setSearchOverlayOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] font-medium whitespace-nowrap shrink-0 active:scale-95 transition-all"
+                    style={{ background: '#F0F4FF', color: '#4A6FA5' }}
+                  >
+                    <span>{item.emoji}</span>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              {/* 버전 */}
+              <div className="px-4 pb-2">
+                <span className="text-[10px]" style={{ color: '#C4CCD8' }}>v0.4.0</span>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
