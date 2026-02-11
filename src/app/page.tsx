@@ -27,7 +27,33 @@ export default function HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
   const { category, results, isLoading, error, totalCandidates, apiCallsUsed, setCategory, search, clearResults } = useSearchStore();
 
+  const [appReady, setAppReady] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
+
+  // 스플래시 스크린 (1.5초)
+  useEffect(() => {
+    const timer = setTimeout(() => setAppReady(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!appReady) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center" style={{ background: '#6C9CFF' }}>
+        <div className="animate-bounce mb-6">
+          <div className="w-24 h-24 bg-white rounded-3xl shadow-lg flex items-center justify-center">
+            <span className="text-5xl">🗺️</span>
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold text-white tracking-wide">MidWayDer</h1>
+        <p className="text-white/70 text-sm mt-2">가는 길에 필요한 곳을 더하다</p>
+        <div className="mt-8 flex gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '200ms' }} />
+          <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" style={{ animationDelay: '400ms' }} />
+        </div>
+      </div>
+    );
+  }
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
   const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; coords: { lat: number; lng: number } } | null>(null);
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
