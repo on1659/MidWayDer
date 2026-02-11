@@ -225,7 +225,7 @@ export default function HomePage() {
               <span className="text-sm font-semibold" style={{ color: '#2D3748' }}>출발</span>
             </div>
             <AddressInput
-              label="출발지"
+              label=""
               value={start?.address || ''}
               onChange={handleStartChange}
               onSelect={handleStartSelect}
@@ -239,7 +239,7 @@ export default function HomePage() {
               <span className="text-sm font-semibold" style={{ color: '#2D3748' }}>도착</span>
             </div>
             <AddressInput
-              label="도착지"
+              label=""
               value={end?.address || ''}
               onChange={handleEndChange}
               onSelect={handleEndSelect}
