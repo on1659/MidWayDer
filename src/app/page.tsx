@@ -36,7 +36,7 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, []);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
-  const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; coords: { lat: number; lng: number } } | null>(null);
+  const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; category?: string; phone?: string; placeUrl?: string; coords: { lat: number; lng: number } } | null>(null);
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const urlProcessed = useRef(false);
@@ -55,7 +55,7 @@ export default function HomePage() {
       const res = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
       const data = await res.json();
       if (!data.name) return;
-      setMapClickInfo({ name: data.name, address: data.address, coords });
+      setMapClickInfo({ name: data.name, address: data.address, category: data.category, phone: data.phone, placeUrl: data.placeUrl, coords });
     } catch (err) {
       console.error('Reverse geocode failed:', err);
     }
@@ -344,6 +344,9 @@ export default function HomePage() {
           <MapClickSheet
             name={mapClickInfo.name}
             address={mapClickInfo.address}
+            category={mapClickInfo.category}
+            phone={mapClickInfo.phone}
+            placeUrl={mapClickInfo.placeUrl}
             coords={mapClickInfo.coords}
             onSetStart={() => {
               setStart({ address: mapClickInfo.name, coordinates: mapClickInfo.coords });
