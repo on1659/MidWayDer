@@ -1,53 +1,58 @@
 /**
- * Detour Cost 계산 메인 로직
+ * Detour Cost 계산 메인 로직 (v2)
  *
- * 전체 프로세스를 통합하여 최적의 경유지를 추천합니다.
- * 1차 PostGIS 필터링 → 2차 벡터 근접도 필터링 → 정밀 Detour Cost 계산
+ * 핵심 원칙: 원본 경로(A→B)는 변하지 않음!
+ * 경유지는 원본 경로 근처에서 찾고, "경로 이탈→경유지→복귀" 비용만 계산.
+ *
+ * 프로세스:
+ * 1. Polyline 샘플링
+ * 2. PostGIS 1차 필터링 (경로 버퍼 내)
+ * 3. 벡터 근접도 2차 필터링
+ * 4. Detour Cost = 원본 경로 위 가장 가까운 포인트 ↔ 경유지 왕복 거리/시간 추정
+ * 5. 최종 점수 산출 → 상위 10개 반환
+ *
+ * API 호출 최소화: 원본 경로 1회만 호출, 경유지별 추가 호출 없음!
  */
 
-import { Route, Place, Coordinates } from '@/types/location';
+import { Route, Place, Coordinates, RoutePoint } from '@/types/location';
 import { DetourResult, SpatialFilterOptions } from '@/types/detour';
-import { getDirectionsProvider } from '@/lib/map-provider';
 import { filterPlacesByRoute } from './spatial-filter';
 import { samplePolyline, getOptimalSampleInterval } from './polyline-sampler';
 import { filterByProximity } from './proximity-scorer';
+import { haversineDistance } from '@/lib/utils';
 
 /**
- * Detour Cost 계산 및 최적 경유지 추천
- *
- * 전체 프로세스:
- * 1. Polyline 샘플링 (500m 간격)
- * 2. PostGIS 1차 필터링 (1km 버퍼) → 1000개 → 50개
- * 3. 벡터 근접도 2차 필터링 → 50개 → 20개
- * 4. Naver Directions API 호출 (A→C, C→B) → 20개 × 2 = 40회
- * 5. Detour Cost 계산 및 최종 점수 산출
- * 6. 정렬 후 상위 10개 반환
- *
- * @param originalRoute - A→B 원본 경로
- * @param category - 검색 카테고리 (예: "다이소", "스타벅스")
- * @param options - 공간 필터링 옵션
- * @returns 계산 결과 (상위 10개 경유지, 통계 정보)
- *
- * @example
- * ```ts
- * const originalRoute = await getRoute(
- *   { lat: 37.5663, lng: 126.9779 }, // 서울시청
- *   { lat: 37.4979, lng: 127.0276 }  // 강남역
- * );
- *
- * const { results, totalCandidates, apiCallsUsed } = await calculateDetourCosts(
- *   originalRoute,
- *   '다이소'
- * );
- *
- * console.log(`Top 3 results:`);
- * results.slice(0, 3).forEach((r, i) => {
- *   console.log(`${i + 1}. ${r.place.name}`);
- *   console.log(`   Detour: +${r.detourCost.distance}m / +${r.detourCost.duration}s`);
- *   console.log(`   Final Score: ${r.finalScore.toFixed(1)}`);
- * });
- * ```
+ * 경로 위 가장 가까운 포인트를 찾고, 해당 포인트에서 경유지까지의 이탈 비용 계산
  */
+function findClosestPointOnRoute(
+  place: Coordinates,
+  path: RoutePoint[]
+): { closestPoint: RoutePoint; distance: number; index: number } {
+  let minDist = Infinity;
+  let closestPoint = path[0];
+  let closestIndex = 0;
+
+  for (let i = 0; i < path.length; i++) {
+    const d = haversineDistance(place, path[i]);
+    if (d < minDist) {
+      minDist = d;
+      closestPoint = path[i];
+      closestIndex = i;
+    }
+  }
+
+  return { closestPoint, distance: minDist, index: closestIndex };
+}
+
+/**
+ * 직선거리 기반 detour 시간 추정 (도심 평균 속도 기준)
+ * 왕복이므로 ×2, 도심 평균 20km/h = ~5.6m/s
+ */
+function estimateDetourDuration(distanceMeters: number): number {
+  const URBAN_SPEED_MS = 5.6; // 약 20km/h
+  return Math.round((distanceMeters * 2) / URBAN_SPEED_MS);
+}
+
 export async function calculateDetourCosts(
   originalRoute: Route,
   category: string,
@@ -59,14 +64,13 @@ export async function calculateDetourCosts(
 }> {
   const startTime = Date.now();
 
-  // 옵션 기본값
   const {
     bufferDistance = 500,
     maxDetourDistance = 5000,
     sampleInterval = getOptimalSampleInterval(originalRoute.distance),
   } = options;
 
-  console.log('[Detour] Starting calculation...');
+  console.log('[Detour] Starting calculation (v2 - fixed route)...');
   console.log(`[Detour] Route: ${originalRoute.distance}m, ${originalRoute.duration}s`);
   console.log(`[Detour] Category: ${category}`);
 
@@ -83,7 +87,6 @@ export async function calculateDetourCosts(
   console.log(`[Detour] Spatial filter: ${spatialCandidates.length} candidates`);
 
   if (spatialCandidates.length === 0) {
-    console.log('[Detour] No candidates found within buffer distance');
     return { results: [], totalCandidates: 0, apiCallsUsed: 1 };
   }
 
@@ -92,88 +95,89 @@ export async function calculateDetourCosts(
     spatialCandidates,
     sampledPoints,
     originalRoute,
-    20 // 상위 20개
+    20
   );
   console.log(`[Detour] Proximity filter: ${proximityFiltered.length} candidates`);
 
   if (proximityFiltered.length === 0) {
-    console.log('[Detour] No candidates passed proximity filtering');
     return { results: [], totalCandidates: spatialCandidates.length, apiCallsUsed: 1 };
   }
 
-  // Step 4: Naver Directions API 병렬 호출 (A→C, C→B)
-  console.log('[Detour] Calculating detour costs for top candidates...');
-  const detourResults = await Promise.all(
-    proximityFiltered.map(async ({ place, proximityScore }) => {
-      try {
-        const [toWaypoint, fromWaypoint] = await Promise.all([
-          getDirectionsProvider().getRoute(originalRoute.start, place.coordinates),
-          getDirectionsProvider().getRoute(place.coordinates, originalRoute.end),
-        ]);
+  // Step 4: Detour Cost 계산 (API 호출 없이 직선거리 기반)
+  // 원본 경로는 변하지 않음! 경로 위 가장 가까운 포인트 ↔ 경유지 왕복만 계산.
+  console.log('[Detour] Calculating detour costs (route-fixed mode)...');
 
-        // Detour Cost 계산
-        const detourDistance =
-          toWaypoint.distance + fromWaypoint.distance - originalRoute.distance;
-        const detourDuration =
-          toWaypoint.duration + fromWaypoint.duration - originalRoute.duration;
+  const detourResults: DetourResult[] = [];
 
-        // 최대 허용 이탈 거리 초과 시 제외
-        if (detourDistance > maxDetourDistance) {
-          console.log(
-            `[Detour] ${place.name} exceeds max detour distance: +${detourDistance}m`
-          );
-          return null;
-        }
+  for (const { place, proximityScore } of proximityFiltered) {
+    const { closestPoint, distance: distToRoute, index: closestIdx } = findClosestPointOnRoute(
+      place.coordinates,
+      originalRoute.path
+    );
 
-        // Cost Score 정규화 (0-100, 낮을수록 좋음)
-        // 거리 60%, 시간 40% 가중치
-        const costScore = Math.min(
-          100,
-          (detourDistance / maxDetourDistance) * 60 + (detourDuration / 600) * 40
-        );
+    // 왕복 이탈 거리 (경로 → 경유지 → 경로)
+    const detourDistance = Math.round(distToRoute * 2);
+    const detourDuration = estimateDetourDuration(distToRoute);
 
-        // 최종 점수 = (100 - costScore) * 0.7 + proximityScore * 0.3
-        // costScore를 반전(100 - costScore)하여 높을수록 좋게 변환
-        const finalScore = (100 - costScore) * 0.7 + proximityScore * 0.3;
+    // 최대 허용 이탈 거리 초과 시 제외
+    if (detourDistance > maxDetourDistance) {
+      continue;
+    }
 
-        const result: DetourResult = {
-          place,
-          detourCost: {
-            distance: detourDistance,
-            duration: detourDuration,
-            costScore,
-          },
-          routes: {
-            original: originalRoute,
-            toWaypoint,
-            fromWaypoint,
-          },
-          proximityScore,
-          finalScore,
-        };
+    // Cost Score 정규화 (0-100, 낮을수록 좋음)
+    const costScore = Math.min(
+      100,
+      (detourDistance / maxDetourDistance) * 60 + (detourDuration / 600) * 40
+    );
 
-        return result;
-      } catch (error) {
-        console.warn(`[Detour] Route calculation failed for ${place.name}:`, error);
-        return null;
-      }
-    })
-  );
+    // 최종 점수 = (100 - costScore) * 0.7 + proximityScore * 0.3
+    const finalScore = (100 - costScore) * 0.7 + proximityScore * 0.3;
 
-  // null 제거 및 최종 점수 내림차순 정렬
-  const validResults = detourResults
-    .filter((r): r is DetourResult => r !== null)
-    .sort((a, b) => b.finalScore - a.finalScore)
-    .slice(0, 10); // 상위 10개
+    const result: DetourResult = {
+      place,
+      detourCost: {
+        distance: detourDistance,
+        duration: detourDuration,
+        costScore,
+      },
+      routes: {
+        original: originalRoute,
+        // 경유지 경로는 원본 경로 그대로 사용 (경로가 바뀌지 않음)
+        toWaypoint: {
+          ...originalRoute,
+          // 출발지 → 경유지 가장 가까운 경로 포인트까지만 표시
+          path: originalRoute.path.slice(0, closestIdx + 1),
+          distance: closestPoint.distance || 0,
+          duration: closestPoint.duration || 0,
+        },
+        fromWaypoint: {
+          ...originalRoute,
+          // 경유지 가장 가까운 경로 포인트 → 도착지까지
+          path: originalRoute.path.slice(closestIdx),
+          distance: originalRoute.distance - (closestPoint.distance || 0),
+          duration: originalRoute.duration - (closestPoint.duration || 0),
+          start: closestPoint,
+          end: originalRoute.end,
+        },
+      },
+      proximityScore,
+      finalScore,
+    };
 
-  const apiCallsUsed = 1 + proximityFiltered.length * 2; // 원본 경로 1회 + (A→C, C→B) × N
+    detourResults.push(result);
+  }
+
+  // 최종 점수 내림차순 정렬, 상위 10개
+  detourResults.sort((a, b) => b.finalScore - a.finalScore);
+  const validResults = detourResults.slice(0, 10);
+
+  const apiCallsUsed = 1; // 원본 경로 조회 1회만!
   const duration = Date.now() - startTime;
 
   console.log(`[Detour] Completed in ${duration}ms`);
-  console.log(`[Detour] API calls: ${apiCallsUsed}`);
+  console.log(`[Detour] API calls: ${apiCallsUsed} (no per-waypoint calls!)`);
   console.log(`[Detour] Final results: ${validResults.length} places`);
 
-  // 상위 3개 결과 로그
   validResults.slice(0, 3).forEach((r, i) => {
     console.log(
       `[Detour] ${i + 1}. ${r.place.name} - ` +
@@ -190,55 +194,24 @@ export async function calculateDetourCosts(
 }
 
 /**
- * 단일 경유지에 대한 Detour Cost 계산
- *
- * 특정 매장을 경유할 때 증가하는 거리/시간을 계산합니다.
- *
- * @param originalRoute - A→B 원본 경로
- * @param waypoint - 경유지 좌표
- * @returns Detour Cost 정보
- *
- * @example
- * ```ts
- * const cost = await calculateSingleDetourCost(
- *   originalRoute,
- *   { lat: 37.5300, lng: 126.9600 }
- * );
- * console.log(`+${cost.distance}m / +${cost.duration}s`);
- * ```
+ * 단일 경유지에 대한 Detour Cost 계산 (경로 고정 방식)
  */
-export async function calculateSingleDetourCost(
+export function calculateSingleDetourCost(
   originalRoute: Route,
   waypoint: Coordinates
-): Promise<{
+): {
   distance: number;
   duration: number;
   costScore: number;
-}> {
-  try {
-    const [toWaypoint, fromWaypoint] = await Promise.all([
-      getDirectionsProvider().getRoute(originalRoute.start, waypoint),
-      getDirectionsProvider().getRoute(waypoint, originalRoute.end),
-    ]);
+} {
+  const { distance: distToRoute } = findClosestPointOnRoute(waypoint, originalRoute.path);
+  const detourDistance = Math.round(distToRoute * 2);
+  const detourDuration = estimateDetourDuration(distToRoute);
 
-    const detourDistance =
-      toWaypoint.distance + fromWaypoint.distance - originalRoute.distance;
-    const detourDuration =
-      toWaypoint.duration + fromWaypoint.duration - originalRoute.duration;
+  const costScore = Math.min(
+    100,
+    (detourDistance / 5000) * 60 + (detourDuration / 600) * 40
+  );
 
-    // Cost Score 정규화 (0-100, 낮을수록 좋음)
-    const costScore = Math.min(
-      100,
-      (detourDistance / 5000) * 60 + (detourDuration / 600) * 40
-    );
-
-    return {
-      distance: detourDistance,
-      duration: detourDuration,
-      costScore,
-    };
-  } catch (error) {
-    console.error('[Detour] Failed to calculate single detour cost:', error);
-    throw error;
-  }
+  return { distance: detourDistance, duration: detourDuration, costScore };
 }
