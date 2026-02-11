@@ -151,7 +151,7 @@ export default function AddressInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 rounded-xl text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-10"
+          className="w-full px-4 py-4 rounded-xl text-[17px] placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-10"
           style={{
             background: '#F8F9FB',
             color: '#2D3748',

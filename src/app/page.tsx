@@ -351,13 +351,13 @@ export default function HomePage() {
             onClick={() => setSearchOverlayOpen(true)}
             className="w-full bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden"
           >
-            <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100">
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
               <div className="w-3 h-3 rounded-full shrink-0" style={{ background: '#6C9CFF' }} />
               <span className="flex-1 text-left text-[15px] truncate" style={{ color: start?.address ? '#2D3748' : '#8B95A5' }}>
                 {start?.address || '출발지'}
               </span>
             </div>
-            <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="flex items-center gap-3 px-4 py-3.5">
               <div className="w-3 h-3 rounded-full shrink-0" style={{ background: '#FF8FA3' }} />
               <span className="flex-1 text-left text-[15px] truncate" style={{ color: end?.address ? '#2D3748' : '#8B95A5' }}>
                 {end?.address || '도착지'}
