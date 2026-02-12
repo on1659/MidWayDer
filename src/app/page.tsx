@@ -123,7 +123,10 @@ export default function HomePage() {
 
   // GPS: get current location
   const handleGPS = useCallback(async () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      alert('이 브라우저에서는 위치 기능을 사용할 수 없어요');
+      return;
+    }
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -137,8 +140,17 @@ export default function HomePage() {
         }
         setGpsLoading(false);
       },
-      () => setGpsLoading(false),
-      { enableHighAccuracy: true, timeout: 10000 }
+      (err) => {
+        setGpsLoading(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          alert('위치 권한이 거부되었어요.\n설정 > Safari > 위치 서비스에서 허용해주세요.');
+        } else if (err.code === err.TIMEOUT) {
+          alert('위치를 가져오는데 시간이 오래 걸려요. 다시 시도해주세요.');
+        } else {
+          alert('위치를 가져올 수 없어요. 다시 시도해주세요.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
   }, [setStart]);
 

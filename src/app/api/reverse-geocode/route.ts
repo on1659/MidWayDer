@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       ),
       ...PRIORITY_CATEGORIES.map((code) =>
         fetch(
-          `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=${code}&x=${lng}&y=${lat}&radius=150&sort=distance&size=1`,
+          `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=${code}&x=${lng}&y=${lat}&radius=50&sort=distance&size=1`,
           { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
         )
       ),
