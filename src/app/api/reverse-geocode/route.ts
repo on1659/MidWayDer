@@ -1,13 +1,17 @@
 /**
- * 역지오코딩 API - 좌표 → 장소 상세정보 변환
+ * 역지오코딩 API - 좌표 → 가장 가까운 장소 상세정보
  * 
- * 1. 좌표 근처 카카오 카테고리/키워드 검색 → 가장 가까운 장소 상세정보
- * 2. fallback: 좌표→주소 변환
+ * 전략: 여러 카테고리 그룹으로 검색해서 가장 가까운 장소를 찾음
+ * 음식점(FD6), 카페(CE7), 편의점(CS2), 대형마트(MT1) 4개만 검색 (API 절약)
+ * fallback: 좌표→주소
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
 const KAKAO_REST_KEY = process.env.KAKAO_REST_API_KEY;
+
+// 자주 있는 카테고리만 (API 호출 최소화)
+const PRIORITY_CATEGORIES = ['FD6', 'CE7', 'CS2', 'MT1'];
 
 export async function GET(req: NextRequest) {
   const lng = req.nextUrl.searchParams.get('lng');
@@ -18,12 +22,21 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 1. 좌표→주소 변환
-    const addrRes = await fetch(
-      `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
-      { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
-    );
+    // 1. 좌표→주소 + 카테고리 검색 병렬
+    const [addrRes, ...catResults] = await Promise.all([
+      fetch(
+        `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
+        { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
+      ),
+      ...PRIORITY_CATEGORIES.map((code) =>
+        fetch(
+          `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=${code}&x=${lng}&y=${lat}&radius=150&sort=distance&size=1`,
+          { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
+        )
+      ),
+    ]);
 
+    // 주소 파싱
     let address: string | null = null;
     if (addrRes.ok) {
       const addrData = await addrRes.json();
@@ -31,42 +44,45 @@ export async function GET(req: NextRequest) {
       address = doc?.road_address?.address_name || doc?.address?.address_name || null;
     }
 
-    // 2. 근처 장소 키워드 검색 (반경 50m 내 가장 가까운 장소)
-    const searchRes = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('장소')}&x=${lng}&y=${lat}&radius=50&sort=distance&size=5&category_group_code=`,
-      { headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` } }
-    );
+    // 가장 가까운 장소 찾기
+    let closest: any = null;
+    let closestDist = Infinity;
 
-    let place: any = null;
-    if (searchRes.ok) {
-      const searchData = await searchRes.json();
-      // 가장 가까운 장소
-      if (searchData.documents?.length > 0) {
-        place = searchData.documents[0];
+    for (const res of catResults) {
+      if (!res.ok) continue;
+      const data = await res.json();
+      const place = data.documents?.[0];
+      if (!place) continue;
+      const dist = parseFloat(place.distance) || Infinity;
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = place;
       }
     }
 
-    if (place) {
+    if (closest) {
       return NextResponse.json({
-        name: place.place_name,
-        address: place.road_address_name || place.address_name || address,
-        category: place.category_name?.split(' > ').pop() || '',
-        phone: place.phone || null,
-        placeUrl: place.place_url || null,
-        kakaoId: place.id || null,
+        name: closest.place_name,
+        address: closest.road_address_name || closest.address_name || address,
+        category: closest.category_name?.split(' > ').pop() || '',
+        phone: closest.phone || null,
+        placeUrl: closest.place_url || null,
+        kakaoId: closest.id || null,
+        distance: Math.round(closestDist),
         lat: parseFloat(lat),
         lng: parseFloat(lng),
       });
     }
 
-    // fallback: 주소만 반환
+    // fallback: 주소만
     return NextResponse.json({
-      name: address,
+      name: address || `${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`,
       address,
       category: null,
       phone: null,
       placeUrl: null,
       kakaoId: null,
+      distance: null,
       lat: parseFloat(lat),
       lng: parseFloat(lng),
     });
