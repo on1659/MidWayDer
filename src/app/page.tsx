@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { Search, Share2, LocateFixed } from 'lucide-react';
+import { Search, Share2, LocateFixed, X } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -18,7 +18,7 @@ import PlaceDetail from '@/components/place/PlaceDetail';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
-import { addRecentSearch } from '@/lib/recent-searches';
+import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 import type { Route } from '@/types/location';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
@@ -29,11 +29,17 @@ export default function HomePage() {
 
   const [appReady, setAppReady] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   // 스플래시 스크린 (1.5초)
   useEffect(() => {
     const timer = setTimeout(() => setAppReady(true), 1500);
     return () => clearTimeout(timer);
+  }, []);
+
+  // 최근 검색 로드
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
   }, []);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
   const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; category?: string; phone?: string; placeUrl?: string; coords: { lat: number; lng: number } } | null>(null);
@@ -182,6 +188,7 @@ export default function HomePage() {
       endCoords: end.coordinates,
       category,
     });
+    setRecentSearches(getRecentSearches());
     clearResults();
     selectWaypoint(null);
     setOriginalRoute(null);
@@ -205,7 +212,7 @@ export default function HomePage() {
   const canSearch = !!(start?.address && end?.address);
 
   return (
-    <div className="h-dvh flex flex-col md:flex-row overflow-hidden" style={{ background: '#F8F9FB' }}>
+    <div className="h-dvh flex flex-col md:flex-row overflow-hidden" style={{ background: 'var(--bg-app)' }}>
       {/* Splash Screen Overlay */}
       {!appReady && (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300" style={{ background: '#6C9CFF' }}>
@@ -234,7 +241,7 @@ export default function HomePage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ background: '#6C9CFF' }} />
-              <span className="text-sm font-semibold" style={{ color: '#2D3748' }}>출발</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>출발</span>
             </div>
             <AddressInput
               label=""
@@ -243,6 +250,7 @@ export default function HomePage() {
               onSelect={handleStartSelect}
               placeholder="출발하는 곳"
               mapCenter={mapCenter}
+              testId="origin-input"
             />
           </div>
           <div className="space-y-2">
@@ -257,6 +265,7 @@ export default function HomePage() {
               onSelect={handleEndSelect}
               placeholder="가고 싶은 곳"
               mapCenter={mapCenter}
+              testId="destination-input"
             />
           </div>
 
@@ -266,12 +275,13 @@ export default function HomePage() {
           </div>
 
           <button
+            data-testid="search-route-btn"
             onClick={handleSearch}
             disabled={isLoading || !canSearch}
             className="w-full py-3.5 text-white rounded-2xl font-bold text-base
               active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400
               transition-all shadow-md"
-            style={{ background: isLoading || !canSearch ? undefined : '#6C9CFF' }}
+            style={{ background: isLoading || !canSearch ? undefined : 'var(--accent)' }}
           >
             {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
           </button>
@@ -293,7 +303,43 @@ export default function HomePage() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide">
+        <div data-testid="route-result-panel" className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide">
+          {recentSearches.length > 0 && results.length === 0 && !isLoading && !error && (
+            <div className="mb-5">
+              <p className="text-sm font-semibold mb-2" style={{ color: '#8B95A5' }}>최근 검색</p>
+              <div className="space-y-2">
+                {recentSearches.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <button
+                      className="flex-1 text-left min-w-0"
+                      onClick={() => {
+                        setStart({ address: item.startAddress, coordinates: item.startCoords });
+                        setEnd({ address: item.endAddress, coordinates: item.endCoords });
+                        setCategory(item.category);
+                      }}
+                    >
+                      <p className="text-sm font-medium truncate" style={{ color: '#2D3748' }}>
+                        {item.startAddress} → {item.endAddress}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: '#8B95A5' }}>{item.category}</p>
+                    </button>
+                    <button
+                      onClick={() => {
+                        removeRecentSearch(item.id);
+                        setRecentSearches(getRecentSearches());
+                      }}
+                      className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      <X className="w-4 h-4" style={{ color: '#8B95A5' }} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <ResultList
             results={results}
             selectedId={selectedWaypoint?.place.id || null}
@@ -387,16 +433,17 @@ export default function HomePage() {
         {/* ========== MOBILE SEARCH BAR ========== */}
         <div className="md:hidden absolute top-3 inset-x-3 z-30">
           <button
+            data-testid="open-search-overlay-btn"
             onClick={() => setSearchOverlayOpen(true)}
             className="w-full bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden"
           >
-            <div className="flex items-center gap-4 px-5 py-5 border-b border-gray-100">
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
               <div className="w-5 h-5 rounded-full shrink-0" style={{ background: '#6C9CFF' }} />
               <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: start?.address ? '#2D3748' : '#8B95A5' }}>
                 {start?.address || '출발지'}
               </span>
             </div>
-            <div className="flex items-center gap-4 px-5 py-5">
+            <div className="flex items-center gap-3 px-4 py-3.5">
               <div className="w-5 h-5 rounded-full shrink-0" style={{ background: '#FF8FA3' }} />
               <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: end?.address ? '#2D3748' : '#8B95A5' }}>
                 {end?.address || '도착지'}
@@ -470,7 +517,7 @@ export default function HomePage() {
               {/* 앱 소개 */}
               <div className="px-5 pt-5 pb-3">
                 <p className="text-xl font-bold" style={{ color: '#2D3748' }}>🗺️ 가는 길에 어디 들를까요?</p>
-                <p className="text-base mt-1.5" style={{ color: '#8B95A5' }}>출발지와 도착지를 설정하면 경로 위 편의시설을 찾아드려요</p>
+                <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
               </div>
               {/* 퀵 카테고리 */}
               <div className="flex gap-2.5 px-5 pb-5 overflow-x-auto">
