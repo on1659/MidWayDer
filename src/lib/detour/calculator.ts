@@ -66,7 +66,7 @@ export async function calculateDetourCosts(
 
   const {
     bufferDistance = 500,
-    maxDetourDistance = 5000,
+    maxDetourDistance = 3000,
     sampleInterval = getOptimalSampleInterval(originalRoute.distance),
   } = options;
 
