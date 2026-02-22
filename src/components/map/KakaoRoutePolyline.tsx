@@ -28,7 +28,7 @@ export default function KakaoRoutePolyline({
   originalRoute,
   detourRoute,
 }: KakaoRoutePolylineProps) {
-  const originalPolylineRef = useRef<kakao.maps.Polyline | null>(null);
+  const originalPolylineRef = useRef<kakao.maps.Polyline[]>([]);
   const detourPolylineRef = useRef<kakao.maps.Polyline[]>([]);
 
   // 원본 경로 그리기
@@ -36,25 +36,43 @@ export default function KakaoRoutePolyline({
     if (!map || !window.kakao || !originalRoute) return;
 
     // 기존 폴리라인 제거
-    if (originalPolylineRef.current) {
-      originalPolylineRef.current.setMap(null);
+    originalPolylineRef.current.forEach((p) => p.setMap(null));
+    originalPolylineRef.current = [];
+
+    // 세그먼트가 있으면 도로 종류별로 색상 분기
+    if (originalRoute.segments && originalRoute.segments.length > 0) {
+      const segmentPolylines = originalRoute.segments.map((segment) => {
+        const path = segment.path.map(
+          (point) => new window.kakao.maps.LatLng(point.lat, point.lng)
+        );
+        return new window.kakao.maps.Polyline({
+          map,
+          path,
+          strokeColor: segment.isHighway ? '#F97316' : '#3B82F6', // 주황/파랑
+          strokeWeight: 8,
+          strokeOpacity: 0.85,
+          strokeStyle: 'solid',
+        });
+      });
+
+      originalPolylineRef.current = segmentPolylines;
+    } else {
+      // 기존 단일 폴리라인
+      const path = originalRoute.path.map(
+        (point) => new window.kakao.maps.LatLng(point.lat, point.lng)
+      );
+
+      const polyline = new window.kakao.maps.Polyline({
+        map,
+        path,
+        strokeColor: '#3B82F6', // 파란색
+        strokeWeight: 8,
+        strokeOpacity: 0.85,
+        strokeStyle: 'solid',
+      });
+
+      originalPolylineRef.current = [polyline];
     }
-
-    // 새 폴리라인 생성
-    const path = originalRoute.path.map(
-      (point) => new window.kakao.maps.LatLng(point.lat, point.lng)
-    );
-
-    const polyline = new window.kakao.maps.Polyline({
-      map,
-      path,
-      strokeColor: '#3B82F6', // 파란색
-      strokeWeight: 8,
-      strokeOpacity: 0.85,
-      strokeStyle: 'solid',
-    });
-
-    originalPolylineRef.current = polyline;
 
     // 경로에 맞게 지도 영역 조정
     const bounds = new window.kakao.maps.LatLngBounds();
@@ -64,9 +82,8 @@ export default function KakaoRoutePolyline({
     map.setBounds(bounds, 80, 80, 200, 80);
 
     return () => {
-      if (originalPolylineRef.current) {
-        originalPolylineRef.current.setMap(null);
-      }
+      originalPolylineRef.current.forEach((p) => p.setMap(null));
+      originalPolylineRef.current = [];
     };
   }, [map, originalRoute]);
 

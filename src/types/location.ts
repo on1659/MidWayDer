@@ -28,6 +28,20 @@ export interface RoutePoint extends Coordinates {
 }
 
 /**
+ * 경로 세그먼트
+ *
+ * 도로명/구간별로 나눈 경로 조각입니다.
+ */
+export interface RouteSegment {
+  /** 도로명 */
+  name: string;
+  /** 구간 경로 포인트 */
+  path: RoutePoint[];
+  /** 고속화도로/고속도로 여부 */
+  isHighway?: boolean;
+}
+
+/**
  * 경로 정보
  *
  * A→B 이동 경로의 전체 정보를 담습니다.
@@ -43,6 +57,8 @@ export interface Route {
   duration: number;
   /** 경로 포인트 배열 (Polyline) */
   path: RoutePoint[];
+  /** 경로 세그먼트 (선택사항) */
+  segments?: RouteSegment[];
   /** 인코딩된 Polyline 문자열 (선택사항) */
   polyline?: string;
 }

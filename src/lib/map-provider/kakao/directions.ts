@@ -6,7 +6,7 @@
 
 import { kakaoNaviClient, extractKakaoErrorMessage } from './client';
 import { KakaoDirectionsResponse } from './types';
-import { Route, Coordinates, RoutePoint } from '@/types/location';
+import { Route, Coordinates, RoutePoint, RouteSegment } from '@/types/location';
 import { IDirectionsProvider, RouteOption } from '../types';
 import { AxiosError } from 'axios';
 
@@ -152,17 +152,29 @@ function convertKakaoRouteToRoute(
   start: Coordinates,
   end: Coordinates
 ): Route {
-  // 모든 sections의 roads에서 vertexes를 추출하여 path 생성
+  // 모든 sections의 roads에서 vertexes를 추출하여 path/segments 생성
   const path: RoutePoint[] = [];
+  const segments: RouteSegment[] = [];
 
   for (const section of kakaoRoute.sections) {
     for (const road of section.roads) {
+      if (!road.vertexes || road.vertexes.length < 4) continue;
+
+      const segmentPoints: RoutePoint[] = [];
       // vertexes: [lng1, lat1, lng2, lat2, ...]
       for (let i = 0; i < road.vertexes.length; i += 2) {
         const lng = road.vertexes[i];
         const lat = road.vertexes[i + 1];
-        path.push({ lat, lng });
+        const point = { lat, lng };
+        segmentPoints.push(point);
+        path.push(point);
       }
+
+      segments.push({
+        name: road.name || '도로',
+        path: segmentPoints,
+        isHighway: isHighSpeedRoad(road.name || ''),
+      });
     }
   }
 
@@ -178,5 +190,26 @@ function convertKakaoRouteToRoute(
     distance: kakaoRoute.summary.distance, // 미터
     duration: kakaoRoute.summary.duration,  // 초 (Kakao는 이미 초 단위)
     path,
+    segments: segments.length > 0 ? segments : undefined,
   };
+}
+
+/**
+ * 고속화도로/고속도로 추정
+ */
+function isHighSpeedRoad(roadName: string): boolean {
+  if (!roadName) return false;
+  const keywords = [
+    '고속도로',
+    '고속화',
+    '자동차전용',
+    '강변북로',
+    '올림픽대로',
+    '내부순환로',
+    '동부간선도로',
+    '서부간선도로',
+    '강남순환로',
+    '동북선',
+  ];
+  return keywords.some((k) => roadName.includes(k));
 }
