@@ -82,6 +82,20 @@ export async function POST(request: NextRequest) {
     if (routeResults[0].status === 'fulfilled') routeEntries.push({ route: routeResults[0].value, type: 'shortest' });
     if (routeResults[1].status === 'fulfilled') routeEntries.push({ route: routeResults[1].value, type: 'fastest' });
 
+    // shortest가 지나치게 느리면(도심 관통 등) 제외
+    if (routeEntries.length === 2) {
+      const shortest = routeEntries.find((r) => r.type === 'shortest')!;
+      const fastest = routeEntries.find((r) => r.type === 'fastest')!;
+      const durationRatio = shortest.route.duration / fastest.route.duration;
+      if (durationRatio >= 1.35) {
+        console.warn(
+          `[API /search] Drop shortest route (durationRatio=${durationRatio.toFixed(2)})`
+        );
+        const idx = routeEntries.indexOf(shortest);
+        if (idx >= 0) routeEntries.splice(idx, 1);
+      }
+    }
+
     if (routeEntries.length === 0) {
       const errorResponse: SearchWaypointsErrorResponse = {
         success: false,
@@ -107,7 +121,8 @@ export async function POST(request: NextRequest) {
     const seenPlaces = new Map<string, typeof allResults[0]>();
     let totalCandidates = 0;
     let apiCallsUsed = 0;
-    let primaryOriginalRoute = routeEntries[0].route;
+    const fastestEntry = routeEntries.find((r) => r.type === 'fastest');
+    let primaryOriginalRoute = (fastestEntry || routeEntries[0]).route;
 
     const allResults: Array<any> = [];
     for (const dr of detourResults) {
