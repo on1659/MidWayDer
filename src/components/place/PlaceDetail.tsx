@@ -149,7 +149,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             <button
               onClick={handleConfirm}
               className="flex-1 py-4 text-white text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
-              style={{ background: '#7ED6A8' }}
+              style={{ background: 'var(--accent)' }}
             >
               경유지로 선택
             </button>

@@ -25,6 +25,8 @@ interface AddressInputProps {
   mapCenter?: { lat: number; lng: number };
   /** 입력란 왼쪽에 표시할 색깔 점 */
   dotColor?: string;
+  /** E2E 테스트용 식별자 */
+  testId?: string;
 }
 
 export default function AddressInput({
@@ -36,6 +38,7 @@ export default function AddressInput({
   icon,
   mapCenter,
   dotColor,
+  testId,
 }: AddressInputProps) {
   const [localValue, setLocalValue] = useState(value);
   const [results, setResults] = useState<AutocompleteResult[]>([]);
@@ -145,25 +148,26 @@ export default function AddressInput({
         <div className="relative flex-1">
         <input
           ref={inputRef}
+          data-testid={testId}
           type="text"
           value={localValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full px-5 py-4.5 rounded-xl text-lg placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-12"
+          className="w-full px-4 py-3.5 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
           style={{
-            background: '#F8F9FB',
-            color: '#2D3748',
-            border: '1px solid #E8ECF1',
+            background: 'var(--bg-surface-muted)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-soft)',
           }}
           onFocusCapture={(e) => {
-            e.currentTarget.style.borderColor = '#6C9CFF';
-            e.currentTarget.style.background = '#FFFFFF';
+            e.currentTarget.style.borderColor = 'var(--accent)';
+            e.currentTarget.style.background = 'var(--bg-surface)';
           }}
           onBlurCapture={(e) => {
-            e.currentTarget.style.borderColor = '#E8ECF1';
-            e.currentTarget.style.background = '#F8F9FB';
+            e.currentTarget.style.borderColor = 'var(--border-soft)';
+            e.currentTarget.style.background = 'var(--bg-surface-muted)';
           }}
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2">

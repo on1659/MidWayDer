@@ -1,12 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --pastel-blue: #6C9CFF;
-  --pastel-pink: #FF8FA3;
-  --pastel-green: #7ED6A8;
-  --bg-main: #F8F9FB;
-  --text-dark: #2D3748;
-  --text-light: #8B95A5;
+  /* v1 tokens */
+  --bg-app: #f6f7f9;
+  --bg-surface: #ffffff;
+  --bg-surface-muted: #f2f4f7;
+  --bg-overlay: rgba(255, 255, 255, 0.88);
+
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+
+  --accent: #3b82f6;
+  --accent-weak: #dbeafe;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --border-soft: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+
+  /* backward compatibility */
+  --pastel-blue: var(--accent);
+  --pastel-pink: #f43f5e;
+  --pastel-green: #22c55e;
+  --bg-main: var(--bg-app);
+  --text-dark: var(--text-primary);
+  --text-light: var(--text-secondary);
 }
 
 * {

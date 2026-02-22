@@ -104,7 +104,7 @@ export default function BottomSheet({
       className="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-3xl safe-bottom"
       style={{
         transform: `translateY(${currentTranslate}px)`,
-        transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+        transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
         height: '100dvh',
         touchAction: 'none',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',

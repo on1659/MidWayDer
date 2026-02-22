@@ -79,11 +79,11 @@ export default function SearchOverlay({
         >
           <ArrowLeft className="w-5 h-5" style={{ color: '#2D3748' }} />
         </button>
-        <h2 className="text-xl font-bold" style={{ color: '#2D3748' }}>경로 설정</h2>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
       </div>
 
       {/* Route inputs */}
-      <div className="px-4 pt-4 pb-3 space-y-3 relative z-20">
+      <div className="px-4 pt-3 pb-2 space-y-2.5 relative z-20">
         <AddressInput
           label=""
           value={startAddress}
@@ -92,6 +92,7 @@ export default function SearchOverlay({
           placeholder="출발지를 입력하세요"
           mapCenter={mapCenter}
           dotColor="#6C9CFF"
+          testId="mobile-origin-input"
         />
         <AddressInput
           label=""
@@ -101,12 +102,13 @@ export default function SearchOverlay({
           placeholder="도착지를 입력하세요"
           mapCenter={mapCenter}
           dotColor="#FF8FA3"
+          testId="mobile-destination-input"
         />
       </div>
 
       {/* Category chips */}
-      <div className="px-4 pb-4 relative z-10">
-        <p className="text-base font-semibold mb-3" style={{ color: '#2D3748' }}>어디 들를까요?</p>
+      <div className="px-4 pb-3 relative z-10">
+        <p className="text-sm font-semibold mb-2.5" style={{ color: 'var(--text-primary)' }}>어디 들를까요?</p>
         <CategorySelect selected={category} onChange={onCategoryChange} />
       </div>
 
@@ -150,10 +152,11 @@ export default function SearchOverlay({
       {/* Search button */}
       <div className="px-4 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <button
+          data-testid="mobile-search-route-btn"
           onClick={handleSearch}
           disabled={isLoading || !canSearch}
           className="w-full py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md"
-          style={{ background: isLoading || !canSearch ? undefined : '#6C9CFF' }}
+          style={{ background: isLoading || !canSearch ? undefined : 'var(--accent)' }}
         >
           {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
         </button>

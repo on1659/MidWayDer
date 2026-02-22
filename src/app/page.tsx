@@ -215,7 +215,11 @@ export default function HomePage() {
     <div className="h-dvh flex flex-col md:flex-row overflow-hidden" style={{ background: 'var(--bg-app)' }}>
       {/* Splash Screen Overlay */}
       {!appReady && (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300" style={{ background: '#6C9CFF' }}>
+        <div
+          data-testid="splash-screen"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300"
+          style={{ background: '#6C9CFF' }}
+        >
           <div className="animate-bounce mb-6">
             <div className="w-24 h-24 bg-white rounded-3xl shadow-lg flex items-center justify-center">
               <span className="text-5xl">🗺️</span>

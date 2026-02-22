@@ -97,12 +97,12 @@ export default function ResultList({
 
               <div className="flex-1 min-w-0">
                 {/* Name */}
-                <h3 className="text-[17px] font-bold truncate" style={{ color: '#2D3748' }}>
+                <h3 className="text-[17px] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
                   {result.place.name}
                 </h3>
                 {/* Address */}
                 {(result.place.roadAddress || result.place.address) && (
-                  <p className="text-[14px] mt-1 truncate" style={{ color: '#8B95A5' }}>
+                  <p className="text-[13px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                     {result.place.roadAddress || result.place.address}
                   </p>
                 )}
@@ -111,13 +111,13 @@ export default function ResultList({
                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
                   <span
                     className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                    style={{ background: '#E8F0FE', color: '#4A7AE8' }}
+                    style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
                   >
                     +{detourKm}km
                   </span>
                   <span
                     className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                    style={{ background: '#FFF4E5', color: '#D4850F' }}
+                    style={{ background: '#FEF3C7', color: '#B45309' }}
                   >
                     +{detourMin}분
                   </span>
