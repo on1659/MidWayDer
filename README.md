@@ -4,6 +4,7 @@
 
 **가는 길 중간(Mid)에 필요한 곳(Way)을 더하다(Der/Add)**
 
+[![CI](https://github.com/on1659/MidWayDer/actions/workflows/ci.yml/badge.svg)](https://github.com/on1659/MidWayDer/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-14+-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791?style=flat&logo=postgresql)](https://www.postgresql.org/)
