@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -29,9 +30,18 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#6C9CFF" />
+        <meta name="theme-color" content="#6c9cff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+        >{`(() => {
+  try {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') document.documentElement.classList.add('theme-dark');
+  } catch {}
+})();`}</Script>
       </head>
       <body className="antialiased">{children}</body>
     </html>

@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { Search, Share2, LocateFixed, X } from 'lucide-react';
+import { Search, Share2, LocateFixed, X, Sun, Moon } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -30,6 +30,7 @@ export default function HomePage() {
   const [appReady, setAppReady] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // 스플래시 스크린 (1.5초)
   useEffect(() => {
@@ -41,6 +42,35 @@ export default function HomePage() {
   useEffect(() => {
     setRecentSearches(getRecentSearches());
   }, []);
+
+  // 테마 초기화
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        document.documentElement.classList.add('theme-dark');
+        setTheme('dark');
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // theme-color 메타 동기화
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    const accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent')
+      .trim();
+    if (accent) meta.setAttribute('content', accent);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    document.documentElement.classList.toggle('theme-dark', next === 'dark');
+    try { localStorage.setItem('theme', next); } catch { /* ignore */ }
+  };
+
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
   const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; category?: string; phone?: string; placeUrl?: string; coords: { lat: number; lng: number } } | null>(null);
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
@@ -218,7 +248,7 @@ export default function HomePage() {
         <div
           data-testid="splash-screen"
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300"
-          style={{ background: '#6C9CFF' }}
+          style={{ background: 'var(--accent)' }}
         >
           <div className="animate-bounce mb-6">
             <div className="w-24 h-24 bg-white rounded-3xl shadow-lg flex items-center justify-center">
@@ -237,14 +267,26 @@ export default function HomePage() {
       {/* ========== DESKTOP SIDE PANEL (md+) ========== */}
       <aside className="hidden md:flex md:w-[420px] md:shrink-0 flex-col bg-white border-r border-gray-100 z-10">
         <header className="px-6 pt-6 pb-4">
-          <h1 className="text-2xl font-bold" style={{ color: '#2D3748' }}>🗺️ MidWayDer</h1>
-          <p className="text-sm mt-1" style={{ color: '#8B95A5' }}>가는 길에 어디 들를까?</p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ MidWayDer</h1>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>가는 길에 어디 들를까?</p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              aria-label="테마 변경"
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </header>
 
         <div className="px-5 pb-5 space-y-5 border-b border-gray-100">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ background: '#6C9CFF' }} />
+              <div className="w-3 h-3 rounded-full" style={{ background: 'var(--accent)' }} />
               <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>출발</span>
             </div>
             <AddressInput
@@ -259,8 +301,8 @@ export default function HomePage() {
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ background: '#FF8FA3' }} />
-              <span className="text-sm font-semibold" style={{ color: '#2D3748' }}>도착</span>
+              <div className="w-3 h-3 rounded-full" style={{ background: 'var(--pink-500)' }} />
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>도착</span>
             </div>
             <AddressInput
               label=""
@@ -274,7 +316,7 @@ export default function HomePage() {
           </div>
 
           <div className="space-y-2">
-            <span className="text-sm font-semibold" style={{ color: '#2D3748' }}>어디 들를까?</span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>어디 들를까?</span>
             <CategorySelect selected={category} onChange={setCategory} />
           </div>
 
@@ -292,13 +334,13 @@ export default function HomePage() {
 
           {results.length > 0 && (
             <div className="flex items-center justify-between">
-              <p className="text-xs" style={{ color: '#8B95A5' }}>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {totalCandidates}개 중 {results.length}개 추천
               </p>
               <button
                 onClick={handleShare}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
-                style={{ color: '#6C9CFF' }}
+                style={{ color: 'var(--accent)' }}
               >
                 <Share2 className="w-3.5 h-3.5" />
                 공유
@@ -310,7 +352,7 @@ export default function HomePage() {
         <div data-testid="route-result-panel" className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide">
           {recentSearches.length > 0 && results.length === 0 && !isLoading && !error && (
             <div className="mb-5">
-              <p className="text-sm font-semibold mb-2" style={{ color: '#8B95A5' }}>최근 검색</p>
+              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>최근 검색</p>
               <div className="space-y-2">
                 {recentSearches.map((item) => (
                   <div
@@ -325,10 +367,10 @@ export default function HomePage() {
                         setCategory(item.category);
                       }}
                     >
-                      <p className="text-sm font-medium truncate" style={{ color: '#2D3748' }}>
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-strong)' }}>
                         {item.startAddress} → {item.endAddress}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: '#8B95A5' }}>{item.category}</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
                     </button>
                     <button
                       onClick={() => {
@@ -337,7 +379,7 @@ export default function HomePage() {
                       }}
                       className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
                     >
-                      <X className="w-4 h-4" style={{ color: '#8B95A5' }} />
+                      <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                     </button>
                   </div>
                 ))}
@@ -382,20 +424,20 @@ export default function HomePage() {
           className="absolute bottom-24 right-4 z-20 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50"
           title="현재 위치"
         >
-          <LocateFixed className={`w-8 h-8 ${gpsLoading ? 'animate-pulse' : ''}`} style={{ color: '#6C9CFF' }} />
+          <LocateFixed className={`w-8 h-8 ${gpsLoading ? 'animate-pulse' : ''}`} style={{ color: 'var(--accent)' }} />
         </button>
 
         {/* Legend (desktop) */}
         {originalRoute && (
           <div className="hidden md:block absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-4 space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-1 rounded-full" style={{ background: '#6C9CFF' }} />
-              <span className="text-xs" style={{ color: '#8B95A5' }}>원본 경로</span>
+              <div className="w-8 h-1 rounded-full" style={{ background: 'var(--accent)' }} />
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>원본 경로</span>
             </div>
             {selectedWaypoint && (
               <div className="flex items-center gap-2">
-                <div className="w-8 h-1 rounded-full" style={{ background: '#7ED6A8' }} />
-                <span className="text-xs" style={{ color: '#8B95A5' }}>경유지 경로</span>
+                <div className="w-8 h-1 rounded-full" style={{ background: 'var(--green-600)' }} />
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>경유지 경로</span>
               </div>
             )}
           </div>
@@ -436,24 +478,34 @@ export default function HomePage() {
 
         {/* ========== MOBILE SEARCH BAR ========== */}
         <div className="md:hidden absolute top-3 inset-x-3 z-30">
-          <button
-            data-testid="open-search-overlay-btn"
-            onClick={() => setSearchOverlayOpen(true)}
-            className="w-full bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden"
-          >
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
-              <div className="w-5 h-5 rounded-full shrink-0" style={{ background: '#6C9CFF' }} />
-              <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: start?.address ? '#2D3748' : '#8B95A5' }}>
-                {start?.address || '출발지'}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className="w-5 h-5 rounded-full shrink-0" style={{ background: '#FF8FA3' }} />
-              <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: end?.address ? '#2D3748' : '#8B95A5' }}>
-                {end?.address || '도착지'}
-              </span>
-            </div>
-          </button>
+          <div className="flex items-start gap-2">
+            <button
+              data-testid="open-search-overlay-btn"
+              onClick={() => setSearchOverlayOpen(true)}
+              className="flex-1 bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden"
+            >
+              <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
+                <div className="w-5 h-5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
+                <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: start?.address ? 'var(--text-strong)' : 'var(--text-muted)' }}>
+                  {start?.address || '출발지'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-3.5">
+                <div className="w-5 h-5 rounded-full shrink-0" style={{ background: 'var(--pink-500)' }} />
+                <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: end?.address ? 'var(--text-strong)' : 'var(--text-muted)' }}>
+                  {end?.address || '도착지'}
+                </span>
+              </div>
+            </button>
+            <button
+              onClick={toggleTheme}
+              aria-label="테마 변경"
+              className="w-11 h-11 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5"
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         {/* ========== MOBILE SEARCH OVERLAY ========== */}
@@ -487,18 +539,18 @@ export default function HomePage() {
             <div className="px-4 pb-4">
               {results.length > 0 && (
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold" style={{ color: '#2D3748' }}>
-                    검색 결과 <span style={{ color: '#6C9CFF' }}>{results.length}</span>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>
+                    검색 결과 <span style={{ color: 'var(--accent)' }}>{results.length}</span>
                   </p>
                   <div className="flex items-center gap-2">
-                    <p className="text-xs" style={{ color: '#8B95A5' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {totalCandidates}개 중 추천
                     </p>
                     <button
                       onClick={handleShare}
                       className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
                     >
-                      <Share2 className="w-4 h-4" style={{ color: '#6C9CFF' }} />
+                      <Share2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                     </button>
                   </div>
                 </div>
@@ -520,7 +572,7 @@ export default function HomePage() {
             <div className="mx-3 bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
               {/* 앱 소개 */}
               <div className="px-5 pt-5 pb-3">
-                <p className="text-xl font-bold" style={{ color: '#2D3748' }}>🗺️ 가는 길에 어디 들를까요?</p>
+                <p className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ 가는 길에 어디 들를까요?</p>
                 <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
               </div>
               {/* 퀵 카테고리 */}
@@ -539,7 +591,7 @@ export default function HomePage() {
                       setSearchOverlayOpen(true);
                     }}
                     className="flex items-center gap-2 px-5 py-3.5 rounded-full text-lg font-semibold whitespace-nowrap shrink-0 active:scale-95 transition-all"
-                    style={{ background: '#F0F4FF', color: '#4A6FA5' }}
+                    style={{ background: 'var(--blue-150)', color: 'var(--blue-700)' }}
                   >
                     <span className="text-2xl">{item.emoji}</span>
                     {item.label}
@@ -548,7 +600,7 @@ export default function HomePage() {
               </div>
               {/* 버전 */}
               <div className="px-5 pb-3">
-                <span className="text-xs" style={{ color: '#C4CCD8' }}>v0.4.0</span>
+                <span className="text-xs" style={{ color: 'var(--text-disabled)' }}>v0.4.0</span>
               </div>
             </div>
           </div>
