@@ -48,7 +48,7 @@ export default function RoutePolyline({
     const polyline = new window.naver.maps.Polyline({
       map,
       path,
-      strokeColor: '#3B82F6', // 파란색
+      strokeColor: 'var(--accent)', // 파란색
       strokeWeight: 5,
       strokeOpacity: 0.7,
     });
@@ -88,7 +88,7 @@ export default function RoutePolyline({
     const toWaypointPolyline = new window.naver.maps.Polyline({
       map,
       path: toWaypointPath,
-      strokeColor: '#10B981', // 초록색
+      strokeColor: 'var(--green-600)', // 초록색
       strokeWeight: 5,
       strokeOpacity: 0.8,
     });
@@ -100,7 +100,7 @@ export default function RoutePolyline({
     const fromWaypointPolyline = new window.naver.maps.Polyline({
       map,
       path: fromWaypointPath,
-      strokeColor: '#10B981', // 초록색
+      strokeColor: 'var(--green-600)', // 초록색
       strokeWeight: 5,
       strokeOpacity: 0.8,
     });

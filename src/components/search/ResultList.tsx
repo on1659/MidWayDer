@@ -24,7 +24,7 @@ export default function ResultList({
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-center font-medium animate-pulse" style={{ color: '#6C9CFF' }}>
+        <p className="text-sm text-center font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
           경유지를 찾고 있어요...
         </p>
         {[1, 2, 3, 4].map((i) => (
@@ -48,8 +48,8 @@ export default function ResultList({
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl" style={{ background: '#FFF0F3' }}>
-        <p className="text-sm font-medium" style={{ color: '#FF8FA3' }}>😢 {error}</p>
+      <div className="p-4 rounded-2xl" style={{ background: 'var(--pink-100)' }}>
+        <p className="text-sm font-medium" style={{ color: 'var(--pink-500)' }}>😢 {error}</p>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export default function ResultList({
     return (
       <div className="py-16 text-center">
         <div className="text-4xl mb-3">🗺️</div>
-        <p className="text-sm" style={{ color: '#8B95A5' }}>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
           출발지와 도착지를 설정하고<br />경유지를 검색해보세요
         </p>
       </div>
@@ -79,8 +79,8 @@ export default function ResultList({
             onClick={() => onSelect(result)}
             className="w-full p-4 rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm"
             style={{
-              background: isSelected ? '#EEF4FF' : '#FFFFFF',
-              border: isSelected ? '1.5px solid #6C9CFF' : '1px solid #F0F2F5',
+              background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
+              border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
             }}
           >
             <div className="flex items-start gap-3">
@@ -88,8 +88,8 @@ export default function ResultList({
               <div
                 className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold shrink-0"
                 style={{
-                  background: index === 0 ? '#6C9CFF' : '#F0F4FF',
-                  color: index === 0 ? '#FFFFFF' : '#6C9CFF',
+                  background: index === 0 ? 'var(--accent)' : 'var(--blue-150)',
+                  color: index === 0 ? 'var(--bg-surface)' : 'var(--accent)',
                 }}
               >
                 {index + 1}
@@ -117,14 +117,14 @@ export default function ResultList({
                   </span>
                   <span
                     className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                    style={{ background: '#FEF3C7', color: '#B45309' }}
+                    style={{ background: 'var(--yellow-100)', color: 'var(--yellow-600)' }}
                   >
                     +{detourMin}분
                   </span>
                   {routeLabel && (
                     <span
                       className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                      style={{ background: '#E6F7ED', color: '#2D8F5E' }}
+                      style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
                     >
                       {routeLabel}
                     </span>

@@ -47,12 +47,12 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   };
 
   const scoreColor =
-    finalScore >= 70 ? '#2D8F5E' :
-    finalScore >= 40 ? '#D4850F' : '#E85D5D';
+    finalScore >= 70 ? 'var(--green-700)' :
+    finalScore >= 40 ? 'var(--orange-600)' : 'var(--red-500)';
 
   const scoreBg =
-    finalScore >= 70 ? '#E6F7ED' :
-    finalScore >= 40 ? '#FFF4E5' : '#FFF0F3';
+    finalScore >= 70 ? 'var(--green-100)' :
+    finalScore >= 40 ? 'var(--orange-100)' : 'var(--pink-100)';
 
   return (
     <>
@@ -83,16 +83,16 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl font-bold truncate" style={{ color: '#2D3748' }}>{place.name}</h2>
+                <h2 className="text-xl font-bold truncate" style={{ color: 'var(--text-strong)' }}>{place.name}</h2>
                 <span
                   className="shrink-0 px-3 py-1 text-[13px] font-medium rounded-full"
-                  style={{ background: '#F0F4FF', color: '#6C9CFF' }}
+                  style={{ background: 'var(--blue-150)', color: 'var(--accent)' }}
                 >
                   {place.category}
                 </span>
               </div>
               {address && (
-                <p className="mt-1.5 text-[15px] flex items-center gap-1.5" style={{ color: '#8B95A5' }}>
+                <p className="mt-1.5 text-[15px] flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
                   <MapPin className="w-4 h-4 shrink-0" />
                   <span className="truncate">{address}</span>
                 </p>
@@ -103,7 +103,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
               className="shrink-0 p-1.5 -m-1.5 rounded-full hover:bg-gray-50 transition-colors"
               aria-label="닫기"
             >
-              <X className="w-5 h-5" style={{ color: '#8B95A5' }} />
+              <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
             </button>
           </div>
 
@@ -111,14 +111,14 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
           <div className="flex items-center gap-2 flex-wrap mb-4">
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full"
-              style={{ background: '#E8F0FE', color: '#4A7AE8' }}
+              style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}
             >
               <Navigation className="w-4 h-4" />
               {formatDistance(detourCost.distance)}
             </span>
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full"
-              style={{ background: '#FFF4E5', color: '#D4850F' }}
+              style={{ background: 'var(--orange-100)', color: 'var(--orange-600)' }}
             >
               <Clock className="w-4 h-4" />
               {formatDuration(detourCost.duration)}
@@ -137,7 +137,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             <a
               href={`tel:${place.phone}`}
               className="flex items-center gap-2 text-sm mb-4 transition-colors"
-              style={{ color: '#6C9CFF' }}
+              style={{ color: 'var(--accent)' }}
             >
               <Phone className="w-4 h-4" />
               {place.phone}
@@ -170,7 +170,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
                 }
               }}
               className="px-5 py-4 text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md flex items-center gap-2"
-              style={{ background: '#FEE500', color: '#3C1E1E' }}
+              style={{ background: 'var(--kakao-yellow)', color: 'var(--kakao-brown)' }}
             >
               <ExternalLink className="w-4 h-4" />
               길안내

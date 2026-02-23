@@ -80,7 +80,7 @@ export default function KakaoWaypointMarker({
       markerInner.style.cssText = `
         width: 40px;
         height: 40px;
-        background-color: ${isSelected ? '#10B981' : '#3B82F6'};
+        background-color: ${isSelected ? 'var(--green-600)' : 'var(--accent)'};
         border: 3px solid white;
         border-radius: 50%;
         display: flex;
@@ -154,12 +154,12 @@ export default function KakaoWaypointMarker({
             margin: 0 0 6px 0;
             font-size: 15px;
             font-weight: 700;
-            color: #1F2937;
+            color: var(--text-primary);
           ">${waypoint.place.name}</h4>
           <p style="
             margin: 0 0 10px 0;
             font-size: 12px;
-            color: #6B7280;
+            color: var(--text-secondary);
             line-height: 1.4;
           ">${waypoint.place.roadAddress || waypoint.place.address}</p>
           <div style="
@@ -168,9 +168,9 @@ export default function KakaoWaypointMarker({
             font-size: 12px;
             font-weight: 600;
           ">
-            <span style="background: #EFF6FF; color: #3B82F6; padding: 2px 8px; border-radius: 10px;">+${detourDistance}km</span>
-            <span style="background: #FFF7ED; color: #F97316; padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
-            <span style="background: #F0FDF4; color: #22C55E; padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
+            <span style="background: var(--blue-50); color: var(--accent); padding: 2px 8px; border-radius: 10px;">+${detourDistance}km</span>
+            <span style="background: #FFF7ED; color: var(--orange-700); padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
+            <span style="background: var(--green-200); color: var(--green-500); padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
           </div>
           <div style="
             position: absolute;

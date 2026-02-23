@@ -77,7 +77,7 @@ export default function SearchOverlay({
           onClick={onClose}
           className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 hover:bg-gray-50 transition-colors shrink-0"
         >
-          <ArrowLeft className="w-5 h-5" style={{ color: '#2D3748' }} />
+          <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-strong)' }} />
         </button>
         <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
       </div>
@@ -91,7 +91,7 @@ export default function SearchOverlay({
           onSelect={onStartSelect}
           placeholder="출발지를 입력하세요"
           mapCenter={mapCenter}
-          dotColor="#6C9CFF"
+          dotColor="var(--accent)"
           testId="mobile-origin-input"
         />
         <AddressInput
@@ -101,7 +101,7 @@ export default function SearchOverlay({
           onSelect={onEndSelect}
           placeholder="도착지를 입력하세요"
           mapCenter={mapCenter}
-          dotColor="#FF8FA3"
+          dotColor="var(--pink-500)"
           testId="mobile-destination-input"
         />
       </div>
@@ -115,7 +115,7 @@ export default function SearchOverlay({
       {/* Recent searches */}
       {recentSearches.length > 0 && (
         <div className="px-4 pb-3 flex-1 overflow-y-auto">
-          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: '#8B95A5' }}>
+          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
             <Clock className="w-5 h-5" />
             최근 검색
           </p>
@@ -129,16 +129,16 @@ export default function SearchOverlay({
                   className="flex-1 text-left min-w-0"
                   onClick={() => handleRecentSelect(item)}
                 >
-                  <p className="text-[15px] font-medium truncate" style={{ color: '#2D3748' }}>
+                  <p className="text-[15px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>
                     {item.startAddress} → {item.endAddress}
                   </p>
-                  <p className="text-[13px] mt-1" style={{ color: '#8B95A5' }}>{item.category}</p>
+                  <p className="text-[13px] mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
                   className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
                 >
-                  <X className="w-5 h-5" style={{ color: '#8B95A5' }} />
+                  <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
                 </button>
               </div>
             ))}

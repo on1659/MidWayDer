@@ -48,7 +48,7 @@ export default function KakaoRoutePolyline({
         return new window.kakao.maps.Polyline({
           map,
           path,
-          strokeColor: segment.isHighway ? '#C77D55' : '#4A78C2', // 저채도 주황/블루
+          strokeColor: segment.isHighway ? 'var(--orange-600)' : 'var(--blue-800)', // 저채도 주황/블루
           strokeWeight: 8,
           strokeOpacity: 0.85,
           strokeStyle: 'solid',
@@ -65,7 +65,7 @@ export default function KakaoRoutePolyline({
       const polyline = new window.kakao.maps.Polyline({
         map,
         path,
-        strokeColor: '#4A78C2', // 저채도 블루
+        strokeColor: 'var(--blue-800)', // 저채도 블루
         strokeWeight: 8,
         strokeOpacity: 0.85,
         strokeStyle: 'solid',
@@ -106,7 +106,7 @@ export default function KakaoRoutePolyline({
     const toWaypointPolyline = new window.kakao.maps.Polyline({
       map,
       path: toWaypointPath,
-      strokeColor: '#10B981', // 초록색
+      strokeColor: 'var(--green-600)', // 초록색
       strokeWeight: 5,
       strokeOpacity: 0.8,
       strokeStyle: 'solid',
@@ -119,7 +119,7 @@ export default function KakaoRoutePolyline({
     const fromWaypointPolyline = new window.kakao.maps.Polyline({
       map,
       path: fromWaypointPath,
-      strokeColor: '#10B981', // 초록색
+      strokeColor: 'var(--green-600)', // 초록색
       strokeWeight: 5,
       strokeOpacity: 0.8,
       strokeStyle: 'solid',

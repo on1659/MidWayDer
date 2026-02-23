@@ -98,8 +98,8 @@ export default function MapContainer({
     const el = document.createElement('div');
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
-        <div style="width:44px;height:44px;background:#FF8FA3;border:5px solid white;border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,0.3);"></div>
-        <div style="width:5px;height:28px;background:#FF8FA3;margin-top:-4px;border-radius:0 0 3px 3px;"></div>
+        <div style="width:44px;height:44px;background:var(--pink-500);border:5px solid var(--bg-surface);border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,0.3);"></div>
+        <div style="width:5px;height:28px;background:var(--pink-500);margin-top:-4px;border-radius:0 0 3px 3px;"></div>
       </div>
     `;
 
@@ -192,11 +192,11 @@ export default function MapContainer({
       {providerToggle}
       <div className="absolute top-4 right-4 z-10 bg-white/95 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-700">
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: '#4A78C2' }} />
+          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--blue-800)' }} />
           <span>일반도로</span>
         </div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: '#C77D55' }} />
+          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--orange-600)' }} />
           <span>고속화/고속도로</span>
         </div>
       </div>

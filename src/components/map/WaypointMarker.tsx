@@ -65,7 +65,7 @@ export default function WaypointMarker({
               <div style="
                 width: 32px;
                 height: 32px;
-                background-color: ${isSelected ? '#10B981' : '#3B82F6'};
+                background-color: ${isSelected ? 'var(--green-600)' : 'var(--accent)'};
                 border: 2px solid white;
                 border-radius: 50%;
                 display: flex;
@@ -105,19 +105,19 @@ export default function WaypointMarker({
                 margin: 0 0 8px 0;
                 font-size: 14px;
                 font-weight: bold;
-                color: #1F2937;
+                color: var(--text-primary);
               ">${waypoint.place.name}</h4>
               <p style="
                 margin: 0 0 8px 0;
                 font-size: 12px;
-                color: #6B7280;
+                color: var(--text-secondary);
                 line-height: 1.4;
               ">${waypoint.place.address}</p>
               <div style="
                 display: flex;
                 gap: 12px;
                 font-size: 12px;
-                color: #3B82F6;
+                color: var(--accent);
                 font-weight: 500;
               ">
                 <span>+${detourDistance}km</span>

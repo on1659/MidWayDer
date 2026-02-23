@@ -140,7 +140,7 @@ export default function AddressInput({
 
   return (
     <div className="relative" ref={containerRef}>
-      {label && <label className="text-xs font-semibold mb-1.5 block" style={{ color: '#8B95A5' }}>{label}</label>}
+      {label && <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>{label}</label>}
       <div className="relative flex items-center">
         {dotColor && (
           <div className="w-4 h-4 rounded-full shrink-0 mr-3" style={{ background: dotColor }} />
@@ -172,10 +172,10 @@ export default function AddressInput({
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2">
           {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#8B95A5' }} />
+            <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--text-muted)' }} />
           ) : localValue ? (
             <button onClick={handleClear} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-              <X className="w-5 h-5" style={{ color: '#8B95A5' }} />
+              <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
             </button>
           ) : null}
         </div>
@@ -190,10 +190,10 @@ export default function AddressInput({
                 i === activeIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
               } ${i > 0 ? 'border-t border-gray-50' : ''}`}
             >
-              <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#6C9CFF' }} />
+              <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: 'var(--accent)' }} />
               <div className="min-w-0 flex-1">
-                <p className="text-[16px] font-medium truncate" style={{ color: '#2D3748' }}>{result.name}</p>
-                <p className="text-[13px] truncate mt-0.5" style={{ color: '#8B95A5' }}>
+                <p className="text-[16px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>{result.name}</p>
+                <p className="text-[13px] truncate mt-0.5" style={{ color: 'var(--text-muted)' }}>
                   {result.address}
                   {result.category && (
                     <span className="ml-1.5">· {result.category}</span>
