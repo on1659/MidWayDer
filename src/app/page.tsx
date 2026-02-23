@@ -43,15 +43,43 @@ export default function HomePage() {
     setRecentSearches(getRecentSearches());
   }, []);
 
-  // 테마 초기화
+  // 테마 초기화 + 시스템 테마 동기화
   useEffect(() => {
     try {
       const saved = localStorage.getItem('theme');
       if (saved === 'dark') {
         document.documentElement.classList.add('theme-dark');
         setTheme('dark');
+      } else if (saved === 'light') {
+        // 명시적으로 라이트 모드 설정
+        document.documentElement.classList.remove('theme-dark');
+        setTheme('light');
+      } else {
+        // 저장된 값이 없으면 시스템 테마 따름
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+          document.documentElement.classList.add('theme-dark');
+          setTheme('dark');
+        }
       }
     } catch { /* ignore */ }
+
+    // 시스템 테마 변경 감지
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      try {
+        const saved = localStorage.getItem('theme');
+        // 사용자가 명시적으로 설정한 경우는 무시
+        if (saved) return;
+        
+        const prefersDark = e.matches;
+        document.documentElement.classList.toggle('theme-dark', prefersDark);
+        setTheme(prefersDark ? 'dark' : 'light');
+      } catch { /* ignore */ }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   // theme-color 메타 동기화
@@ -525,6 +553,8 @@ export default function HomePage() {
             onSearch={handleSearch}
             isLoading={isLoading}
             canSearch={canSearch}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
         </div>
 
