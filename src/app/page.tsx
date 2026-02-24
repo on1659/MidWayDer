@@ -19,6 +19,7 @@ import MapClickSheet from '@/components/place/MapClickSheet';
 import FavoritesList from '@/components/search/FavoritesList';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
+import ComparePanel from '@/components/search/ComparePanel';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -38,6 +39,8 @@ export default function HomePage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'shortest' | 'fastest'>('all');
   const [sortBy, setSortBy] = useState<'score' | 'distance' | 'duration'>('score');
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<typeof results>([]);
 
   // 스플래시 스크린 (1.5초)
   useEffect(() => {
@@ -478,6 +481,21 @@ export default function HomePage() {
                     <Share2 className="w-3.5 h-3.5" />
                     공유
                   </button>
+                  <button
+                    onClick={() => {
+                      if (filteredResults.length < 2) {
+                        alert('비교할 경유지가 2개 이상 있어야 해요');
+                        return;
+                      }
+                      // 상위 3개 자동 선택
+                      setSelectedForCompare(filteredResults.slice(0, Math.min(3, filteredResults.length)));
+                      setCompareMode(true);
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
+                    style={{ color: 'var(--green-600)' }}
+                  >
+                    ⚖️ 비교
+                  </button>
                 </div>
               </div>
               <RouteTypeFilter
@@ -781,6 +799,20 @@ export default function HomePage() {
           </div>
         )}
       </main>
+
+      {/* Compare Panel */}
+      {compareMode && (
+        <ComparePanel
+          waypoints={selectedForCompare}
+          onClose={() => {
+            setCompareMode(false);
+            setSelectedForCompare([]);
+          }}
+          onSelect={(wp) => {
+            handleWaypointSelect(wp);
+          }}
+        />
+      )}
     </div>
   );
 }

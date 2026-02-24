@@ -4,7 +4,10 @@
 
 'use client';
 
+import { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
+import { copyToClipboard } from '@/lib/clipboard';
 
 interface ResultListProps {
   results: DetourResult[];
@@ -21,6 +24,19 @@ export default function ResultList({
   error,
   onSelect,
 }: ResultListProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyAddress = async (e: React.MouseEvent, result: DetourResult) => {
+    e.stopPropagation();
+    const address = result.place.roadAddress || result.place.address;
+    if (!address) return;
+    
+    const success = await copyToClipboard(address);
+    if (success) {
+      setCopiedId(result.place.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -95,7 +111,7 @@ export default function ResultList({
                 {index + 1}
               </div>
 
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 mr-2">
                 {/* Name */}
                 <h3 className="text-[17px] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
                   {result.place.name}
@@ -131,6 +147,19 @@ export default function ResultList({
                   )}
                 </div>
               </div>
+
+              {/* Copy button */}
+              <button
+                onClick={(e) => handleCopyAddress(e, result)}
+                className="shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95 self-start"
+                title="주소 복사"
+              >
+                {copiedId === result.place.id ? (
+                  <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                ) : (
+                  <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                )}
+              </button>
             </div>
           </button>
         );

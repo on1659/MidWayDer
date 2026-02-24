@@ -5,9 +5,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink } from 'lucide-react';
+import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { useRouteStore } from '@/store/route-store';
+import { openNavigationApp } from '@/lib/navigation-links';
+import { copyToClipboard } from '@/lib/clipboard';
 
 interface PlaceDetailProps {
   waypoint: DetourResult;
@@ -28,6 +30,7 @@ function formatDuration(seconds: number): string {
 
 export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetailProps) {
   const [visible, setVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
   const start = useRouteStore((s) => s.start);
   const { place, detourCost, finalScore } = waypoint;
   const address = place.roadAddress || place.address;
@@ -44,6 +47,21 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const handleConfirm = () => {
     onConfirm(waypoint);
     handleClose();
+  };
+
+  const handleCopyAddress = async () => {
+    if (!address) return;
+    const success = await copyToClipboard(address);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      alert('복사 실패');
+    }
+  };
+
+  const handleNavigate = (app: 'kakao' | 'naver' | 'tmap') => {
+    openNavigationApp(app, place.coordinates.lat, place.coordinates.lng, place.name);
   };
 
   const scoreColor =
@@ -92,10 +110,23 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
                 </span>
               </div>
               {address && (
-                <p className="mt-1.5 text-[15px] flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
-                  <MapPin className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{address}</span>
-                </p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <p className="text-[15px] flex items-center gap-1.5 min-w-0 flex-1" style={{ color: 'var(--text-muted)' }}>
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{address}</span>
+                  </p>
+                  <button
+                    onClick={handleCopyAddress}
+                    className="shrink-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                    title="주소 복사"
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                    ) : (
+                      <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                    )}
+                  </button>
+                </div>
               )}
             </div>
             <button
@@ -144,38 +175,45 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             </a>
           )}
 
-          {/* CTA */}
-          <div className="flex gap-2">
-            <button
-              onClick={handleConfirm}
-              className="flex-1 py-4 text-white text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
-              style={{ background: 'var(--accent)' }}
-            >
-              경유지로 선택
-            </button>
-            <button
-              onClick={() => {
-                const wp = place.coordinates;
-                const name = encodeURIComponent(place.name);
-                if (start?.coordinates) {
-                  // Try kakaomap app first
-                  const appUrl = `kakaomap://route?sp=${start.coordinates.lat},${start.coordinates.lng}&ep=${wp.lat},${wp.lng}&by=CAR`;
-                  const webUrl = `https://map.kakao.com/link/to/${name},${wp.lat},${wp.lng}`;
-                  const w = window.open(appUrl, '_blank');
-                  setTimeout(() => {
-                    try { if (!w || w.closed) window.open(webUrl, '_blank'); } catch { window.open(webUrl, '_blank'); }
-                  }, 1500);
-                } else {
-                  window.open(`https://map.kakao.com/link/to/${name},${wp.lat},${wp.lng}`, '_blank');
-                }
-              }}
-              className="px-5 py-4 text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md flex items-center gap-2"
-              style={{ background: 'var(--kakao-yellow)', color: 'var(--kakao-brown)' }}
-            >
-              <ExternalLink className="w-4 h-4" />
-              길안내
-            </button>
+          {/* Navigation Apps */}
+          <div className="mb-3">
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>네비게이션 앱으로 열기</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => handleNavigate('kakao')}
+                className="py-2.5 px-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                style={{ background: '#FEE500', color: '#3C1E1E' }}
+              >
+                <Navigation className="w-4 h-4" />
+                카카오
+              </button>
+              <button
+                onClick={() => handleNavigate('naver')}
+                className="py-2.5 px-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                style={{ background: '#03C75A', color: 'white' }}
+              >
+                <Navigation className="w-4 h-4" />
+                네이버
+              </button>
+              <button
+                onClick={() => handleNavigate('tmap')}
+                className="py-2.5 px-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                style={{ background: '#E94235', color: 'white' }}
+              >
+                <Navigation className="w-4 h-4" />
+                티맵
+              </button>
+            </div>
           </div>
+
+          {/* CTA */}
+          <button
+            onClick={handleConfirm}
+            className="w-full py-4 text-white text-base font-bold rounded-2xl active:scale-[0.98] transition-all shadow-md"
+            style={{ background: 'var(--accent)' }}
+          >
+            경유지로 선택
+          </button>
         </div>
       </div>
     </>
