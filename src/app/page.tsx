@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Share2, LocateFixed, X, Sun, Moon, Star } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
@@ -17,6 +17,7 @@ import BottomSheet from '@/components/ui/BottomSheet';
 import PlaceDetail from '@/components/place/PlaceDetail';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import FavoritesList from '@/components/search/FavoritesList';
+import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -34,6 +35,7 @@ export default function HomePage() {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [favorites, setFavorites] = useState(getFavorites());
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'shortest' | 'fastest'>('all');
 
   // 스플래시 스크린 (1.5초)
   useEffect(() => {
@@ -268,6 +270,22 @@ export default function HomePage() {
     setBottomSheetSnap('collapsed');
   }, [selectWaypoint, setOriginalRoute]);
 
+  // Route type filtering
+  const { filteredResults, routeTypeCounts } = useMemo(() => {
+    const counts = {
+      all: results.length,
+      shortest: results.filter((r: any) => r.routeType === 'shortest').length,
+      fastest: results.filter((r: any) => r.routeType === 'fastest').length,
+    };
+
+    const filtered =
+      routeTypeFilter === 'all'
+        ? results
+        : results.filter((r: any) => r.routeType === routeTypeFilter);
+
+    return { filteredResults: filtered, routeTypeCounts: counts };
+  }, [results, routeTypeFilter]);
+
   const mapCenter = start?.coordinates || { lat: 37.5665, lng: 126.978 };
   const hasResults = results.length > 0 || isLoading || !!error;
   const canSearch = !!(start?.address && end?.address);
@@ -396,35 +414,42 @@ export default function HomePage() {
           )}
 
           {results.length > 0 && (
-            <div className="flex items-center justify-between">
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {totalCandidates}개 중 {results.length}개 추천
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    if (!start?.address || !end?.address) return;
-                    const name = `${start.address.split(' ').slice(0, 2).join(' ')} → ${end.address.split(' ').slice(0, 2).join(' ')}`;
-                    addFavorite({ name, startAddress: start.address, endAddress: end.address, startCoords: start.coordinates, endCoords: end.coordinates, category });
-                    setFavorites(getFavorites());
-                    alert('즐겨찾기에 추가되었습니다!');
-                  }}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  <Star className="w-3.5 h-3.5" />
-                  저장
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  공유
-                </button>
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {totalCandidates}개 중 {results.length}개 추천
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (!start?.address || !end?.address) return;
+                      const name = `${start.address.split(' ').slice(0, 2).join(' ')} → ${end.address.split(' ').slice(0, 2).join(' ')}`;
+                      addFavorite({ name, startAddress: start.address, endAddress: end.address, startCoords: start.coordinates, endCoords: end.coordinates, category });
+                      setFavorites(getFavorites());
+                      alert('즐겨찾기에 추가되었습니다!');
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                    저장
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    공유
+                  </button>
+                </div>
               </div>
-            </div>
+              <RouteTypeFilter
+                selected={routeTypeFilter}
+                onChange={setRouteTypeFilter}
+                counts={routeTypeCounts}
+              />
+            </>
           )}
         </div>
 
@@ -477,7 +502,7 @@ export default function HomePage() {
             </>
           )}
           <ResultList
-            results={results}
+            results={filteredResults}
             selectedId={selectedWaypoint?.place.id || null}
             isLoading={isLoading}
             error={error}
@@ -500,7 +525,7 @@ export default function HomePage() {
                 }
               : null
           }
-          waypoints={results}
+          waypoints={filteredResults}
           selectedWaypointId={selectedWaypoint?.place.id || null}
           onWaypointSelect={handleWaypointSelect}
           onMapClick={handleMapClick}
@@ -630,25 +655,34 @@ export default function HomePage() {
           >
             <div className="px-4 pb-4">
               {results.length > 0 && (
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>
-                    검색 결과 <span style={{ color: 'var(--accent)' }}>{results.length}</span>
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {totalCandidates}개 중 추천
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>
+                      검색 결과 <span style={{ color: 'var(--accent)' }}>{results.length}</span>
                     </p>
-                    <button
-                      onClick={handleShare}
-                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
-                    >
-                      <Share2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {totalCandidates}개 중 추천
+                      </p>
+                      <button
+                        onClick={handleShare}
+                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                  <div className="mb-3">
+                    <RouteTypeFilter
+                      selected={routeTypeFilter}
+                      onChange={setRouteTypeFilter}
+                      counts={routeTypeCounts}
+                    />
+                  </div>
+                </>
               )}
               <ResultList
-                results={results}
+                results={filteredResults}
                 selectedId={selectedWaypoint?.place.id || null}
                 isLoading={isLoading}
                 error={error}
