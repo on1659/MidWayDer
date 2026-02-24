@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { Search, Share2, LocateFixed, X, Sun, Moon } from 'lucide-react';
+import { Search, Share2, LocateFixed, X, Sun, Moon, Star } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -16,9 +16,11 @@ import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
 import PlaceDetail from '@/components/place/PlaceDetail';
 import MapClickSheet from '@/components/place/MapClickSheet';
+import FavoritesList from '@/components/search/FavoritesList';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
+import { addFavorite, getFavorites } from '@/lib/favorites';
 import type { Route } from '@/types/location';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
@@ -30,6 +32,7 @@ export default function HomePage() {
   const [appReady, setAppReady] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [favorites, setFavorites] = useState(getFavorites());
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // 스플래시 스크린 (1.5초)
@@ -360,59 +363,118 @@ export default function HomePage() {
             {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
           </button>
 
+          {/* Quick Categories (Desktop) */}
+          {!results.length && !isLoading && (
+            <div>
+              <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>빠른 선택</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { emoji: '☕', label: '카페' },
+                  { emoji: '🏪', label: '편의점' },
+                  { emoji: '🛒', label: '다이소' },
+                  { emoji: '💄', label: '올리브영' },
+                  { emoji: '⭐', label: '스타벅스' },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => setCategory(item.label)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95 ${
+                      category === item.label ? 'ring-2' : ''
+                    }`}
+                    style={{
+                      background: category === item.label ? 'var(--accent)' : 'var(--blue-150)',
+                      color: category === item.label ? 'white' : 'var(--blue-700)',
+                      borderColor: category === item.label ? 'var(--accent)' : 'transparent',
+                    }}
+                  >
+                    <span className="text-base">{item.emoji}</span>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {results.length > 0 && (
             <div className="flex items-center justify-between">
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {totalCandidates}개 중 {results.length}개 추천
               </p>
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
-                style={{ color: 'var(--accent)' }}
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                공유
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (!start?.address || !end?.address) return;
+                    const name = `${start.address.split(' ').slice(0, 2).join(' ')} → ${end.address.split(' ').slice(0, 2).join(' ')}`;
+                    addFavorite({ name, startAddress: start.address, endAddress: end.address, startCoords: start.coordinates, endCoords: end.coordinates, category });
+                    setFavorites(getFavorites());
+                    alert('즐겨찾기에 추가되었습니다!');
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  <Star className="w-3.5 h-3.5" />
+                  저장
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  공유
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         <div data-testid="route-result-panel" className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide">
-          {recentSearches.length > 0 && results.length === 0 && !isLoading && !error && (
-            <div className="mb-5">
-              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>최근 검색</p>
-              <div className="space-y-2">
-                {recentSearches.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    <button
-                      className="flex-1 text-left min-w-0"
-                      onClick={() => {
-                        setStart({ address: item.startAddress, coordinates: item.startCoords });
-                        setEnd({ address: item.endAddress, coordinates: item.endCoords });
-                        setCategory(item.category);
-                      }}
-                    >
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-strong)' }}>
-                        {item.startAddress} → {item.endAddress}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
-                    </button>
-                    <button
-                      onClick={() => {
-                        removeRecentSearch(item.id);
-                        setRecentSearches(getRecentSearches());
-                      }}
-                      className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                    </button>
+          {results.length === 0 && !isLoading && !error && (
+            <>
+              <FavoritesList
+                onSelect={(fav) => {
+                  setStart({ address: fav.startAddress, coordinates: fav.startCoords });
+                  setEnd({ address: fav.endAddress, coordinates: fav.endCoords });
+                  setCategory(fav.category);
+                }}
+              />
+              {recentSearches.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>최근 검색</p>
+                  <div className="space-y-2">
+                    {recentSearches.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <button
+                          className="flex-1 text-left min-w-0"
+                          onClick={() => {
+                            setStart({ address: item.startAddress, coordinates: item.startCoords });
+                            setEnd({ address: item.endAddress, coordinates: item.endCoords });
+                            setCategory(item.category);
+                          }}
+                        >
+                          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-strong)' }}>
+                            {item.startAddress} → {item.endAddress}
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                        </button>
+                        <button
+                          onClick={() => {
+                            removeRecentSearch(item.id);
+                            setRecentSearches(getRecentSearches());
+                          }}
+                          className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                        >
+                          <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+            </>
           )}
           <ResultList
             results={results}
