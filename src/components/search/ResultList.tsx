@@ -37,6 +37,17 @@ export default function ResultList({
       setTimeout(() => setCopiedId(null), 2000);
     }
   };
+
+  const handleSelect = async (result: DetourResult, rank: number) => {
+    // 클릭 로그 저장 (비동기, 실패해도 UX 차단 안 함)
+    fetch('/api/log-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ placeId: result.place.id, rank }),
+    }).catch(err => console.error('[ClickLog] Failed:', err));
+
+    onSelect(result);
+  };
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -92,7 +103,7 @@ export default function ResultList({
         return (
           <button
             key={result.place.id}
-            onClick={() => onSelect(result)}
+            onClick={() => handleSelect(result, index + 1)}
             className="w-full p-4 rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm"
             style={{
               background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',

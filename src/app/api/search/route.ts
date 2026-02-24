@@ -19,6 +19,7 @@ import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { Coordinates } from '@/types/location';
 import type { SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
+import { prisma } from '@/lib/db/client';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -144,6 +145,21 @@ export async function POST(request: NextRequest) {
     const maxResults = options?.maxResults ?? 10;
     const trimmedResults = mergedResults.slice(0, maxResults);
 
+    const searchDuration = Date.now() - startTime;
+
+    // 7. 검색 로그 저장 (비동기, 실패해도 응답 차단 안 함)
+    const sessionId = request.cookies.get('sessionId')?.value || null;
+    prisma.searchLog.create({
+      data: {
+        startAddress: start.address || `${startCoords.lat.toFixed(4)}, ${startCoords.lng.toFixed(4)}`,
+        endAddress: end.address || `${endCoords.lat.toFixed(4)}, ${endCoords.lng.toFixed(4)}`,
+        category,
+        resultsCount: trimmedResults.length,
+        searchDuration,
+        sessionId,
+      },
+    }).catch(err => console.error('[SearchLog] Failed to save:', err));
+
     const response: SearchWaypointsResponse = {
       success: true,
       data: {
@@ -151,7 +167,7 @@ export async function POST(request: NextRequest) {
         results: trimmedResults,
         totalCandidates,
         apiCallsUsed,
-        duration: Date.now() - startTime,
+        duration: searchDuration,
       },
     };
 

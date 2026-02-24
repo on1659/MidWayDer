@@ -48,6 +48,14 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // 세션 ID 초기화 (analytics용)
+  useEffect(() => {
+    if (!document.cookie.includes('sessionId=')) {
+      const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+      document.cookie = `sessionId=${sessionId}; path=/; max-age=604800`; // 7일
+    }
+  }, []);
+
   // 최근 검색 로드
   useEffect(() => {
     setRecentSearches(getRecentSearches());
