@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -23,6 +23,7 @@ interface SearchOverlayProps {
   mapCenter?: { lat: number; lng: number };
   onCategoryChange: (v: string) => void;
   onSearch: () => void;
+  onSwap?: () => void;
   isLoading: boolean;
   canSearch: boolean;
   theme?: 'light' | 'dark';
@@ -42,6 +43,7 @@ export default function SearchOverlay({
   mapCenter,
   onCategoryChange,
   onSearch,
+  onSwap,
   isLoading,
   canSearch,
   theme = 'light',
@@ -102,27 +104,46 @@ export default function SearchOverlay({
       </div>
 
       {/* Route inputs */}
-      <div className="px-4 pt-3 pb-2 space-y-2.5 relative z-20">
-        <AddressInput
-          label=""
-          value={startAddress}
-          onChange={onStartChange}
-          onSelect={onStartSelect}
-          placeholder="출발지를 입력하세요"
-          mapCenter={mapCenter}
-          dotColor="var(--accent)"
-          testId="mobile-origin-input"
-        />
-        <AddressInput
-          label=""
-          value={endAddress}
-          onChange={onEndChange}
-          onSelect={onEndSelect}
-          placeholder="도착지를 입력하세요"
-          mapCenter={mapCenter}
-          dotColor="var(--pink-500)"
-          testId="mobile-destination-input"
-        />
+      <div className="px-4 pt-3 pb-2 relative z-20">
+        <div className="space-y-2.5">
+          <AddressInput
+            label=""
+            value={startAddress}
+            onChange={onStartChange}
+            onSelect={onStartSelect}
+            placeholder="출발지를 입력하세요"
+            mapCenter={mapCenter}
+            dotColor="var(--accent)"
+            testId="mobile-origin-input"
+          />
+          
+          {/* 스왑 버튼 */}
+          {onSwap && (
+            <div className="flex justify-center -my-1">
+              <button
+                onClick={onSwap}
+                disabled={!startAddress && !endAddress}
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-all
+                           hover:bg-blue-50 active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ border: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-surface)' }}
+                title="출발지↔도착지 바꾸기"
+              >
+                <ArrowUpDown className="w-5 h-5 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            </div>
+          )}
+
+          <AddressInput
+            label=""
+            value={endAddress}
+            onChange={onEndChange}
+            onSelect={onEndSelect}
+            placeholder="도착지를 입력하세요"
+            mapCenter={mapCenter}
+            dotColor="var(--pink-500)"
+            testId="mobile-destination-input"
+          />
+        </div>
       </div>
 
       {/* Category chips */}

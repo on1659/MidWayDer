@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Share2, LocateFixed, X, Sun, Moon, Star } from 'lucide-react';
+import { Search, Share2, LocateFixed, X, Sun, Moon, Star, ArrowUpDown } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -18,6 +18,7 @@ import PlaceDetail from '@/components/place/PlaceDetail';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import FavoritesList from '@/components/search/FavoritesList';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
+import SortFilter from '@/components/search/SortFilter';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -36,6 +37,7 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState(getFavorites());
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'shortest' | 'fastest'>('all');
+  const [sortBy, setSortBy] = useState<'score' | 'distance' | 'duration'>('score');
 
   // 스플래시 스크린 (1.5초)
   useEffect(() => {
@@ -118,6 +120,12 @@ export default function HomePage() {
   const handleEndSelect = useCallback((result: { address: string; coordinates: { lat: number; lng: number } }) => {
     setEnd({ address: result.address, coordinates: result.coordinates });
   }, [setEnd]);
+
+  const handleSwap = useCallback(() => {
+    const tempStart = start;
+    setStart(end);
+    setEnd(tempStart);
+  }, [start, end, setStart, setEnd]);
 
   const handleMapClick = useCallback(async (coords: { lat: number; lng: number }) => {
     try {
@@ -270,7 +278,7 @@ export default function HomePage() {
     setBottomSheetSnap('collapsed');
   }, [selectWaypoint, setOriginalRoute]);
 
-  // Route type filtering
+  // Route type filtering + sorting
   const { filteredResults, routeTypeCounts } = useMemo(() => {
     const counts = {
       all: results.length,
@@ -278,13 +286,26 @@ export default function HomePage() {
       fastest: results.filter((r: any) => r.routeType === 'fastest').length,
     };
 
-    const filtered =
+    let filtered =
       routeTypeFilter === 'all'
         ? results
         : results.filter((r: any) => r.routeType === routeTypeFilter);
 
-    return { filteredResults: filtered, routeTypeCounts: counts };
-  }, [results, routeTypeFilter]);
+    // Sort by selected criteria
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'distance':
+          return a.detourCost.distance - b.detourCost.distance;
+        case 'duration':
+          return a.detourCost.duration - b.detourCost.duration;
+        case 'score':
+        default:
+          return b.finalScore - a.finalScore; // higher score first
+      }
+    });
+
+    return { filteredResults: sorted, routeTypeCounts: counts };
+  }, [results, routeTypeFilter, sortBy]);
 
   const mapCenter = start?.coordinates || { lat: 37.5665, lng: 126.978 };
   const hasResults = results.length > 0 || isLoading || !!error;
@@ -348,6 +369,21 @@ export default function HomePage() {
               testId="origin-input"
             />
           </div>
+
+          {/* 스왑 버튼 */}
+          <div className="flex justify-center -my-1">
+            <button
+              onClick={handleSwap}
+              disabled={!start?.address && !end?.address}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all
+                         hover:bg-blue-50 active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ border: '1px solid var(--border-soft)' }}
+              title="출발지↔도착지 바꾸기"
+            >
+              <ArrowUpDown className="w-5 h-5 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
+            </button>
+          </div>
+
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ background: 'var(--pink-500)' }} />
@@ -449,6 +485,12 @@ export default function HomePage() {
                 onChange={setRouteTypeFilter}
                 counts={routeTypeCounts}
               />
+              <div className="pt-2">
+                <SortFilter
+                  selected={sortBy}
+                  onChange={setSortBy}
+                />
+              </div>
             </>
           )}
         </div>
@@ -638,6 +680,7 @@ export default function HomePage() {
             mapCenter={mapCenter}
             onCategoryChange={setCategory}
             onSearch={handleSearch}
+            onSwap={handleSwap}
             isLoading={isLoading}
             canSearch={canSearch}
             theme={theme}
@@ -677,6 +720,12 @@ export default function HomePage() {
                       selected={routeTypeFilter}
                       onChange={setRouteTypeFilter}
                       counts={routeTypeCounts}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <SortFilter
+                      selected={sortBy}
+                      onChange={setSortBy}
                     />
                   </div>
                 </>
