@@ -20,10 +20,14 @@ import FavoritesList from '@/components/search/FavoritesList';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
 import ComparePanel from '@/components/search/ComparePanel';
+import RoutePreview from '@/components/search/RoutePreview';
+import SaveRouteDialog from '@/components/search/SaveRouteDialog';
+import ErrorFallback from '@/components/ui/ErrorFallback';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 import { addFavorite, getFavorites } from '@/lib/favorites';
+import { getGPSErrorMessage } from '@/lib/error-messages';
 import type { Route } from '@/types/location';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
@@ -41,6 +45,7 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<'score' | 'distance' | 'duration'>('score');
   const [compareMode, setCompareMode] = useState(false);
   const [selectedForCompare, setSelectedForCompare] = useState<typeof results>([]);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   // 스플래시 스크린 (1.5초)
   useEffect(() => {
@@ -230,13 +235,8 @@ export default function HomePage() {
       },
       (err) => {
         setGpsLoading(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          alert('위치 권한이 거부되었어요.\n설정 > Safari > 위치 서비스에서 허용해주세요.');
-        } else if (err.code === err.TIMEOUT) {
-          alert('위치를 가져오는데 시간이 오래 걸려요. 다시 시도해주세요.');
-        } else {
-          alert('위치를 가져올 수 없어요. 다시 시도해주세요.');
-        }
+        const errorMessage = getGPSErrorMessage(err);
+        alert(errorMessage);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
@@ -417,6 +417,14 @@ export default function HomePage() {
             <CategorySelect selected={category} onChange={setCategory} />
           </div>
 
+          {/* Route Preview */}
+          {previewRoute && !originalRoute && (
+            <RoutePreview
+              distance={previewRoute.distance}
+              duration={previewRoute.duration}
+            />
+          )}
+
           <button
             data-testid="search-route-btn"
             onClick={handleSearch}
@@ -469,13 +477,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      if (!start?.address || !end?.address) return;
-                      const name = `${start.address.split(' ').slice(0, 2).join(' ')} → ${end.address.split(' ').slice(0, 2).join(' ')}`;
-                      addFavorite({ name, startAddress: start.address, endAddress: end.address, startCoords: start.coordinates, endCoords: end.coordinates, category });
-                      setFavorites(getFavorites());
-                      alert('즐겨찾기에 추가되었습니다!');
-                    }}
+                    onClick={() => setSaveDialogOpen(true)}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50"
                     style={{ color: 'var(--accent)' }}
                   >
@@ -576,6 +578,11 @@ export default function HomePage() {
             isLoading={isLoading}
             error={error}
             onSelect={handleWaypointSelect}
+            onRetry={() => {
+              if (start?.address && end?.address) {
+                search({ address: start.address }, { address: end.address }, category);
+              }
+            }}
           />
         </div>
       </aside>
@@ -765,6 +772,11 @@ export default function HomePage() {
                 isLoading={isLoading}
                 error={error}
                 onSelect={handleWaypointSelect}
+                onRetry={() => {
+                  if (start?.address && end?.address) {
+                    search({ address: start.address }, { address: end.address }, category);
+                  }
+                }}
               />
             </div>
           </BottomSheet>
@@ -865,6 +877,29 @@ export default function HomePage() {
           }}
         />
       )}
+
+      {/* Save Route Dialog */}
+      <SaveRouteDialog
+        open={saveDialogOpen}
+        onClose={() => setSaveDialogOpen(false)}
+        onSave={(name) => {
+          if (!start?.address || !end?.address) return;
+          addFavorite({
+            name,
+            startAddress: start.address,
+            endAddress: end.address,
+            startCoords: start.coordinates,
+            endCoords: end.coordinates,
+            category,
+          });
+          setFavorites(getFavorites());
+        }}
+        defaultName={
+          start?.address && end?.address
+            ? `${start.address.split(' ').slice(0, 2).join(' ')} → ${end.address.split(' ').slice(0, 2).join(' ')}`
+            : ''
+        }
+      />
     </div>
   );
 }

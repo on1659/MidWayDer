@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import type { DetourResult } from '@/types/detour';
 import type { SearchWaypointsRequest, SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
+import { getAPIErrorMessage } from '@/lib/error-messages';
 
 interface SearchState {
   /** 선택된 카테고리 */
@@ -54,19 +55,26 @@ export const useSearchStore = create<SearchState>((set) => ({
         },
       };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data: SearchWaypointsResponse | SearchWaypointsErrorResponse = await response.json();
 
       if (!data.success) {
+        const friendlyError = getAPIErrorMessage(response.status, data.error.message);
         set({
-          error: data.error.message,
+          error: friendlyError,
           isLoading: false,
         });
         return;
@@ -80,7 +88,20 @@ export const useSearchStore = create<SearchState>((set) => ({
         error: null,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '검색 중 오류가 발생했습니다.';
+      let errorMessage: string;
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = getAPIErrorMessage(408);
+        } else if (error.message.includes('fetch')) {
+          errorMessage = getAPIErrorMessage();
+        } else {
+          errorMessage = getAPIErrorMessage(undefined, error.message);
+        }
+      } else {
+        errorMessage = getAPIErrorMessage();
+      }
+      
       set({
         error: errorMessage,
         isLoading: false,

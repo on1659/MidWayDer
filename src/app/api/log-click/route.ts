@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/client';
+import { prisma } from '@/lib/db/prisma';
 
 interface ClickLogRequest {
   placeId: string;

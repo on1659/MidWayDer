@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
+import ErrorFallback from '@/components/ui/ErrorFallback';
 
 interface ResultListProps {
   results: DetourResult[];
@@ -15,6 +16,7 @@ interface ResultListProps {
   isLoading: boolean;
   error: string | null;
   onSelect: (result: DetourResult) => void;
+  onRetry?: () => void;
 }
 
 export default function ResultList({
@@ -23,6 +25,7 @@ export default function ResultList({
   isLoading,
   error,
   onSelect,
+  onRetry,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -74,11 +77,7 @@ export default function ResultList({
   }
 
   if (error) {
-    return (
-      <div className="p-4 rounded-2xl" style={{ background: 'var(--pink-100)' }}>
-        <p className="text-sm font-medium" style={{ color: 'var(--pink-500)' }}>😢 {error}</p>
-      </div>
-    );
+    return <ErrorFallback error={error} onRetry={onRetry} compact />;
   }
 
   if (results.length === 0) {

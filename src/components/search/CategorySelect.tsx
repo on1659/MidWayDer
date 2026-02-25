@@ -10,12 +10,14 @@ interface CategorySelectProps {
 }
 
 const categories = [
+  { name: '주유소', emoji: '⛽', query: '주유소', bg: 'var(--red-100)', activeBg: 'var(--red-500)' },
   { name: '카페', emoji: '☕', query: '카페', bg: 'var(--blue-100)', activeBg: 'var(--accent)' },
   { name: '편의점', emoji: '🏪', query: 'CU', bg: 'var(--orange-100)', activeBg: 'var(--orange-500)' },
   { name: '다이소', emoji: '🛒', query: '다이소', bg: 'var(--green-100)', activeBg: 'var(--green-600)' },
   { name: '올리브영', emoji: '💄', query: '올리브영', bg: 'var(--pink-100)', activeBg: 'var(--pink-500)' },
   { name: '스타벅스', emoji: '⭐', query: '스타벅스', bg: 'var(--blue-100)', activeBg: 'var(--accent)' },
   { name: '이디야', emoji: '🏠', query: '이디야', bg: 'var(--purple-100)', activeBg: 'var(--blue-600)' },
+  { name: '휴게소', emoji: '🛣️', query: '휴게소', bg: 'var(--gray-100)', activeBg: 'var(--gray-600)' },
 ];
 
 export default function CategorySelect({ selected, onChange }: CategorySelectProps) {

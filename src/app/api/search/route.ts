@@ -19,7 +19,7 @@ import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { Coordinates } from '@/types/location';
 import type { SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
-import { prisma } from '@/lib/db/client';
+import { prisma } from '@/lib/db/prisma';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
