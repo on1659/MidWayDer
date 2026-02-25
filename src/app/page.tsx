@@ -711,6 +711,8 @@ export default function HomePage() {
             canSearch={canSearch}
             theme={theme}
             onToggleTheme={toggleTheme}
+            onGPS={handleGPS}
+            gpsLoading={gpsLoading}
           />
         </div>
 
@@ -776,6 +778,47 @@ export default function HomePage() {
                 <p className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ 가는 길에 어디 들를까요?</p>
                 <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
               </div>
+              
+              {/* 인기 경로 프리셋 */}
+              <div className="px-5 pb-3">
+                <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>인기 경로</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { start: '강남역', end: '여의도역', cat: '카페' },
+                    { start: '홍대입구역', end: '잠실역', cat: '스타벅스' },
+                    { start: '서울역', end: '판교역', cat: '편의점' },
+                    { start: '인천공항', end: '강남역', cat: '편의점' },
+                    { start: '신촌역', end: '건대입구역', cat: '카페' },
+                    { start: '역삼역', end: '선릉역', cat: '다이소' },
+                  ].map((preset) => (
+                    <button
+                      key={`${preset.start}-${preset.end}`}
+                      onClick={async () => {
+                        setStart({ address: preset.start });
+                        setEnd({ address: preset.end });
+                        setCategory(preset.cat);
+                        setSearchOverlayOpen(false);
+                        // 자동 검색
+                        setTimeout(() => {
+                          search(
+                            { address: preset.start },
+                            { address: preset.end },
+                            preset.cat
+                          ).then(() => setBottomSheetSnap('half'));
+                        }, 300);
+                      }}
+                      className="flex flex-col items-start gap-1 p-3 rounded-xl active:scale-95 transition-all"
+                      style={{ background: 'var(--bg-surface-muted)' }}
+                    >
+                      <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>{preset.cat}</span>
+                      <span className="text-sm font-semibold truncate w-full text-left" style={{ color: 'var(--text-strong)' }}>
+                        {preset.start} → {preset.end}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* 퀵 카테고리 */}
               <div className="flex gap-2.5 px-5 pb-5 overflow-x-auto">
                 {[

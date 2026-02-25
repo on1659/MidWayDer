@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -28,6 +28,8 @@ interface SearchOverlayProps {
   canSearch: boolean;
   theme?: 'light' | 'dark';
   onToggleTheme?: () => void;
+  onGPS?: () => void;
+  gpsLoading?: boolean;
 }
 
 export default function SearchOverlay({
@@ -48,6 +50,8 @@ export default function SearchOverlay({
   canSearch,
   theme = 'light',
   onToggleTheme,
+  onGPS,
+  gpsLoading = false,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
@@ -106,16 +110,32 @@ export default function SearchOverlay({
       {/* Route inputs */}
       <div className="px-4 pt-3 pb-2 relative z-20">
         <div className="space-y-2.5">
-          <AddressInput
-            label=""
-            value={startAddress}
-            onChange={onStartChange}
-            onSelect={onStartSelect}
-            placeholder="출발지를 입력하세요"
-            mapCenter={mapCenter}
-            dotColor="var(--accent)"
-            testId="mobile-origin-input"
-          />
+          {/* 출발지 입력 + GPS 버튼 */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <AddressInput
+                label=""
+                value={startAddress}
+                onChange={onStartChange}
+                onSelect={onStartSelect}
+                placeholder="출발지를 입력하세요"
+                mapCenter={mapCenter}
+                dotColor="var(--accent)"
+                testId="mobile-origin-input"
+              />
+            </div>
+            {onGPS && (
+              <button
+                onClick={onGPS}
+                disabled={gpsLoading}
+                className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
+                style={{ background: 'var(--accent)', color: 'white' }}
+                title="현재 위치"
+              >
+                <LocateFixed className={`w-5 h-5 ${gpsLoading ? 'animate-pulse' : ''}`} />
+              </button>
+            )}
+          </div>
           
           {/* 스왑 버튼 */}
           {onSwap && (
