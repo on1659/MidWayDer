@@ -41,7 +41,7 @@ type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
 export default function HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
-  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, setCategory, search, clearResults } = useSearchStore();
+  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, setCategory, search, clearResults } = useSearchStore();
   const { toasts, showToast } = useToast();
 
   const [appReady, setAppReady] = useState(false);
@@ -670,7 +670,15 @@ export default function HomePage() {
             selectedId={selectedWaypoint?.place.id || null}
             isLoading={isLoading}
             error={error}
+            hasSearched={hasSearched}
+            currentCategory={category}
             onSelect={handleWaypointSelect}
+            onCategoryChange={(newCategory) => {
+              setCategory(newCategory);
+              if (start?.address && end?.address) {
+                search({ address: start.address }, { address: end.address }, newCategory);
+              }
+            }}
             onRetry={() => {
               if (start?.address && end?.address) {
                 search({ address: start.address }, { address: end.address }, category);
@@ -864,7 +872,15 @@ export default function HomePage() {
                 selectedId={selectedWaypoint?.place.id || null}
                 isLoading={isLoading}
                 error={error}
+                hasSearched={hasSearched}
+                currentCategory={category}
                 onSelect={handleWaypointSelect}
+                onCategoryChange={(newCategory) => {
+                  setCategory(newCategory);
+                  if (start?.address && end?.address) {
+                    search({ address: start.address }, { address: end.address }, newCategory);
+                  }
+                }}
                 onRetry={() => {
                   if (start?.address && end?.address) {
                     search({ address: start.address }, { address: end.address }, category);

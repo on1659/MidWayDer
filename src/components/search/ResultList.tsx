@@ -18,7 +18,10 @@ interface ResultListProps {
   selectedId: string | null;
   isLoading: boolean;
   error: string | null;
+  hasSearched: boolean;
+  currentCategory: string;
   onSelect: (result: DetourResult) => void;
+  onCategoryChange?: (category: string) => void;
   onRetry?: () => void;
 }
 
@@ -27,7 +30,10 @@ export default function ResultList({
   selectedId,
   isLoading,
   error,
+  hasSearched,
+  currentCategory,
   onSelect,
+  onCategoryChange,
   onRetry,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -128,27 +134,86 @@ export default function ResultList({
   }
 
   if (results.length === 0) {
+    // 검색 전: 초기 상태 메시지
+    if (!hasSearched) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+          <div className="text-6xl mb-4 animate-bounce">🗺️</div>
+          <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            가는 길에 들를 곳을 찾아드려요
+          </h3>
+          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+            출발지와 도착지를 입력하고<br />
+            원하는 카테고리를 선택해주세요
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}>
+              🔍 스마트 검색
+            </span>
+            <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--green-100)', color: 'var(--green-600)' }}>
+              ⚡ 빠른 경로
+            </span>
+            <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--purple-100)', color: 'var(--purple-600)' }}>
+              📍 정확한 위치
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    // 검색 후 결과 없음: 대안 제시
+    const alternativeCategories = [
+      '다이소', '스타벅스', '이디야', 'CU', 'GS25', '세븐일레븐',
+      '맥도날드', '버거킹', '주유소', '휴게소', '은행', '우체국'
+    ].filter(cat => cat !== currentCategory).slice(0, 6);
+
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-        <div className="text-6xl mb-4 animate-bounce">🗺️</div>
+      <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+        <div className="text-6xl mb-4">😢</div>
         <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-          가는 길에 들를 곳을 찾아드려요
+          이 경로에는 {currentCategory}가 없어요
         </h3>
         <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-          출발지와 도착지를 입력하고<br />
-          원하는 카테고리를 선택해주세요
+          검색 범위를 넓히거나<br />
+          다른 카테고리를 선택해보세요
         </p>
-        <div className="flex flex-wrap gap-2 justify-center">
-          <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}>
-            🔍 스마트 검색
-          </span>
-          <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--green-100)', color: 'var(--green-600)' }}>
-            ⚡ 빠른 경로
-          </span>
-          <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--purple-100)', color: 'var(--purple-600)' }}>
-            📍 정확한 위치
-          </span>
-        </div>
+
+        {onCategoryChange && alternativeCategories.length > 0 && (
+          <>
+            <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
+              대신 이런 카테고리는 어때요?
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              {alternativeCategories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => onCategoryChange(cat)}
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                  style={{
+                    background: 'var(--blue-100)',
+                    color: 'var(--blue-600)',
+                    border: '1px solid var(--blue-300)',
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+            style={{
+              background: 'var(--accent)',
+              color: 'var(--bg-surface)',
+            }}
+          >
+            다시 검색
+          </button>
+        )}
       </div>
     );
   }

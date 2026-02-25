@@ -22,6 +22,8 @@ interface SearchState {
   totalCandidates: number;
   /** 사용된 API 호출 수 */
   apiCallsUsed: number;
+  /** 검색이 한 번이라도 실행되었는지 */
+  hasSearched: boolean;
 
   // Actions
   /** 카테고리 변경 */
@@ -39,11 +41,12 @@ export const useSearchStore = create<SearchState>((set) => ({
   error: null,
   totalCandidates: 0,
   apiCallsUsed: 0,
+  hasSearched: false,
 
   setCategory: (category) => set({ category }),
 
   search: async (start, end, category) => {
-    set({ isLoading: true, error: null, results: [], totalCandidates: 0, apiCallsUsed: 0 });
+    set({ isLoading: true, error: null, results: [], totalCandidates: 0, apiCallsUsed: 0, hasSearched: true });
 
     try {
       const requestBody: SearchWaypointsRequest = {
@@ -115,5 +118,6 @@ export const useSearchStore = create<SearchState>((set) => ({
       error: null,
       totalCandidates: 0,
       apiCallsUsed: 0,
+      hasSearched: false,
     }),
 }));
