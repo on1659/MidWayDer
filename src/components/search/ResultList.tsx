@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
+import { getCategoryIcon } from '@/lib/category-icons';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 
 interface ResultListProps {
@@ -28,6 +29,7 @@ export default function ResultList({
   onRetry,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const handleCopyAddress = async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -51,22 +53,41 @@ export default function ResultList({
 
     onSelect(result);
   };
+
+  const handleFeedback = async (helpful: boolean) => {
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ helpful }),
+      });
+      setFeedbackSent(true);
+      setTimeout(() => setFeedbackSent(false), 3000);
+    } catch (err) {
+      console.error('[Feedback] Failed:', err);
+    }
+  };
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-center font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
-          경유지를 찾고 있어요...
-        </p>
+        <div className="flex items-center justify-center py-4">
+          <div className="flex gap-2 items-center">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        </div>
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="p-4 bg-white rounded-2xl animate-pulse shadow-sm">
+          <div key={i} className="relative overflow-hidden p-4 bg-white rounded-2xl shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 bg-gray-100 rounded-full shrink-0" />
-              <div className="flex-1">
-                <div className="h-4 bg-gray-100 rounded-lg w-2/3 mb-2" />
-                <div className="h-3 bg-gray-50 rounded-lg w-1/2 mb-3" />
-                <div className="flex gap-1.5">
-                  <div className="h-6 w-16 bg-blue-50 rounded-full" />
-                  <div className="h-6 w-14 bg-orange-50 rounded-full" />
+              <div className="w-11 h-11 bg-gray-200 rounded-full animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded-lg w-2/3" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div className="flex gap-2 mt-3">
+                  <div className="h-6 bg-gray-200 rounded-full w-16" />
+                  <div className="h-6 bg-gray-200 rounded-full w-16" />
                 </div>
               </div>
             </div>
@@ -82,17 +103,33 @@ export default function ResultList({
 
   if (results.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <div className="text-4xl mb-3">🗺️</div>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          출발지와 도착지를 설정하고<br />경유지를 검색해보세요
+      <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+        <div className="text-6xl mb-4 animate-bounce">🗺️</div>
+        <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+          가는 길에 들를 곳을 찾아드려요
+        </h3>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+          출발지와 도착지를 입력하고<br />
+          원하는 카테고리를 선택해주세요
         </p>
+        <div className="flex flex-wrap gap-2 justify-center">
+          <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}>
+            🔍 스마트 검색
+          </span>
+          <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--green-100)', color: 'var(--green-600)' }}>
+            ⚡ 빠른 경로
+          </span>
+          <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--purple-100)', color: 'var(--purple-600)' }}>
+            📍 정확한 위치
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
+      <div className="space-y-2.5">
       {results.map((result, index) => {
         const isSelected = selectedId === result.place.id;
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
@@ -110,15 +147,18 @@ export default function ResultList({
             }}
           >
             <div className="flex items-start gap-3">
-              {/* Rank badge */}
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold shrink-0"
-                style={{
-                  background: index === 0 ? 'var(--accent)' : 'var(--blue-150)',
-                  color: index === 0 ? 'var(--bg-surface)' : 'var(--accent)',
-                }}
-              >
-                {index + 1}
+              {/* Rank badge with category icon */}
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold"
+                  style={{
+                    background: index === 0 ? 'var(--accent)' : 'var(--blue-150)',
+                    color: index === 0 ? 'var(--bg-surface)' : 'var(--accent)',
+                  }}
+                >
+                  {index + 1}
+                </div>
+                <span className="text-xl">{getCategoryIcon(result.place.category)}</span>
               </div>
 
               <div className="flex-1 min-w-0 mr-2">
@@ -174,6 +214,39 @@ export default function ResultList({
           </button>
         );
       })}
+      </div>
+
+      {/* Feedback Section */}
+      {results.length > 0 && (
+        <div className="mt-6 p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+            이 검색 결과가 도움됐나요?
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleFeedback(true)}
+              disabled={feedbackSent}
+              className="flex-1 py-3 rounded-xl font-medium transition-all active:scale-95 disabled:opacity-50"
+              style={{ background: 'var(--green-100)', color: 'var(--green-600)' }}
+            >
+              👍 도움됐어요
+            </button>
+            <button
+              onClick={() => handleFeedback(false)}
+              disabled={feedbackSent}
+              className="flex-1 py-3 rounded-xl font-medium transition-all active:scale-95 disabled:opacity-50"
+              style={{ background: 'var(--red-100)', color: 'var(--red-600)' }}
+            >
+              👎 별로예요
+            </button>
+          </div>
+          {feedbackSent && (
+            <p className="text-sm mt-2 text-center" style={{ color: 'var(--green-600)' }}>
+              감사합니다! 소중한 의견 반영할게요 ✨
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@
 'use client';
 
 import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Search, Share2, LocateFixed, X, Sun, Moon, Star, ArrowUpDown } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
@@ -19,10 +20,14 @@ import MapClickSheet from '@/components/place/MapClickSheet';
 import FavoritesList from '@/components/search/FavoritesList';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
-import ComparePanel from '@/components/search/ComparePanel';
-import RoutePreview from '@/components/search/RoutePreview';
 import SaveRouteDialog from '@/components/search/SaveRouteDialog';
 import ErrorFallback from '@/components/ui/ErrorFallback';
+
+// Lazy load 컴포넌트 (성능 최적화)
+const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
+  loading: () => <div className="animate-pulse p-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>로딩 중...</div>,
+});
+const RoutePreview = dynamic(() => import('@/components/search/RoutePreview'));
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -791,6 +796,47 @@ export default function HomePage() {
                 <p className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ 가는 길에 어디 들를까요?</p>
                 <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
               </div>
+              
+              {/* 즐겨찾기 빠른 접근 */}
+              {favorites.length > 0 && (
+                <div className="px-5 pb-3">
+                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>자주 가는 경로</p>
+                  <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    {favorites.slice(0, 3).map((fav) => (
+                      <button
+                        key={fav.id}
+                        onClick={async () => {
+                          setStart({ address: fav.startAddress, coordinates: fav.startCoords });
+                          setEnd({ address: fav.endAddress, coordinates: fav.endCoords });
+                          setCategory(fav.category);
+                          setSearchOverlayOpen(false);
+                          // 자동 검색
+                          if (fav.startCoords && fav.endCoords) {
+                            setTimeout(() => {
+                              search(
+                                { address: fav.startAddress, coordinates: fav.startCoords },
+                                { address: fav.endAddress, coordinates: fav.endCoords },
+                                fav.category
+                              ).then(() => setBottomSheetSnap('half'));
+                            }, 100);
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap shrink-0 transition-all active:scale-95"
+                        style={{
+                          background: 'var(--bg-surface)',
+                          border: '2px solid var(--accent-light)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                        }}
+                      >
+                        <Star className="w-4 h-4" style={{ color: 'var(--accent)' }} fill="var(--accent)" />
+                        <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>
+                          {fav.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* 인기 경로 프리셋 */}
               <div className="px-5 pb-3">

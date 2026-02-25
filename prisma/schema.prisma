@@ -27,15 +27,16 @@ model Place {
 }
 
 model SearchLog {
-  id             String     @id @default(cuid())
+  id             String           @id @default(cuid())
   startAddress   String
   endAddress     String
-  category       String     @db.VarChar(50)
+  category       String           @db.VarChar(50)
   resultsCount   Int
   searchDuration Int?
   sessionId      String?
-  timestamp      DateTime   @default(now())
+  timestamp      DateTime         @default(now())
   clicks         ClickLog[]
+  feedback       SearchFeedback?
 
   @@index([category])
   @@index([timestamp])
@@ -68,4 +69,16 @@ model VisitFeedback {
   @@index([placeId])
   @@index([timestamp])
   @@index([sessionId])
+}
+
+model SearchFeedback {
+  id          String    @id @default(cuid())
+  searchLogId String    @unique
+  helpful     Boolean
+  comment     String?
+  createdAt   DateTime  @default(now())
+  searchLog   SearchLog @relation(fields: [searchLogId], references: [id], onDelete: Cascade)
+
+  @@index([searchLogId])
+  @@index([createdAt])
 }
