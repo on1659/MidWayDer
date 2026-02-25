@@ -245,17 +245,18 @@ export default function HomePage() {
   // Share function
   const handleShare = useCallback(async () => {
     if (!start?.address || !end?.address) return;
-    const params = new URLSearchParams();
-    params.set('start', start.address);
-    params.set('end', end.address);
-    params.set('cat', category);
-    if (start.coordinates) { params.set('slat', String(start.coordinates.lat)); params.set('slng', String(start.coordinates.lng)); }
-    if (end.coordinates) { params.set('elat', String(end.coordinates.lat)); params.set('elng', String(end.coordinates.lng)); }
-    const url = `${window.location.origin}?${params.toString()}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: 'MidWayDer 경유지 검색', url }); } catch { /* cancelled */ }
-    } else {
-      await navigator.clipboard.writeText(url);
+    const { generateShareUrl, shareUrl } = await import('@/lib/share');
+    const url = generateShareUrl({
+      start: start.address,
+      end: end.address,
+      category,
+    });
+    const success = await shareUrl({
+      url,
+      title: '미드웨이더 - 경유지 검색',
+      text: `${start.address} → ${end.address} 경로의 ${category} 경유지를 찾아봤어요!`,
+    });
+    if (success && !navigator.share) {
       alert('링크가 복사되었습니다!');
     }
   }, [start, end, category]);

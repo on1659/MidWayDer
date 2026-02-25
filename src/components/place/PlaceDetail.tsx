@@ -5,11 +5,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check } from 'lucide-react';
+import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2 } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { useRouteStore } from '@/store/route-store';
 import { openNavigationApp } from '@/lib/navigation-links';
 import { copyToClipboard } from '@/lib/clipboard';
+import { generateShareUrl, shareUrl } from '@/lib/share';
 
 interface PlaceDetailProps {
   waypoint: DetourResult;
@@ -31,7 +32,9 @@ function formatDuration(seconds: number): string {
 export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetailProps) {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
   const start = useRouteStore((s) => s.start);
+  const end = useRouteStore((s) => s.end);
   const { place, detourCost, finalScore } = waypoint;
   const address = place.roadAddress || place.address;
 
@@ -62,6 +65,25 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
 
   const handleNavigate = (app: 'kakao' | 'naver' | 'tmap') => {
     openNavigationApp(app, place.coordinates.lat, place.coordinates.lng, place.name);
+  };
+
+  const handleShareWaypoint = async () => {
+    if (!start?.address || !end?.address) return;
+    const url = generateShareUrl({
+      start: start.address,
+      end: end.address,
+      category: place.category,
+      waypointId: place.id,
+    });
+    const success = await shareUrl({
+      url,
+      title: `미드웨이더 - ${place.name}`,
+      text: `${start.address} → ${end.address} 경로에 있는 ${place.name} 추천해요!`,
+    });
+    if (success) {
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 2000);
+    }
   };
 
   const scoreColor =
@@ -174,6 +196,28 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
               {place.phone}
             </a>
           )}
+
+          {/* Share Button */}
+          <button
+            onClick={handleShareWaypoint}
+            className="w-full py-3 mb-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2"
+            style={{ 
+              background: shareSuccess ? 'var(--green-100)' : 'var(--blue-100)', 
+              color: shareSuccess ? 'var(--green-700)' : 'var(--accent)' 
+            }}
+          >
+            {shareSuccess ? (
+              <>
+                <Check className="w-4 h-4" />
+                공유 완료!
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4" />
+                이 경유지 공유하기
+              </>
+            )}
+          </button>
 
           {/* Navigation Apps */}
           <div className="mb-3">
