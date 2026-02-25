@@ -71,3 +71,11 @@ export function updateFavorite(id: string, updates: Partial<Omit<Favorite, 'id' 
     console.error('Failed to update favorite:', e);
   }
 }
+
+export function clearAllFavorites(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.error('Failed to clear favorites:', e);
+  }
+}

@@ -59,6 +59,19 @@ export default function SearchOverlay({
     if (open) setRecentSearches(getRecentSearches());
   }, [open]);
 
+  // Esc 키로 닫기
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const handleSearch = () => {

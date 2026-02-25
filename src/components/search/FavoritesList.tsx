@@ -5,8 +5,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, X, Edit2, Check } from 'lucide-react';
-import { getFavorites, removeFavorite, updateFavorite, type Favorite } from '@/lib/favorites';
+import { Star, X, Edit2, Check, Trash2 } from 'lucide-react';
+import { getFavorites, removeFavorite, updateFavorite, clearAllFavorites, type Favorite } from '@/lib/favorites';
 
 interface FavoritesListProps {
   onSelect: (favorite: Favorite) => void;
@@ -40,9 +40,24 @@ export default function FavoritesList({ onSelect }: FavoritesListProps) {
 
   return (
     <div className="mb-5">
-      <div className="flex items-center gap-2 mb-3">
-        <Star className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-        <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>즐겨찾기</p>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Star className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>즐겨찾기</p>
+        </div>
+        <button
+          onClick={() => {
+            if (confirm(`${favorites.length}개의 즐겨찾기를 모두 삭제하시겠어요?`)) {
+              clearAllFavorites();
+              setFavorites([]);
+            }
+          }}
+          className="text-xs px-2 py-1 rounded-lg transition-colors hover:bg-gray-100 flex items-center gap-1"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <Trash2 className="w-3 h-3" />
+          전체 삭제
+        </button>
       </div>
       <div className="space-y-2">
         {favorites.map((fav) => (

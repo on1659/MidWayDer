@@ -44,3 +44,7 @@ export function removeRecentSearch(id: string): void {
   const items = getRecentSearches().filter((s) => s.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
+
+export function clearAllRecentSearches(): void {
+  localStorage.removeItem(STORAGE_KEY);
+}

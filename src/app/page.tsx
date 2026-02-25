@@ -30,22 +30,26 @@ const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
 const RoutePreview = dynamic(() => import('@/components/search/RoutePreview'));
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
-import { addRecentSearch, getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
+import { addRecentSearch, getRecentSearches, removeRecentSearch, clearAllRecentSearches, type RecentSearch } from '@/lib/recent-searches';
 import { addFavorite, getFavorites } from '@/lib/favorites';
 import { getGPSErrorMessage } from '@/lib/error-messages';
 import type { Route } from '@/types/location';
+import { useToast } from '@/hooks/useToast';
+import ToastContainer from '@/components/ui/ToastContainer';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
 export default function HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
   const { category, results, isLoading, error, totalCandidates, apiCallsUsed, setCategory, search, clearResults } = useSearchStore();
+  const { toasts, showToast } = useToast();
 
   const [appReady, setAppReady] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [favorites, setFavorites] = useState(getFavorites());
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [autoTheme, setAutoTheme] = useState(false);
   const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'shortest' | 'fastest'>('all');
   const [sortBy, setSortBy] = useState<'score' | 'distance' | 'duration'>('score');
   const [compareMode, setCompareMode] = useState(false);
@@ -71,11 +75,33 @@ export default function HomePage() {
     setRecentSearches(getRecentSearches());
   }, []);
 
+  // 키보드 단축키 (/ 키로 검색창 포커스)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // / 키를 누르면 검색 오버레이 열기 (입력창에 포커스 중이 아닐 때만)
+      if (e.key === '/' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        setSearchOverlayOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // 테마 초기화 + 시스템 테마 동기화
   useEffect(() => {
     try {
       const saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
+      const autoSaved = localStorage.getItem('auto-theme');
+      
+      if (autoSaved === 'true') {
+        setAutoTheme(true);
+        // 자동 전환 모드: 시간 기반
+        const hour = new Date().getHours();
+        const shouldBeDark = hour < 6 || hour >= 18;
+        document.documentElement.classList.toggle('theme-dark', shouldBeDark);
+        setTheme(shouldBeDark ? 'dark' : 'light');
+      } else if (saved === 'dark') {
         document.documentElement.classList.add('theme-dark');
         setTheme('dark');
       } else if (saved === 'light') {
@@ -97,8 +123,9 @@ export default function HomePage() {
     const handleChange = (e: MediaQueryListEvent) => {
       try {
         const saved = localStorage.getItem('theme');
-        // 사용자가 명시적으로 설정한 경우는 무시
-        if (saved) return;
+        const autoSaved = localStorage.getItem('auto-theme');
+        // 사용자가 명시적으로 설정한 경우나 자동 모드는 무시
+        if (saved || autoSaved === 'true') return;
         
         const prefersDark = e.matches;
         document.documentElement.classList.toggle('theme-dark', prefersDark);
@@ -109,6 +136,26 @@ export default function HomePage() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
+
+  // 자동 테마 전환 (1분마다 체크)
+  useEffect(() => {
+    if (!autoTheme) return;
+
+    const checkTheme = () => {
+      const hour = new Date().getHours();
+      const shouldBeDark = hour < 6 || hour >= 18;
+      const currentTheme = document.documentElement.classList.contains('theme-dark') ? 'dark' : 'light';
+      
+      if ((shouldBeDark && currentTheme === 'light') || (!shouldBeDark && currentTheme === 'dark')) {
+        const newTheme = shouldBeDark ? 'dark' : 'light';
+        document.documentElement.classList.toggle('theme-dark', shouldBeDark);
+        setTheme(newTheme);
+      }
+    };
+
+    const interval = setInterval(checkTheme, 60000); // 1분마다
+    return () => clearInterval(interval);
+  }, [autoTheme]);
 
   // theme-color 메타 동기화
   useEffect(() => {
@@ -121,10 +168,36 @@ export default function HomePage() {
   }, [theme]);
 
   const toggleTheme = () => {
+    // 자동 모드 비활성화
+    setAutoTheme(false);
+    try { localStorage.removeItem('auto-theme'); } catch { /* ignore */ }
+
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     document.documentElement.classList.toggle('theme-dark', next === 'dark');
     try { localStorage.setItem('theme', next); } catch { /* ignore */ }
+  };
+
+  const toggleAutoTheme = () => {
+    const nextAuto = !autoTheme;
+    setAutoTheme(nextAuto);
+    
+    try {
+      if (nextAuto) {
+        localStorage.setItem('auto-theme', 'true');
+        localStorage.removeItem('theme');
+        
+        // 즉시 자동 테마 적용
+        const hour = new Date().getHours();
+        const shouldBeDark = hour < 6 || hour >= 18;
+        document.documentElement.classList.toggle('theme-dark', shouldBeDark);
+        setTheme(shouldBeDark ? 'dark' : 'light');
+      } else {
+        localStorage.removeItem('auto-theme');
+        // 현재 테마 저장
+        localStorage.setItem('theme', theme);
+      }
+    } catch { /* ignore */ }
   };
 
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
@@ -222,7 +295,7 @@ export default function HomePage() {
   // GPS: get current location
   const handleGPS = useCallback(async () => {
     if (!navigator.geolocation) {
-      alert('이 브라우저에서는 위치 기능을 사용할 수 없어요');
+      showToast('이 브라우저에서는 위치 기능을 사용할 수 없어요', 'error');
       return;
     }
     setGpsLoading(true);
@@ -241,7 +314,7 @@ export default function HomePage() {
       (err) => {
         setGpsLoading(false);
         const errorMessage = getGPSErrorMessage(err);
-        alert(errorMessage);
+        showToast(errorMessage, 'error');
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
@@ -262,9 +335,9 @@ export default function HomePage() {
       text: `${start.address} → ${end.address} 경로의 ${category} 경유지를 찾아봤어요!`,
     });
     if (success && !navigator.share) {
-      alert('링크가 복사되었습니다!');
+      showToast('링크가 복사되었습니다! 📋', 'success');
     }
-  }, [start, end, category]);
+  }, [start, end, category, showToast]);
 
   const handleSearch = async () => {
     if (!start?.address || !end?.address) return;
@@ -500,7 +573,7 @@ export default function HomePage() {
                   <button
                     onClick={() => {
                       if (filteredResults.length < 2) {
-                        alert('비교할 경유지가 2개 이상 있어야 해요');
+                        showToast('비교할 경유지가 2개 이상 있어야 해요', 'info');
                         return;
                       }
                       // 상위 3개 자동 선택
@@ -541,7 +614,22 @@ export default function HomePage() {
               />
               {recentSearches.length > 0 && (
                 <div className="mb-5">
-                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>최근 검색</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>최근 검색</p>
+                    <button
+                      onClick={() => {
+                        if (confirm(`${recentSearches.length}개의 최근 검색 기록을 모두 삭제하시겠어요?`)) {
+                          clearAllRecentSearches();
+                          setRecentSearches([]);
+                          showToast(`${recentSearches.length}개 검색 기록 삭제됨`, 'success');
+                        }
+                      }}
+                      className="text-xs px-2 py-1 rounded-lg transition-colors hover:bg-gray-100"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      전체 삭제
+                    </button>
+                  </div>
                   <div className="space-y-2">
                     {recentSearches.map((item) => (
                       <div

@@ -5,11 +5,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Navigation } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
+import { openNavigationApp } from '@/lib/navigation-links';
 import ErrorFallback from '@/components/ui/ErrorFallback';
+import BottomSheet from '@/components/ui/BottomSheet';
 
 interface ResultListProps {
   results: DetourResult[];
@@ -30,6 +32,8 @@ export default function ResultList({
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [naviSheetOpen, setNaviSheetOpen] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<DetourResult['place'] | null>(null);
 
   const handleCopyAddress = async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -65,6 +69,28 @@ export default function ResultList({
       setTimeout(() => setFeedbackSent(false), 3000);
     } catch (err) {
       console.error('[Feedback] Failed:', err);
+    }
+  };
+
+  const handleOpenNavi = (e: React.MouseEvent, place: DetourResult['place']) => {
+    e.stopPropagation();
+    setSelectedPlace(place);
+    setNaviSheetOpen(true);
+  };
+
+  const handleNaviAppSelect = async (app: 'kakao' | 'naver' | 'tmap') => {
+    if (!selectedPlace) return;
+    
+    try {
+      await openNavigationApp(
+        app,
+        selectedPlace.coordinates.lat,
+        selectedPlace.coordinates.lng,
+        selectedPlace.name
+      );
+      setNaviSheetOpen(false);
+    } catch (err) {
+      console.error('[Navigation] Failed:', err);
     }
   };
   if (isLoading) {
@@ -196,6 +222,18 @@ export default function ResultList({
                     </span>
                   )}
                 </div>
+
+                {/* Navigation Button */}
+                <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-soft)' }}>
+                  <button
+                    onClick={(e) => handleOpenNavi(e, result.place)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[14px] transition-all active:scale-95 w-full justify-center"
+                    style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
+                  >
+                    <Navigation className="w-4 h-4" />
+                    네비 시작
+                  </button>
+                </div>
               </div>
 
               {/* Copy button */}
@@ -247,6 +285,65 @@ export default function ResultList({
           )}
         </div>
       )}
+
+      {/* Navigation App Selection Bottom Sheet */}
+      <BottomSheet
+        isOpen={naviSheetOpen}
+        onClose={() => setNaviSheetOpen(false)}
+        snap="collapsed"
+      >
+        <div className="p-6">
+          <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+            어떤 앱으로 안내할까요?
+          </h3>
+          {selectedPlace && (
+            <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+              {selectedPlace.name}
+            </p>
+          )}
+          <div className="space-y-3">
+            <button
+              onClick={() => handleNaviAppSelect('kakao')}
+              className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+            >
+              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-yellow-400">
+                <span className="text-2xl">🗺️</span>
+              </div>
+              <div className="text-left">
+                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>카카오내비</div>
+                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>KakaoNavi</div>
+              </div>
+            </button>
+            <button
+              onClick={() => handleNaviAppSelect('naver')}
+              className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+            >
+              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-500">
+                <span className="text-2xl">🧭</span>
+              </div>
+              <div className="text-left">
+                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>네이버지도</div>
+                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Naver Map</div>
+              </div>
+            </button>
+            <button
+              onClick={() => handleNaviAppSelect('tmap')}
+              className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+            >
+              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-red-500">
+                <span className="text-2xl">📍</span>
+              </div>
+              <div className="text-left">
+                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>티맵</div>
+                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>TMAP</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

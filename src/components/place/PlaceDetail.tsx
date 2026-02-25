@@ -42,6 +42,18 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
+  // Esc 키로 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
