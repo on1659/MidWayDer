@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2, CheckCircle } from 'lucide-react';
+import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2, CheckCircle, MapPinCheckInside } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { useRouteStore } from '@/store/route-store';
 import { openNavigationApp, getKakaoNaviLinkWithWaypoint } from '@/lib/navigation-links';
@@ -37,6 +37,8 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const [copied, setCopied] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [visitMarked, setVisitMarked] = useState(false);
+  const [gpsVerifying, setGpsVerifying] = useState(false);
+  const [gpsResult, setGpsResult] = useState<{ verified: boolean; message: string; points?: number; totalPoints?: number; tier?: string } | null>(null);
   const start = useRouteStore((s) => s.start);
   const end = useRouteStore((s) => s.end);
   const { place, detourCost, finalScore } = waypoint;
@@ -125,6 +127,38 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
     recordVisit(place.id, place.name, place.category, routeHash);
     setVisitMarked(true);
     setTimeout(() => setVisitMarked(false), 3000);
+  };
+
+  const handleGpsVerify = async () => {
+    if (!navigator.geolocation) {
+      setGpsResult({ verified: false, message: 'GPS를 지원하지 않는 기기예요' });
+      return;
+    }
+    setGpsVerifying(true);
+    setGpsResult(null);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        })
+      );
+      const { latitude, longitude } = position.coords;
+      const res = await fetch('/api/verify-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placeId: place.id, userLat: latitude, userLng: longitude }),
+      });
+      const data = await res.json();
+      setGpsResult(data);
+      if (data.verified && routeHash) {
+        recordVisit(place.id, place.name, place.category, routeHash);
+      }
+    } catch {
+      setGpsResult({ verified: false, message: 'GPS 권한이 필요해요. 설정에서 허용해주세요.' });
+    } finally {
+      setGpsVerifying(false);
+    }
   };
 
   const scoreColor =
@@ -280,32 +314,58 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             </button>
 
             <button
-              onClick={handleMarkVisit}
-              disabled={!!isVisited && !visitMarked}
-              className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-              style={{ 
-                background: visitMarked || isVisited ? 'var(--green-100)' : 'var(--purple-100)', 
-                color: visitMarked || isVisited ? 'var(--green-700)' : 'var(--purple-600)' 
+              onClick={handleGpsVerify}
+              disabled={gpsVerifying || (gpsResult?.verified === true)}
+              className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+              style={{
+                background:
+                  gpsResult?.verified
+                    ? 'var(--green-100)'
+                    : 'var(--purple-100)',
+                color:
+                  gpsResult?.verified
+                    ? 'var(--green-700)'
+                    : 'var(--purple-600)',
               }}
+              title="GPS로 방문 인증하고 포인트 받기"
             >
-              {visitMarked ? (
+              {gpsVerifying ? (
                 <>
-                  <CheckCircle className="w-4 h-4" />
-                  방문 완료
+                  <MapPinCheckInside className="w-4 h-4 animate-pulse" />
+                  인증 중...
                 </>
-              ) : isVisited ? (
+              ) : gpsResult?.verified ? (
                 <>
                   <CheckCircle className="w-4 h-4" />
-                  방문함
+                  인증 완료
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4" />
-                  방문 체크
+                  <MapPinCheckInside className="w-4 h-4" />
+                  방문 인증 +10P
                 </>
               )}
             </button>
           </div>
+
+          {/* GPS 인증 결과 메시지 */}
+          {gpsResult && (
+            <div
+              className="mb-3 px-3 py-2.5 rounded-xl text-sm font-medium"
+              style={{
+                background: gpsResult.verified ? 'var(--green-50)' : 'var(--pink-50)',
+                color: gpsResult.verified ? 'var(--green-700)' : 'var(--red-600)',
+                border: `1px solid ${gpsResult.verified ? 'var(--green-200)' : 'var(--pink-200)'}`,
+              }}
+            >
+              {gpsResult.message}
+              {gpsResult.verified && gpsResult.tier && (
+                <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'var(--green-200)' }}>
+                  {gpsResult.tier.toUpperCase()}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Navigation Apps */}
           <div className="mb-3">

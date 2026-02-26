@@ -20,6 +20,7 @@ model Place {
   kakaoPlaceId String?         @unique
   clicks       ClickLog[]
   feedbacks    VisitFeedback[]
+  visitLogs    VisitLog[]
 
   @@unique([name, category, address])
   @@index([category])
@@ -87,4 +88,27 @@ model SearchFeedback {
 
   @@index([searchLogId])
   @@index([createdAt])
+}
+
+model VisitLog {
+  id         String   @id @default(cuid())
+  placeId    String
+  sessionId  String
+  points     Int      @default(10)
+  verifiedAt DateTime @default(now())
+  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@index([placeId])
+  @@index([sessionId])
+  @@index([verifiedAt])
+}
+
+model UserPoints {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  points    Int      @default(0)
+  tier      String   @default("bronze")
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
 }

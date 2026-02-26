@@ -317,8 +317,52 @@ export default function ResultList({
     );
   }
 
+  // 결과 요약 데이터 계산
+  const avgDetourMin = Math.round(
+    results.reduce((sum, r) => sum + r.detourCost.duration, 0) / results.length / 60
+  );
+  const withinFiveMin = results.filter((r) => r.detourCost.duration <= 300).length;
+  const bestResult = results.reduce((best, r) =>
+    r.detourCost.duration < best.detourCost.duration ? r : best, results[0]
+  );
+
   return (
     <div className="space-y-3">
+      {/* 결과 요약 스마트 헤더 */}
+      <div
+        className="flex items-center justify-between px-4 py-3 rounded-2xl"
+        style={{
+          background: 'linear-gradient(135deg, var(--blue-50), var(--accent-weak))',
+          border: '1px solid var(--blue-200)',
+        }}
+      >
+        <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
+          <span className="text-sm font-bold" style={{ color: 'var(--blue-700)' }}>
+            ✅ {results.length}개 발견
+          </span>
+          <span
+            className="text-xs px-2 py-1 rounded-full font-semibold"
+            style={{ background: 'var(--blue-150)', color: 'var(--blue-600)' }}
+          >
+            평균 +{avgDetourMin}분
+          </span>
+          {withinFiveMin > 0 && (
+            <span
+              className="text-xs px-2 py-1 rounded-full font-semibold"
+              style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
+            >
+              ⚡ {withinFiveMin}개 +5분 이내
+            </span>
+          )}
+        </div>
+        <div className="shrink-0 text-right ml-2">
+          <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>최단</p>
+          <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--text-primary)' }}>
+            {bestResult.place.name}
+          </p>
+        </div>
+      </div>
+
       <div className="space-y-2.5">
       {results.map((result, index) => {
         const isSelected = selectedId === result.place.id;
