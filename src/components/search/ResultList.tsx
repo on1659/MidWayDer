@@ -9,7 +9,8 @@ import { Copy, Check, Navigation, Clock, Zap } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
-import { openNavigationApp } from '@/lib/navigation-links';
+import { openNavigationApp, getPreferredNavApp, setPreferredNavApp } from '@/lib/navigation-links';
+import type { NavApp } from '@/lib/navigation-links';
 import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
 import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-badges';
 import { getVisitCount } from '@/lib/visit-tracking';
@@ -53,6 +54,30 @@ export default function ResultList({
   // 빠른 필터 상태
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
+
+  // 실시간 인기도 (최근 1시간 클릭 수)
+  const [popularityMap, setPopularityMap] = useState<Record<string, number>>({});
+
+  // 선호 네비 앱
+  const [preferredNavApp, setPreferredNavAppState] = useState<NavApp | null>(null);
+
+  useEffect(() => {
+    setPreferredNavAppState(getPreferredNavApp());
+  }, []);
+
+  // 검색 결과 로드 완료 시 인기도 데이터 비동기 로드
+  useEffect(() => {
+    if (results.length === 0) return;
+    const placeIds = results.map((r) => r.place.id).join(',');
+    fetch(`/api/popularity?placeIds=${encodeURIComponent(placeIds)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setPopularityMap(json.data || {});
+      })
+      .catch(() => {
+        // 실패해도 UX 차단 안 함
+      });
+  }, [results]);
 
   // 경로 해시 계산 (추천 뱃지용)
   const { originalRoute } = useRouteStore();
@@ -115,13 +140,25 @@ export default function ResultList({
 
   const handleOpenNavi = (e: React.MouseEvent, place: DetourResult['place']) => {
     e.stopPropagation();
+    // 선호 앱이 있으면 바로 열기
+    if (preferredNavApp) {
+      openNavigationApp(preferredNavApp, place.coordinates.lat, place.coordinates.lng, place.name)
+        .catch((err) => console.error('[Navigation] Failed:', err));
+      return;
+    }
     setSelectedPlace(place);
     setNaviSheetOpen(true);
   };
 
-  const handleNaviAppSelect = async (app: 'kakao' | 'naver' | 'tmap') => {
+  const handleOpenNaviSheet = (e: React.MouseEvent, place: DetourResult['place']) => {
+    e.stopPropagation();
+    setSelectedPlace(place);
+    setNaviSheetOpen(true);
+  };
+
+  const handleNaviAppSelect = async (app: NavApp) => {
     if (!selectedPlace) return;
-    
+
     try {
       await openNavigationApp(
         app,
@@ -129,6 +166,9 @@ export default function ResultList({
         selectedPlace.coordinates.lng,
         selectedPlace.name
       );
+      // 선택한 앱 저장
+      setPreferredNavApp(app);
+      setPreferredNavAppState(app);
       setNaviSheetOpen(false);
     } catch (err) {
       console.error('[Navigation] Failed:', err);
@@ -457,6 +497,7 @@ export default function ResultList({
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
         const detourMin = Math.round(result.detourCost.duration / 60);
         const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
+        const recentClicks = popularityMap[result.place.id] ?? 0;
 
         return (
           <button
@@ -516,6 +557,16 @@ export default function ResultList({
                       style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
                     >
                       {routeLabel}
+                    </span>
+                  )}
+                  {/* 실시간 인기도 뱃지 */}
+                  {recentClicks >= 2 && (
+                    <span
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                      style={{ background: 'var(--orange-100)', color: 'var(--orange-600)' }}
+                      title="최근 1시간 내 다른 사용자들이 클릭한 횟수"
+                    >
+                      🔥 {recentClicks}명 관심
                     </span>
                   )}
                   {/* 영업 상태 뱃지 */}
@@ -586,14 +637,35 @@ export default function ResultList({
 
                 {/* Navigation Button */}
                 <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-soft)' }}>
-                  <button
-                    onClick={(e) => handleOpenNavi(e, result.place)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[14px] transition-all active:scale-95 w-full justify-center"
-                    style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
-                  >
-                    <Navigation className="w-4 h-4" />
-                    네비 시작
-                  </button>
+                  {preferredNavApp ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => handleOpenNavi(e, result.place)}
+                        className="flex-1 flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[14px] transition-all active:scale-95 justify-center"
+                        style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
+                      >
+                        <Navigation className="w-4 h-4" />
+                        {preferredNavApp === 'kakao' ? '카카오내비' : preferredNavApp === 'naver' ? '네이버지도' : '티맵'}으로 시작
+                      </button>
+                      <button
+                        onClick={(e) => handleOpenNaviSheet(e, result.place)}
+                        className="px-3 py-2 rounded-lg text-[12px] font-medium transition-all active:scale-95"
+                        style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }}
+                        title="다른 앱 선택"
+                      >
+                        변경
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => handleOpenNavi(e, result.place)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[14px] transition-all active:scale-95 w-full justify-center"
+                      style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
+                    >
+                      <Navigation className="w-4 h-4" />
+                      네비 시작
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -654,54 +726,51 @@ export default function ResultList({
         onSnapChange={(snap) => { if (snap === 'collapsed') setNaviSheetOpen(false); }}
       >
         <div className="p-6">
-          <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+          <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
             어떤 앱으로 안내할까요?
           </h3>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+            선택한 앱을 기억해 다음엔 바로 실행해요
+          </p>
           {selectedPlace && (
             <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
               {selectedPlace.name}
             </p>
           )}
           <div className="space-y-3">
-            <button
-              onClick={() => handleNaviAppSelect('kakao')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
-            >
-              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-yellow-400">
-                <span className="text-2xl">🗺️</span>
-              </div>
-              <div className="text-left">
-                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>카카오내비</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>KakaoNavi</div>
-              </div>
-            </button>
-            <button
-              onClick={() => handleNaviAppSelect('naver')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
-            >
-              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-500">
-                <span className="text-2xl">🧭</span>
-              </div>
-              <div className="text-left">
-                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>네이버지도</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Naver Map</div>
-              </div>
-            </button>
-            <button
-              onClick={() => handleNaviAppSelect('tmap')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
-            >
-              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-red-500">
-                <span className="text-2xl">📍</span>
-              </div>
-              <div className="text-left">
-                <div className="font-bold" style={{ color: 'var(--text-primary)' }}>티맵</div>
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>TMAP</div>
-              </div>
-            </button>
+            {(
+              [
+                { app: 'kakao' as NavApp, label: '카카오내비', sub: 'KakaoNavi', bg: 'bg-yellow-400', emoji: '🗺️' },
+                { app: 'naver' as NavApp, label: '네이버지도', sub: 'Naver Map', bg: 'bg-green-500', emoji: '🧭' },
+                { app: 'tmap' as NavApp, label: '티맵', sub: 'TMAP', bg: 'bg-red-500', emoji: '📍' },
+              ] as const
+            ).map(({ app, label, sub, bg, emoji }) => {
+              const isPreferred = preferredNavApp === app;
+              return (
+                <button
+                  key={app}
+                  onClick={() => handleNaviAppSelect(app)}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl transition-all active:scale-98 shadow-sm"
+                  style={{
+                    background: isPreferred ? 'var(--blue-50)' : 'var(--bg-surface)',
+                    border: `1px solid ${isPreferred ? 'var(--accent)' : 'var(--border-soft)'}`,
+                  }}
+                >
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${bg}`}>
+                    <span className="text-2xl">{emoji}</span>
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{label}</div>
+                    <div className="text-sm" style={{ color: 'var(--text-muted)' }}>{sub}</div>
+                  </div>
+                  {isPreferred && (
+                    <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: 'var(--accent)', color: 'white' }}>
+                      기억됨
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </BottomSheet>

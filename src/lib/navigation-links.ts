@@ -64,6 +64,30 @@ export function getTmapLink(lat: number, lng: number, name: string): string {
   return `tmap://route?${params.toString()}`;
 }
 
+// ────────────────────────────────────────────────────────────
+// 선호 네비 앱 기억 (localStorage)
+// ────────────────────────────────────────────────────────────
+
+const PREFERRED_NAV_APP_KEY = 'midwayder_preferred_nav_app';
+
+export type NavApp = 'kakao' | 'naver' | 'tmap';
+
+export function getPreferredNavApp(): NavApp | null {
+  if (typeof window === 'undefined') return null;
+  const stored = localStorage.getItem(PREFERRED_NAV_APP_KEY);
+  if (stored === 'kakao' || stored === 'naver' || stored === 'tmap') {
+    return stored;
+  }
+  return null;
+}
+
+export function setPreferredNavApp(app: NavApp): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(PREFERRED_NAV_APP_KEY, app);
+}
+
+// ────────────────────────────────────────────────────────────
+
 /**
  * 앱 스토어 링크 (앱 미설치 시)
  */
