@@ -1,178 +1,198 @@
 /**
- * Search Cache Utility
- * LocalStorage 기반 검색 결과 캐싱 (TTL 30분)
+ * Search Result Cache (LocalStorage)
+ * 
+ * 검색 결과를 캐싱하여 재검색 시 즉시 응답
+ * - 캐시 키: 출발/도착 좌표 + 카테고리 해시
+ * - TTL: 30분
+ * - 최대 개수: 10개 (FIFO)
  */
 
-interface CachedSearchResult {
-  data: any; // SearchWaypointsResponse
-  timestamp: number;
-  routeHash: string;
+import type { Coordinates, Route } from '@/types/location';
+import type { DetourResult } from '@/types/detour';
+import type { SearchWaypointsResponse } from '@/types/api';
+
+export interface SearchCacheKey {
+  start: { coordinates: Coordinates };
+  end: { coordinates: Coordinates };
   category: string;
 }
 
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30분
+export interface SearchCacheValue {
+  results: DetourResult[];
+  originalRoute: Route;
+  totalCandidates: number;
+  apiCallsUsed: number;
+  timestamp: number;
+}
+
 const CACHE_KEY_PREFIX = 'midwayder_search_';
-const MAX_CACHE_ITEMS = 20;
+const CACHE_KEY_LIST = 'midwayder_cache_keys';
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30분
+const MAX_CACHE_ITEMS = 10;
 
 /**
- * 캐시된 검색 결과 조회
+ * 캐시 키 생성 (경로 + 카테고리 해시)
+ * 좌표는 소수점 4자리까지 (약 11m 정확도)
  */
-export function getCachedSearch(
-  routeHash: string,
-  category: string
-): CachedSearchResult | null {
-  if (typeof window === 'undefined') return null; // SSR 체크
+export const generateCacheKey = (key: SearchCacheKey): string => {
+  const str = JSON.stringify({
+    startLat: key.start.coordinates.lat.toFixed(4),
+    startLng: key.start.coordinates.lng.toFixed(4),
+    endLat: key.end.coordinates.lat.toFixed(4),
+    endLng: key.end.coordinates.lng.toFixed(4),
+    category: key.category,
+  });
 
+  // 간단한 해시 (crypto.createHash는 Node.js 전용, 브라우저에서는 단순 해시)
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  return `${CACHE_KEY_PREFIX}${Math.abs(hash).toString(36)}`;
+};
+
+/**
+ * 캐시 저장
+ */
+export const saveSearchCache = (key: SearchCacheKey, value: Omit<SearchCacheValue, 'timestamp'>) => {
+  if (typeof window === 'undefined') return;
+  
   try {
-    const key = `${CACHE_KEY_PREFIX}${routeHash}_${category}`;
-    const cached = localStorage.getItem(key);
+    const cacheKey = generateCacheKey(key);
+    const cacheValue: SearchCacheValue = {
+      ...value,
+      timestamp: Date.now(),
+    };
 
-    if (!cached) return null;
+    localStorage.setItem(cacheKey, JSON.stringify(cacheValue));
 
-    const parsed: CachedSearchResult = JSON.parse(cached);
-    const age = Date.now() - parsed.timestamp;
+    // 캐시 키 목록 업데이트 (최대 10개)
+    updateCacheKeyList(cacheKey);
+  } catch (err) {
+    console.error('[saveSearchCache] Error:', err);
+  }
+};
 
+/**
+ * 캐시 불러오기
+ */
+export const loadSearchCache = (key: SearchCacheKey): SearchCacheValue | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const cacheKey = generateCacheKey(key);
+    const data = localStorage.getItem(cacheKey);
+    if (!data) return null;
+
+    const cache: SearchCacheValue = JSON.parse(data);
+    const age = Date.now() - cache.timestamp;
+
+    // TTL 초과 시 삭제
     if (age > CACHE_TTL_MS) {
-      // 만료된 캐시 삭제
-      localStorage.removeItem(key);
+      localStorage.removeItem(cacheKey);
+      removeCacheKeyFromList(cacheKey);
       return null;
     }
 
-    return parsed;
-  } catch (error) {
-    console.error('[Cache] Read error:', error);
+    return cache;
+  } catch (err) {
+    console.error('[loadSearchCache] Error:', err);
     return null;
   }
-}
+};
 
 /**
- * 검색 결과 캐싱
+ * 캐시 키 목록 관리 (최대 10개, FIFO)
  */
-export function setCachedSearch(
-  routeHash: string,
-  category: string,
-  data: any
-): void {
-  if (typeof window === 'undefined') return; // SSR 체크
-
+const updateCacheKeyList = (newKey: string) => {
   try {
-    const key = `${CACHE_KEY_PREFIX}${routeHash}_${category}`;
-    const cached: CachedSearchResult = {
-      data,
-      timestamp: Date.now(),
-      routeHash,
-      category,
-    };
+    const data = localStorage.getItem(CACHE_KEY_LIST);
+    const keys: string[] = data ? JSON.parse(data) : [];
 
-    localStorage.setItem(key, JSON.stringify(cached));
+    // 중복 제거
+    const filtered = keys.filter(k => k !== newKey);
 
-    // 캐시 크기 제한
-    cleanupOldCaches();
-  } catch (error) {
-    console.error('[Cache] Write error:', error);
+    // 최신 키 추가
+    filtered.push(newKey);
+
+    // 10개 초과 시 가장 오래된 것 제거
+    if (filtered.length > MAX_CACHE_ITEMS) {
+      const removed = filtered.shift();
+      if (removed) {
+        localStorage.removeItem(removed);
+      }
+    }
+
+    localStorage.setItem(CACHE_KEY_LIST, JSON.stringify(filtered));
+  } catch (err) {
+    console.error('[updateCacheKeyList] Error:', err);
   }
-}
+};
 
 /**
- * 오래된 캐시 자동 삭제 (최대 20개 유지)
+ * 캐시 키 목록에서 제거
  */
-function cleanupOldCaches(): void {
+const removeCacheKeyFromList = (key: string) => {
   try {
-    const keys = Object.keys(localStorage).filter((k) =>
-      k.startsWith(CACHE_KEY_PREFIX)
-    );
-
-    if (keys.length <= MAX_CACHE_ITEMS) return;
-
-    // timestamp 기준 정렬 후 오래된 것 삭제
-    const caches = keys
-      .map((key) => {
-        try {
-          const data = JSON.parse(localStorage.getItem(key)!);
-          return { key, timestamp: data.timestamp || 0 };
-        } catch {
-          return { key, timestamp: 0 };
-        }
-      })
-      .sort((a, b) => a.timestamp - b.timestamp);
-
-    // 가장 오래된 5개 삭제
-    const toDelete = Math.max(1, keys.length - MAX_CACHE_ITEMS);
-    caches.slice(0, toDelete).forEach((cache) => {
-      localStorage.removeItem(cache.key);
-    });
-  } catch (error) {
-    console.error('[Cache] Cleanup error:', error);
+    const data = localStorage.getItem(CACHE_KEY_LIST);
+    const keys: string[] = data ? JSON.parse(data) : [];
+    const filtered = keys.filter(k => k !== key);
+    localStorage.setItem(CACHE_KEY_LIST, JSON.stringify(filtered));
+  } catch (err) {
+    console.error('[removeCacheKeyFromList] Error:', err);
   }
-}
+};
+
+/**
+ * routeHash + category 키로 캐시 조회 (search-store 전용)
+ */
+export const getCachedSearch = (routeHash: string, category: string): SearchWaypointsResponse | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const key = `${CACHE_KEY_PREFIX}sc_${routeHash}_${category}`;
+    const data = localStorage.getItem(key);
+    if (!data) return null;
+    const cache: { data: SearchWaypointsResponse; timestamp: number } = JSON.parse(data);
+    if (Date.now() - cache.timestamp > CACHE_TTL_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return cache.data;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * routeHash + category 키로 캐시 저장 (search-store 전용)
+ */
+export const setCachedSearch = (routeHash: string, category: string, data: SearchWaypointsResponse): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `${CACHE_KEY_PREFIX}sc_${routeHash}_${category}`;
+    localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+    updateCacheKeyList(key);
+  } catch (err) {
+    console.error('[setCachedSearch] Error:', err);
+  }
+};
 
 /**
  * 캐시 전체 삭제
  */
-export function clearSearchCache(): void {
+export const clearAllSearchCache = () => {
   if (typeof window === 'undefined') return;
-
+  
   try {
-    const keys = Object.keys(localStorage).filter((k) =>
-      k.startsWith(CACHE_KEY_PREFIX)
-    );
-    keys.forEach((key) => localStorage.removeItem(key));
-  } catch (error) {
-    console.error('[Cache] Clear error:', error);
+    const data = localStorage.getItem(CACHE_KEY_LIST);
+    const keys: string[] = data ? JSON.parse(data) : [];
+
+    keys.forEach(key => localStorage.removeItem(key));
+    localStorage.removeItem(CACHE_KEY_LIST);
+  } catch (err) {
+    console.error('[clearAllSearchCache] Error:', err);
   }
-}
-
-/**
- * 특정 카테고리 캐시 삭제
- */
-export function clearCategoryCache(category: string): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    const keys = Object.keys(localStorage).filter(
-      (k) => k.startsWith(CACHE_KEY_PREFIX) && k.includes(`_${category}`)
-    );
-    keys.forEach((key) => localStorage.removeItem(key));
-  } catch (error) {
-    console.error('[Cache] Clear category error:', error);
-  }
-}
-
-/**
- * 캐시 통계 조회
- */
-export function getCacheStats(): {
-  count: number;
-  totalSize: number;
-  oldestTimestamp: number | null;
-} {
-  if (typeof window === 'undefined')
-    return { count: 0, totalSize: 0, oldestTimestamp: null };
-
-  try {
-    const keys = Object.keys(localStorage).filter((k) =>
-      k.startsWith(CACHE_KEY_PREFIX)
-    );
-    let totalSize = 0;
-    let oldestTimestamp: number | null = null;
-
-    keys.forEach((key) => {
-      const value = localStorage.getItem(key);
-      if (value) {
-        totalSize += value.length;
-        try {
-          const parsed = JSON.parse(value);
-          if (!oldestTimestamp || parsed.timestamp < oldestTimestamp) {
-            oldestTimestamp = parsed.timestamp;
-          }
-        } catch {
-          // 무시
-        }
-      }
-    });
-
-    return { count: keys.length, totalSize, oldestTimestamp };
-  } catch {
-    return { count: 0, totalSize: 0, oldestTimestamp: null };
-  }
-}
+};

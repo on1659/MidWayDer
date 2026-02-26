@@ -4,13 +4,18 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Copy, Check, Navigation } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { openNavigationApp } from '@/lib/navigation-links';
 import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
+import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-badges';
+import { getVisitCount } from '@/lib/visit-tracking';
+import { hashRoute } from '@/lib/utils/route-hash';
+import { getTimeBasedCategoryHints, getTimeGreeting } from '@/lib/smart-category';
+import { useRouteStore } from '@/store/route-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
 
@@ -41,6 +46,14 @@ export default function ResultList({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [naviSheetOpen, setNaviSheetOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<DetourResult['place'] | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // 경로 해시 계산 (추천 뱃지용)
+  const { originalRoute } = useRouteStore();
+  const routeHash = originalRoute 
+    ? hashRoute(originalRoute.start, originalRoute.end)
+    : '';
 
   const handleCopyAddress = async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -100,6 +113,56 @@ export default function ResultList({
       console.error('[Navigation] Failed:', err);
     }
   };
+
+  // 키보드 접근성: 화살표 키로 탐색
+  useEffect(() => {
+    if (results.length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setFocusedIndex((prev) => Math.min(prev + 1, results.length - 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setFocusedIndex((prev) => Math.max(prev - 1, 0));
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          handleSelect(results[focusedIndex], focusedIndex + 1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          setFocusedIndex(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          setFocusedIndex(results.length - 1);
+          break;
+      }
+    };
+
+    if (listRef.current) {
+      listRef.current.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      if (listRef.current) {
+        listRef.current.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+  }, [focusedIndex, results]);
+
+  // 포커스된 항목 자동 스크롤
+  useEffect(() => {
+    const item = document.querySelector(`[data-result-index="${focusedIndex}"]`);
+    if (item) {
+      item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [focusedIndex]);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -137,16 +200,51 @@ export default function ResultList({
   if (results.length === 0) {
     // 검색 전: 초기 상태 메시지
     if (!hasSearched) {
+      const timeHints = getTimeBasedCategoryHints();
+      const greeting = getTimeGreeting();
+
       return (
-        <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-          <div className="text-6xl mb-4 animate-bounce">🗺️</div>
-          <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+        <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+          <div className="text-5xl mb-3 animate-bounce">🗺️</div>
+          <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
             가는 길에 들를 곳을 찾아드려요
           </h3>
-          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>
             출발지와 도착지를 입력하고<br />
             원하는 카테고리를 선택해주세요
           </p>
+
+          {/* 시간대 카테고리 스마트 제안 */}
+          {timeHints.length > 0 && onCategoryChange && (
+            <div className="w-full mb-4">
+              <p className="text-xs font-semibold mb-2.5" style={{ color: 'var(--text-secondary)' }}>
+                {greeting} 지금 이 시간엔 어때요?
+              </p>
+              <div className="flex gap-2 justify-center">
+                {timeHints.map((hint) => (
+                  <button
+                    key={hint.category}
+                    onClick={() => onCategoryChange(hint.category)}
+                    className="flex flex-col items-center gap-1 px-4 py-3 rounded-2xl transition-all active:scale-95 flex-1 max-w-[140px]"
+                    style={{
+                      background: 'var(--bg-surface)',
+                      border: '1.5px solid var(--border-soft)',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <span className="text-2xl">{hint.emoji}</span>
+                    <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                      {hint.label}
+                    </span>
+                    <span className="text-[11px] leading-tight" style={{ color: 'var(--text-muted)' }}>
+                      {hint.reason}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2 justify-center">
             <span className="px-3 py-1 rounded-full text-xs" style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}>
               🔍 스마트 검색
@@ -267,6 +365,7 @@ export default function ResultList({
 
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                  {/* 기본 정보 뱃지: 이탈 거리/시간 */}
                   <span
                     className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
                     style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
@@ -287,24 +386,59 @@ export default function ResultList({
                       {routeLabel}
                     </span>
                   )}
-                  {/* Personalization badges */}
-                  {(result as any).personalScore > 50 && (
-                    <span
-                      className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                      style={{ background: 'var(--purple-100)', color: 'var(--purple-600)' }}
-                    >
-                      ⭐ 자주 선택
-                    </span>
-                  )}
-                  {(result as any).popularityScore > 70 && (
-                    <span
-                      className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                      style={{ background: 'var(--orange-100)', color: 'var(--orange-600)' }}
-                    >
-                      🔥 인기
-                    </span>
-                  )}
+                  {/* 영업 상태 뱃지 */}
+                  {result.place.businessHours && (() => {
+                    const status = getBusinessStatus(result.place.businessHours);
+                    if (status.label === '정보 없음') return null;
+                    return (
+                      <span
+                        className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                        style={{
+                          background: status.isOpen ? 'var(--green-100)' : 'var(--red-100)',
+                          color: status.color,
+                        }}
+                      >
+                        {status.emoji} {status.label}
+                      </span>
+                    );
+                  })()}
                 </div>
+
+                {/* 추천 이유 뱃지 */}
+                {(() => {
+                  const visitCount = routeHash ? getVisitCount(result.place.id, routeHash) : 0;
+                  const badges = getRecommendationBadges(
+                    result,
+                    index + 1,
+                    undefined, // totalClicks는 서버에서 가져와야 함 (TODO)
+                    visitCount
+                  );
+                  
+                  if (badges.length === 0) return null;
+
+                  return (
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      {badges.map((badge, i) => {
+                        const colors = getBadgeColor(badge.type);
+                        return (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                            style={{
+                              background: colors.bg,
+                              color: colors.text,
+                              border: `1px solid ${colors.border}`,
+                            }}
+                            title={badge.description}
+                          >
+                            <span>{badge.icon}</span>
+                            <span>{badge.label}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
 
                 {/* Navigation Button */}
                 <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-soft)' }}>
@@ -371,9 +505,9 @@ export default function ResultList({
 
       {/* Navigation App Selection Bottom Sheet */}
       <BottomSheet
-        isOpen={naviSheetOpen}
-        onClose={() => setNaviSheetOpen(false)}
+        visible={naviSheetOpen}
         snap="collapsed"
+        onSnapChange={(snap) => { if (snap === 'collapsed') setNaviSheetOpen(false); }}
       >
         <div className="p-6">
           <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>

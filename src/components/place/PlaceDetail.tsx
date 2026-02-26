@@ -5,12 +5,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2 } from 'lucide-react';
+import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2, CheckCircle } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { useRouteStore } from '@/store/route-store';
-import { openNavigationApp } from '@/lib/navigation-links';
+import { openNavigationApp, getKakaoNaviLinkWithWaypoint } from '@/lib/navigation-links';
 import { copyToClipboard } from '@/lib/clipboard';
 import { generateShareUrl, shareUrl } from '@/lib/share';
+import { recordVisit, hasVisited } from '@/lib/visit-tracking';
+import { hashRoute } from '@/lib/utils/route-hash';
+import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
 
 interface PlaceDetailProps {
   waypoint: DetourResult;
@@ -33,10 +36,19 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [visitMarked, setVisitMarked] = useState(false);
   const start = useRouteStore((s) => s.start);
   const end = useRouteStore((s) => s.end);
   const { place, detourCost, finalScore } = waypoint;
   const address = place.roadAddress || place.address;
+
+  // 경로 해시 계산
+  const routeHash = start?.coordinates && end?.coordinates 
+    ? hashRoute(start.coordinates, end.coordinates)
+    : '';
+
+  // 방문 여부 확인
+  const isVisited = routeHash && hasVisited(place.id, routeHash);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -78,7 +90,6 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const handleNavigate = (app: 'kakao' | 'naver' | 'tmap') => {
     // 출발지/도착지가 있으면 경유지 포함 딥링크 사용 (카카오내비만 지원)
     if (app === 'kakao' && start?.coordinates && end?.coordinates) {
-      const { getKakaoNaviLinkWithWaypoint } = require('@/lib/navigation-links');
       const deepLink = getKakaoNaviLinkWithWaypoint(
         start.coordinates,
         { ...place.coordinates, name: place.name },
@@ -107,6 +118,13 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
       setShareSuccess(true);
       setTimeout(() => setShareSuccess(false), 2000);
     }
+  };
+
+  const handleMarkVisit = () => {
+    if (!routeHash) return;
+    recordVisit(place.id, place.name, place.category, routeHash);
+    setVisitMarked(true);
+    setTimeout(() => setVisitMarked(false), 3000);
   };
 
   const scoreColor =
@@ -206,6 +224,24 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
               <Star className="w-4 h-4" />
               추천 {Math.round(finalScore)}점
             </span>
+            {/* 영업 상태 뱃지 */}
+            {place.businessHours && (() => {
+              const status = getBusinessStatus(place.businessHours);
+              if (status.label === '정보 없음') return null;
+              return (
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full"
+                  style={{
+                    background: status.isOpen ? 'var(--green-100)' : 'var(--red-100)',
+                    color: status.color,
+                  }}
+                  title={formatBusinessHours(place.businessHours)}
+                >
+                  <Clock className="w-4 h-4" />
+                  {status.emoji} {status.label}
+                </span>
+              );
+            })()}
           </div>
 
           {/* Phone */}
@@ -220,27 +256,56 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             </a>
           )}
 
-          {/* Share Button */}
-          <button
-            onClick={handleShareWaypoint}
-            className="w-full py-3 mb-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2"
-            style={{ 
-              background: shareSuccess ? 'var(--green-100)' : 'var(--blue-100)', 
-              color: shareSuccess ? 'var(--green-700)' : 'var(--accent)' 
-            }}
-          >
-            {shareSuccess ? (
-              <>
-                <Check className="w-4 h-4" />
-                공유 완료!
-              </>
-            ) : (
-              <>
-                <Share2 className="w-4 h-4" />
-                이 경유지 공유하기
-              </>
-            )}
-          </button>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <button
+              onClick={handleShareWaypoint}
+              className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2"
+              style={{ 
+                background: shareSuccess ? 'var(--green-100)' : 'var(--blue-100)', 
+                color: shareSuccess ? 'var(--green-700)' : 'var(--accent)' 
+              }}
+            >
+              {shareSuccess ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  완료
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4" />
+                  공유
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleMarkVisit}
+              disabled={!!isVisited && !visitMarked}
+              className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{ 
+                background: visitMarked || isVisited ? 'var(--green-100)' : 'var(--purple-100)', 
+                color: visitMarked || isVisited ? 'var(--green-700)' : 'var(--purple-600)' 
+              }}
+            >
+              {visitMarked ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  방문 완료
+                </>
+              ) : isVisited ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  방문함
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  방문 체크
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Navigation Apps */}
           <div className="mb-3">

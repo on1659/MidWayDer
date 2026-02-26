@@ -97,7 +97,8 @@ function SharePageContent() {
       <BottomSheet
         snap={sheetSnap}
         onSnapChange={setSheetSnap}
-        header={
+      >
+        <div>
           <div className="px-4 pb-3">
             <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
               추천 경유지
@@ -108,52 +109,45 @@ function SharePageContent() {
               </p>
             )}
           </div>
-        }
-      >
-        <div className="px-4 pb-6">
-          {isLoading && (
-            <div className="text-center py-8">
-              <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
-                경유지를 찾고 있어요...
-              </p>
-            </div>
-          )}
+          <div className="px-4 pb-6">
+            {isLoading && (
+              <div className="text-center py-8">
+                <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
+                  경유지를 찾고 있어요...
+                </p>
+              </div>
+            )}
 
-          {!isLoading && results.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                검색 조건을 확인해주세요
-              </p>
-            </div>
-          )}
+            {!isLoading && results.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  검색 조건을 확인해주세요
+                </p>
+              </div>
+            )}
 
-          {!isLoading && results.length > 0 && (
-            <ResultList
-              results={results}
-              selectedId={selectedWaypoint?.place.id || null}
-              isLoading={false}
-              error={null}
-              onSelect={handleSelectWaypoint}
-            />
-          )}
+            {!isLoading && results.length > 0 && (
+              <ResultList
+                results={results}
+                selectedId={selectedWaypoint?.place.id || null}
+                isLoading={false}
+                error={null}
+                hasSearched={true}
+                currentCategory={searchParams.get('category') || ''}
+                onSelect={handleSelectWaypoint}
+              />
+            )}
+          </div>
         </div>
       </BottomSheet>
 
       {/* 경유지 상세 */}
-      {selectedWaypoint && originalRoute && (
-        <BottomSheet
-          snap="full"
-          onSnapChange={(snap) => {
-            if (snap === 'collapsed') handleCloseDetail();
-          }}
-        >
-          <PlaceDetail
-            place={selectedWaypoint.place}
-            detourCost={selectedWaypoint.detourCost}
-            originalRoute={originalRoute}
-            onClose={handleCloseDetail}
-          />
-        </BottomSheet>
+      {selectedWaypoint && (
+        <PlaceDetail
+          waypoint={selectedWaypoint}
+          onClose={handleCloseDetail}
+          onConfirm={handleCloseDetail}
+        />
       )}
     </div>
   );

@@ -29,6 +29,8 @@ interface SearchState {
   hasSearched: boolean;
   /** 캐시에서 로드되었는지 */
   isCached: boolean;
+  /** AbortController (검색 취소용) */
+  abortController: AbortController | null;
 
   // Actions
   /** 카테고리 변경 */
@@ -37,9 +39,11 @@ interface SearchState {
   search: (start: SearchWaypointsRequest['start'], end: SearchWaypointsRequest['end'], category: string) => Promise<void>;
   /** 검색 결과 초기화 */
   clearResults: () => void;
+  /** 검색 취소 */
+  cancelSearch: () => void;
 }
 
-export const useSearchStore = create<SearchState>((set) => ({
+export const useSearchStore = create<SearchState>((set, get) => ({
   category: '다이소',
   results: [],
   isLoading: false,
@@ -48,15 +52,33 @@ export const useSearchStore = create<SearchState>((set) => ({
   apiCallsUsed: 0,
   hasSearched: false,
   isCached: false,
+  abortController: null,
 
   setCategory: (category) => set({ category }),
 
   search: async (start, end, category) => {
-    set({ isLoading: true, error: null, results: [], totalCandidates: 0, apiCallsUsed: 0, hasSearched: true, isCached: false });
+    // 이전 검색 취소
+    const prevController = get().abortController;
+    if (prevController) {
+      prevController.abort();
+    }
+
+    // 새 AbortController 생성
+    const controller = new AbortController();
+    set({ 
+      isLoading: true, 
+      error: null, 
+      results: [], 
+      totalCandidates: 0, 
+      apiCallsUsed: 0, 
+      hasSearched: true, 
+      isCached: false,
+      abortController: controller,
+    });
 
     // 좌표 추출
-    const startCoords: Coordinates = 'coordinates' in start ? start.coordinates : start;
-    const endCoords: Coordinates = 'coordinates' in end ? end.coordinates : end;
+    const startCoords: Coordinates = ('coordinates' in start && start.coordinates) ? start.coordinates : start as Coordinates;
+    const endCoords: Coordinates = ('coordinates' in end && end.coordinates) ? end.coordinates : end as Coordinates;
 
     // 1. 캐시 확인
     const routeHash = hashRoute(startCoords, endCoords);
@@ -65,12 +87,13 @@ export const useSearchStore = create<SearchState>((set) => ({
     if (cached) {
       console.log('✅ Cache HIT:', routeHash, category);
       set({
-        results: cached.data.data.results,
-        totalCandidates: cached.data.data.totalCandidates,
-        apiCallsUsed: cached.data.data.apiCallsUsed,
+        results: cached.data.results,
+        totalCandidates: cached.data.totalCandidates,
+        apiCallsUsed: cached.data.apiCallsUsed,
         isLoading: false,
         hasSearched: true,
         isCached: true,
+        abortController: null,
       });
       return;
     }
@@ -87,7 +110,6 @@ export const useSearchStore = create<SearchState>((set) => ({
         },
       };
 
-      const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
 
       const response = await fetch('/api/search', {
@@ -109,6 +131,7 @@ export const useSearchStore = create<SearchState>((set) => ({
           error: friendlyError,
           isLoading: false,
           isCached: false,
+          abortController: null,
         });
         return;
       }
@@ -124,13 +147,20 @@ export const useSearchStore = create<SearchState>((set) => ({
         isLoading: false,
         error: null,
         isCached: false,
+        abortController: null,
       });
     } catch (error) {
       let errorMessage: string;
       
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMessage = getAPIErrorMessage(408);
+          // 취소 시 에러 메시지 표시하지 않음
+          set({
+            isLoading: false,
+            isCached: false,
+            abortController: null,
+          });
+          return;
         } else if (error.message.includes('fetch')) {
           errorMessage = getAPIErrorMessage();
         } else {
@@ -144,6 +174,7 @@ export const useSearchStore = create<SearchState>((set) => ({
         error: errorMessage,
         isLoading: false,
         isCached: false,
+        abortController: null,
       });
     }
   },
@@ -157,4 +188,15 @@ export const useSearchStore = create<SearchState>((set) => ({
       hasSearched: false,
       isCached: false,
     }),
+
+  cancelSearch: () => {
+    const controller = get().abortController;
+    if (controller) {
+      controller.abort();
+      set({ 
+        abortController: null, 
+        isLoading: false,
+      });
+    }
+  },
 }));
