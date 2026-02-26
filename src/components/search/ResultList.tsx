@@ -4,8 +4,8 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Copy, Check, Navigation } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Copy, Check, Navigation, Clock, Zap } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -15,6 +15,7 @@ import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-bad
 import { getVisitCount } from '@/lib/visit-tracking';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { getTimeBasedCategoryHints, getTimeGreeting } from '@/lib/smart-category';
+import { getSmartOneLiner } from '@/lib/smart-summary';
 import { useRouteStore } from '@/store/route-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
@@ -49,11 +50,31 @@ export default function ResultList({
   const [focusedIndex, setFocusedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
+  // 빠른 필터 상태
+  const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
+
   // 경로 해시 계산 (추천 뱃지용)
   const { originalRoute } = useRouteStore();
-  const routeHash = originalRoute 
+  const routeHash = originalRoute
     ? hashRoute(originalRoute.start, originalRoute.end)
     : '';
+
+  // 빠른 필터 적용
+  const filteredResults = useMemo(() => {
+    let res = results;
+    if (openNowOnly) {
+      res = res.filter((r) => {
+        if (!r.place.businessHours) return false;
+        const status = getBusinessStatus(r.place.businessHours);
+        return status.isOpen;
+      });
+    }
+    if (maxDetourMin !== null) {
+      res = res.filter((r) => r.detourCost.duration <= maxDetourMin * 60);
+    }
+    return res;
+  }, [results, openNowOnly, maxDetourMin]);
 
   const handleCopyAddress = async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -317,7 +338,7 @@ export default function ResultList({
     );
   }
 
-  // 결과 요약 데이터 계산
+  // 결과 요약 데이터 계산 (전체 기준)
   const avgDetourMin = Math.round(
     results.reduce((sum, r) => sum + r.detourCost.duration, 0) / results.length / 60
   );
@@ -325,6 +346,11 @@ export default function ResultList({
   const bestResult = results.reduce((best, r) =>
     r.detourCost.duration < best.detourCost.duration ? r : best, results[0]
   );
+  const hasBusinessHoursData = results.some((r) => !!r.place.businessHours);
+  const openNowCount = results.filter((r) => {
+    if (!r.place.businessHours) return false;
+    return getBusinessStatus(r.place.businessHours).isOpen;
+  }).length;
 
   return (
     <div className="space-y-3">
@@ -363,8 +389,70 @@ export default function ResultList({
         </div>
       </div>
 
+      {/* ── 빠른 필터 칩 ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* 지금 열려있는 곳만 */}
+        {hasBusinessHoursData && (
+          <button
+            onClick={() => setOpenNowOnly((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+            style={{
+              background: openNowOnly ? 'var(--green-500)' : 'var(--green-50)',
+              color: openNowOnly ? 'white' : 'var(--green-700)',
+              border: `1.5px solid ${openNowOnly ? 'var(--green-500)' : 'var(--green-200)'}`,
+            }}
+          >
+            <Clock className="w-3 h-3" />
+            지금 열려있는 곳만
+            {openNowOnly && openNowCount > 0 && (
+              <span className="ml-0.5 opacity-80">({openNowCount})</span>
+            )}
+          </button>
+        )}
+
+        {/* 이탈 시간 상한 */}
+        {([5, 10, 15] as const).map((min) => (
+          <button
+            key={min}
+            onClick={() => setMaxDetourMin((v) => (v === min ? null : min))}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+            style={{
+              background: maxDetourMin === min ? 'var(--accent)' : 'var(--blue-50)',
+              color: maxDetourMin === min ? 'white' : 'var(--blue-700)',
+              border: `1.5px solid ${maxDetourMin === min ? 'var(--accent)' : 'var(--blue-200)'}`,
+            }}
+          >
+            <Zap className="w-3 h-3" />
+            +{min}분 이내
+          </button>
+        ))}
+
+        {/* 필터 적용 중 안내 */}
+        {(openNowOnly || maxDetourMin !== null) && (
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            {filteredResults.length}개 표시 중
+          </span>
+        )}
+      </div>
+
+      {/* 필터 결과 없음 안내 */}
+      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null) && (
+        <div className="py-8 text-center">
+          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+            조건에 맞는 경유지가 없어요
+          </p>
+          <button
+            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); }}
+            className="mt-3 text-xs underline"
+            style={{ color: 'var(--accent)' }}
+          >
+            필터 초기화
+          </button>
+        </div>
+      )}
+
       <div className="space-y-2.5">
-      {results.map((result, index) => {
+      {filteredResults.map((result, index) => {
         const isSelected = selectedId === result.place.id;
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
         const detourMin = Math.round(result.detourCost.duration / 60);
@@ -448,7 +536,7 @@ export default function ResultList({
                   })()}
                 </div>
 
-                {/* 추천 이유 뱃지 */}
+                {/* 추천 이유 뱃지 + 스마트 한 줄 요약 */}
                 {(() => {
                   const visitCount = routeHash ? getVisitCount(result.place.id, routeHash) : 0;
                   const badges = getRecommendationBadges(
@@ -457,30 +545,42 @@ export default function ResultList({
                     undefined, // totalClicks는 서버에서 가져와야 함 (TODO)
                     visitCount
                   );
-                  
-                  if (badges.length === 0) return null;
+                  const oneLiner = getSmartOneLiner(result, index + 1, visitCount || undefined);
 
                   return (
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                      {badges.map((badge, i) => {
-                        const colors = getBadgeColor(badge.type);
-                        return (
-                          <span
-                            key={i}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                            style={{
-                              background: colors.bg,
-                              color: colors.text,
-                              border: `1px solid ${colors.border}`,
-                            }}
-                            title={badge.description}
-                          >
-                            <span>{badge.icon}</span>
-                            <span>{badge.label}</span>
-                          </span>
-                        );
-                      })}
-                    </div>
+                    <>
+                      {badges.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          {badges.map((badge, i) => {
+                            const colors = getBadgeColor(badge.type);
+                            return (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                                style={{
+                                  background: colors.bg,
+                                  color: colors.text,
+                                  border: `1px solid ${colors.border}`,
+                                }}
+                                title={badge.description}
+                              >
+                                <span>{badge.icon}</span>
+                                <span>{badge.label}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {/* 스마트 한 줄 추천 문구 */}
+                      {oneLiner && (
+                        <p
+                          className="text-[12px] mt-2 font-medium leading-snug"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          {oneLiner}
+                        </p>
+                      )}
+                    </>
                   );
                 })()}
 
