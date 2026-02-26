@@ -17,11 +17,12 @@ import { searchRequestSchema } from '@/lib/validation/schemas';
 import { getDirectionsProvider, getGeocodingProvider } from '@/lib/map-provider';
 import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
-import type { Coordinates } from '@/types/location';
+import type { Coordinates, Location } from '@/types/location';
 import type { SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
 import { prisma } from '@/lib/db/prisma';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
+import { loadSearchCache, saveSearchCache } from '@/lib/cache/search-cache';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -49,18 +50,24 @@ export async function POST(request: NextRequest) {
     // 3. 주소 → 좌표 변환 (필요 시)
     let startCoords: Coordinates;
     let endCoords: Coordinates;
+    let startLocation: Location;
+    let endLocation: Location;
 
     try {
       if (start.coordinates) {
         startCoords = start.coordinates;
+        startLocation = { coordinates: startCoords, address: start.address };
       } else {
         startCoords = await getGeocodingProvider().geocodeAddress(start.address!);
+        startLocation = { coordinates: startCoords, address: start.address };
       }
 
       if (end.coordinates) {
         endCoords = end.coordinates;
+        endLocation = { coordinates: endCoords, address: end.address };
       } else {
         endCoords = await getGeocodingProvider().geocodeAddress(end.address!);
+        endLocation = { coordinates: endCoords, address: end.address };
       }
     } catch (error: any) {
       const errorResponse: SearchWaypointsErrorResponse = {
@@ -72,6 +79,26 @@ export async function POST(request: NextRequest) {
       };
       return NextResponse.json(errorResponse, { status: 400 });
     }
+
+    // 4. 캐시 체크
+    const cached = loadSearchCache({ start: startLocation, end: endLocation, category });
+    if (cached) {
+      console.log('[API /search] Cache hit! ✅');
+      const response: SearchWaypointsResponse = {
+        success: true,
+        fromCache: true,
+        data: {
+          originalRoute: cached.originalRoute,
+          results: cached.results,
+          totalCandidates: cached.totalCandidates,
+          apiCallsUsed: cached.apiCallsUsed,
+          duration: Date.now() - startTime,
+        },
+      };
+      return NextResponse.json(response);
+    }
+
+    console.log('[API /search] Cache miss, fetching...');
 
     // 4. A→B 경로 조회 (최단거리 + 최단시간 병렬)
     const directionsProvider = getDirectionsProvider();
@@ -196,8 +223,20 @@ export async function POST(request: NextRequest) {
       },
     }).catch(err => console.error('[SearchLog] Failed to save:', err));
 
+    // 9. 캐시 저장
+    saveSearchCache(
+      { start: startLocation, end: endLocation, category },
+      {
+        results: trimmedResults,
+        originalRoute: primaryOriginalRoute,
+        totalCandidates,
+        apiCallsUsed,
+      }
+    );
+
     const response: SearchWaypointsResponse = {
       success: true,
+      fromCache: false,
       data: {
         originalRoute: primaryOriginalRoute,
         results: trimmedResults,
