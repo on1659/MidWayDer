@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
       const recentSearchLog = await prisma.searchLog.findFirst({
         where: {
           sessionId: sessionId || undefined,
-          searchedAt: {
+          timestamp: {
             gte: new Date(Date.now() - 30 * 60 * 1000), // 30분 이내
           },
         },
-        orderBy: { searchedAt: 'desc' },
+        orderBy: { timestamp: 'desc' },
       });
 
       if (!recentSearchLog) {

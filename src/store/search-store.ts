@@ -8,6 +8,9 @@ import { create } from 'zustand';
 import type { DetourResult } from '@/types/detour';
 import type { SearchWaypointsRequest, SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
 import { getAPIErrorMessage } from '@/lib/error-messages';
+import { getCachedSearch, setCachedSearch } from '@/lib/cache/search-cache';
+import { hashRoute } from '@/lib/utils/route-hash';
+import type { Coordinates } from '@/types/location';
 
 interface SearchState {
   /** 선택된 카테고리 */
@@ -24,6 +27,8 @@ interface SearchState {
   apiCallsUsed: number;
   /** 검색이 한 번이라도 실행되었는지 */
   hasSearched: boolean;
+  /** 캐시에서 로드되었는지 */
+  isCached: boolean;
 
   // Actions
   /** 카테고리 변경 */
@@ -42,11 +47,35 @@ export const useSearchStore = create<SearchState>((set) => ({
   totalCandidates: 0,
   apiCallsUsed: 0,
   hasSearched: false,
+  isCached: false,
 
   setCategory: (category) => set({ category }),
 
   search: async (start, end, category) => {
-    set({ isLoading: true, error: null, results: [], totalCandidates: 0, apiCallsUsed: 0, hasSearched: true });
+    set({ isLoading: true, error: null, results: [], totalCandidates: 0, apiCallsUsed: 0, hasSearched: true, isCached: false });
+
+    // 좌표 추출
+    const startCoords: Coordinates = 'coordinates' in start ? start.coordinates : start;
+    const endCoords: Coordinates = 'coordinates' in end ? end.coordinates : end;
+
+    // 1. 캐시 확인
+    const routeHash = hashRoute(startCoords, endCoords);
+    const cached = getCachedSearch(routeHash, category);
+
+    if (cached) {
+      console.log('✅ Cache HIT:', routeHash, category);
+      set({
+        results: cached.data.data.results,
+        totalCandidates: cached.data.data.totalCandidates,
+        apiCallsUsed: cached.data.data.apiCallsUsed,
+        isLoading: false,
+        hasSearched: true,
+        isCached: true,
+      });
+      return;
+    }
+
+    console.log('❌ Cache MISS:', routeHash, category);
 
     try {
       const requestBody: SearchWaypointsRequest = {
@@ -79,16 +108,22 @@ export const useSearchStore = create<SearchState>((set) => ({
         set({
           error: friendlyError,
           isLoading: false,
+          isCached: false,
         });
         return;
       }
 
+      // 2. 캐시 저장
+      setCachedSearch(routeHash, category, data);
+
+      // 3. 상태 업데이트
       set({
         results: data.data.results,
         totalCandidates: data.data.totalCandidates,
         apiCallsUsed: data.data.apiCallsUsed,
         isLoading: false,
         error: null,
+        isCached: false,
       });
     } catch (error) {
       let errorMessage: string;
@@ -108,6 +143,7 @@ export const useSearchStore = create<SearchState>((set) => ({
       set({
         error: errorMessage,
         isLoading: false,
+        isCached: false,
       });
     }
   },
@@ -119,5 +155,6 @@ export const useSearchStore = create<SearchState>((set) => ({
       totalCandidates: 0,
       apiCallsUsed: 0,
       hasSearched: false,
+      isCached: false,
     }),
 }));

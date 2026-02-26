@@ -34,6 +34,7 @@ model SearchLog {
   resultsCount   Int
   searchDuration Int?
   sessionId      String?
+  routeHash      String?          // 개인화 추천용: 경로 해시 (출발+도착 좌표)
   timestamp      DateTime         @default(now())
   clicks         ClickLog[]
   feedback       SearchFeedback?
@@ -41,6 +42,7 @@ model SearchLog {
   @@index([category])
   @@index([timestamp])
   @@index([sessionId])
+  @@index([routeHash])
 }
 
 model ClickLog {
@@ -48,6 +50,8 @@ model ClickLog {
   searchLogId String
   placeId     String
   rank        Int
+  sessionId   String?   // 개인화 추천용: 사용자별 클릭 히스토리
+  clickedAt   DateTime  @default(now())
   timestamp   DateTime  @default(now())
   place       Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
   searchLog   SearchLog @relation(fields: [searchLogId], references: [id], onDelete: Cascade)
@@ -55,6 +59,8 @@ model ClickLog {
   @@index([searchLogId])
   @@index([placeId])
   @@index([timestamp])
+  @@index([sessionId])
+  @@index([clickedAt])
 }
 
 model VisitFeedback {

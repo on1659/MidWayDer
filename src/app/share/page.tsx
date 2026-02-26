@@ -32,11 +32,7 @@ function SharePageContent() {
 
     if (from && to && category && !autoSearchDone) {
       // 자동 검색 실행
-      search({
-        start: { address: from },
-        end: { address: to },
-        category,
-      }).then(() => {
+      search({ address: from }, { address: to }, category).then(() => {
         setAutoSearchDone(true);
         
         // 특정 경유지가 지정된 경우 자동 선택
@@ -89,7 +85,12 @@ function SharePageContent() {
 
       {/* 지도 */}
       <div className="absolute inset-0" style={{ paddingTop: '88px' }}>
-        <MapContainer />
+        <MapContainer
+          originalRoute={originalRoute || null}
+          waypoints={results}
+          selectedWaypointId={selectedWaypoint?.place.id || null}
+          onWaypointSelect={handleSelectWaypoint}
+        />
       </div>
 
       {/* 결과 리스트 */}

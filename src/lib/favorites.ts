@@ -10,6 +10,7 @@ export interface Favorite {
   startCoords?: { lat: number; lng: number };
   endCoords?: { lat: number; lng: number };
   category: string;
+  routineType?: 'morning-commute' | 'evening-commute' | 'weekend-trip'; // 루틴 자동화
   createdAt: number;
 }
 

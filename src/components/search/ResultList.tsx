@@ -10,6 +10,7 @@ import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { openNavigationApp } from '@/lib/navigation-links';
+import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
 
@@ -284,6 +285,23 @@ export default function ResultList({
                       style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
                     >
                       {routeLabel}
+                    </span>
+                  )}
+                  {/* Personalization badges */}
+                  {(result as any).personalScore > 50 && (
+                    <span
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                      style={{ background: 'var(--purple-100)', color: 'var(--purple-600)' }}
+                    >
+                      ⭐ 자주 선택
+                    </span>
+                  )}
+                  {(result as any).popularityScore > 70 && (
+                    <span
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                      style={{ background: 'var(--orange-100)', color: 'var(--orange-600)' }}
+                    >
+                      🔥 인기
                     </span>
                   )}
                 </div>

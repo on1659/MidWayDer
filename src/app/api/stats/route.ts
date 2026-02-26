@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     // 1. 총 검색 수
     const totalSearches = await prisma.searchLog.count({
       where: {
-        searchedAt: {
+        timestamp: {
           gte: startDate,
         },
       },
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     const categoryBreakdown = await prisma.searchLog.groupBy({
       by: ['category'],
       where: {
-        searchedAt: {
+        timestamp: {
           gte: startDate,
         },
       },
@@ -64,15 +64,15 @@ export async function GET(request: Request) {
     // 3. 평균 검색 시간 (duration이 있는 경우)
     const avgDuration = await prisma.searchLog.aggregate({
       where: {
-        searchedAt: {
+        timestamp: {
           gte: startDate,
         },
-        durationMs: {
+        searchDuration: {
           not: null,
         },
       },
       _avg: {
-        durationMs: true,
+        searchDuration: true,
       },
     });
     
@@ -138,8 +138,8 @@ export async function GET(request: Request) {
         totalSearches,
         totalClicks,
         ctr: parseFloat(ctr.toFixed(2)),
-        avgSearchDurationMs: avgDuration._avg.durationMs 
-          ? Math.round(avgDuration._avg.durationMs) 
+        avgSearchDurationMs: avgDuration._avg.searchDuration 
+          ? Math.round(avgDuration._avg.searchDuration) 
           : null,
         categoryBreakdown: categoryBreakdown.map((c) => ({
           category: c.category,

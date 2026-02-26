@@ -13,6 +13,7 @@ import MapContainer from '@/components/map/MapContainer';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
 import ResultList from '@/components/search/ResultList';
+import SearchStatus from '@/components/search/SearchStatus';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
 import PlaceDetail from '@/components/place/PlaceDetail';
@@ -21,6 +22,8 @@ import FavoritesList from '@/components/search/FavoritesList';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
 import SaveRouteDialog from '@/components/search/SaveRouteDialog';
+import MultiStopSelector from '@/components/search/MultiStopSelector';
+import RoutineBanner from '@/components/search/RoutineBanner';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 
 // Lazy load 컴포넌트 (성능 최적화)
@@ -33,6 +36,7 @@ import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, clearAllRecentSearches, type RecentSearch } from '@/lib/recent-searches';
 import { addFavorite, getFavorites } from '@/lib/favorites';
 import { getGPSErrorMessage } from '@/lib/error-messages';
+import { recordLocationVisit } from '@/lib/smart-location';
 import type { Route } from '@/types/location';
 import { useToast } from '@/hooks/useToast';
 import ToastContainer from '@/components/ui/ToastContainer';
@@ -41,7 +45,7 @@ type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
 export default function HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
-  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, setCategory, search, clearResults } = useSearchStore();
+  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, isCached, setCategory, search, clearResults } = useSearchStore();
   const { toasts, showToast } = useToast();
 
   const [appReady, setAppReady] = useState(false);
@@ -210,6 +214,8 @@ export default function HomePage() {
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
   const handleStartSelect = useCallback((result: { address: string; coordinates: { lat: number; lng: number } }) => {
     setStart({ address: result.address, coordinates: result.coordinates });
+    // 스마트 출발지 학습 (자동으로 집/회사 감지)
+    recordLocationVisit(result.address, result.coordinates);
   }, [setStart]);
   const handleEndSelect = useCallback((result: { address: string; coordinates: { lat: number; lng: number } }) => {
     setEnd({ address: result.address, coordinates: result.coordinates });
@@ -305,9 +311,14 @@ export default function HomePage() {
         try {
           const res = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
           const data = await res.json();
-          setStart({ address: data.name || data.address || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`, coordinates: coords });
+          const address = data.name || data.address || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+          setStart({ address, coordinates: coords });
+          // 스마트 출발지 학습
+          recordLocationVisit(address, coords);
         } catch {
-          setStart({ address: `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`, coordinates: coords });
+          const address = `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+          setStart({ address, coordinates: coords });
+          recordLocationVisit(address, coords);
         }
         setGpsLoading(false);
       },
@@ -318,7 +329,7 @@ export default function HomePage() {
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
-  }, [setStart]);
+  }, [setStart, showToast]);
 
   // Share function
   const handleShare = useCallback(async () => {
@@ -361,6 +372,16 @@ export default function HomePage() {
     );
     setBottomSheetSnap('half');
   };
+
+  const handleRoutineApply = useCallback((
+    startAddr: string,
+    startCoords: { lat: number; lng: number },
+    endAddr: string,
+    endCoords: { lat: number; lng: number }
+  ) => {
+    setStart({ address: startAddr, coordinates: startCoords });
+    setEnd({ address: endAddr, coordinates: endCoords });
+  }, [setStart, setEnd]);
 
   const handleWaypointSelect = useCallback((waypoint: typeof results[0]) => {
     selectWaypoint(waypoint);
@@ -549,6 +570,25 @@ export default function HomePage() {
 
           {results.length > 0 && (
             <>
+              {/* 기본 경로 요약 + 캐시 여부 */}
+              {originalRoute && (
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    기본 경로{' '}
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                      {(originalRoute.distance / 1000).toFixed(1)}km · {Math.round(originalRoute.duration / 60)}분
+                    </span>
+                  </p>
+                  {isCached && (
+                    <span
+                      className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                      style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}
+                    >
+                      ⚡ 캐시
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {totalCandidates}개 중 {results.length}개 추천
@@ -605,6 +645,7 @@ export default function HomePage() {
         <div data-testid="route-result-panel" className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide">
           {results.length === 0 && !isLoading && !error && (
             <>
+              <RoutineBanner onApply={handleRoutineApply} />
               <FavoritesList
                 onSelect={(fav) => {
                   setStart({ address: fav.startAddress, coordinates: fav.startCoords });
@@ -665,6 +706,26 @@ export default function HomePage() {
               )}
             </>
           )}
+          {/* Multi-Stop Selector */}
+          {results.length >= 2 && start?.coordinates && end?.coordinates && (
+            <MultiStopSelector
+              start={start.coordinates}
+              end={end.coordinates}
+              waypoints={results.map((r) => ({
+                id: r.place.id,
+                name: r.place.name,
+                address: r.place.address,
+                coordinates: r.place.coordinates,
+                detourDistance: r.detourCost.distance,
+                detourDuration: r.detourCost.duration,
+              }))}
+              onOptimize={(optimizedIds) => {
+                console.log('Optimized order:', optimizedIds);
+                showToast(`${optimizedIds.length}개 경유지 최적 경로 완성! 🎉`, 'success');
+              }}
+            />
+          )}
+          {hasSearched && <SearchStatus isCached={useSearchStore.getState().isCached} />}
           <ResultList
             results={filteredResults}
             selectedId={selectedWaypoint?.place.id || null}
@@ -836,7 +897,7 @@ export default function HomePage() {
             <div className="px-4 pb-4">
               {results.length > 0 && (
                 <>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>
                       검색 결과 <span style={{ color: 'var(--accent)' }}>{results.length}</span>
                     </p>
@@ -844,6 +905,14 @@ export default function HomePage() {
                       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                         {totalCandidates}개 중 추천
                       </p>
+                      {isCached && (
+                        <span
+                          className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}
+                        >
+                          ⚡ 캐시
+                        </span>
+                      )}
                       <button
                         onClick={handleShare}
                         className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -852,6 +921,15 @@ export default function HomePage() {
                       </button>
                     </div>
                   </div>
+                  {/* 기본 경로 정보 */}
+                  {originalRoute && (
+                    <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+                      기본 경로{' '}
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                        {(originalRoute.distance / 1000).toFixed(1)}km · {Math.round(originalRoute.duration / 60)}분
+                      </span>
+                    </p>
+                  )}
                   <div className="mb-3">
                     <RouteTypeFilter
                       selected={routeTypeFilter}
@@ -866,6 +944,27 @@ export default function HomePage() {
                     />
                   </div>
                 </>
+              )}
+              {/* Multi-Stop Selector (Mobile) */}
+              {results.length >= 2 && start?.coordinates && end?.coordinates && (
+                <div className="mb-3">
+                  <MultiStopSelector
+                    start={start.coordinates}
+                    end={end.coordinates}
+                    waypoints={results.map((r) => ({
+                      id: r.place.id,
+                      name: r.place.name,
+                      address: r.place.address,
+                      coordinates: r.place.coordinates,
+                      detourDistance: r.detourCost.distance,
+                      detourDuration: r.detourCost.duration,
+                    }))}
+                    onOptimize={(optimizedIds) => {
+                      console.log('Optimized order:', optimizedIds);
+                      showToast(`${optimizedIds.length}개 경유지 최적 경로 완성! 🎉`, 'success');
+                    }}
+                  />
+                </div>
               )}
               <ResultList
                 results={filteredResults}
@@ -895,8 +994,12 @@ export default function HomePage() {
         {!hasResults && !selectedWaypoint && !mapClickInfo && (
           <div className="md:hidden absolute bottom-0 inset-x-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div className="mx-3 bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
+              {/* 루틴 배너 */}
+              <div className="px-3 pt-3">
+                <RoutineBanner onApply={handleRoutineApply} />
+              </div>
               {/* 앱 소개 */}
-              <div className="px-5 pt-5 pb-3">
+              <div className="px-5 pt-3 pb-3">
                 <p className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ 가는 길에 어디 들를까요?</p>
                 <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
               </div>

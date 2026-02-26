@@ -54,6 +54,9 @@ export interface SearchWaypointsResponse {
   /** 성공 여부 */
   success: true;
 
+  /** 캐시에서 불러왔는지 여부 (선택사항) */
+  fromCache?: boolean;
+
   /** 검색 결과 데이터 */
   data: {
     /** A→B 원본 경로 정보 */

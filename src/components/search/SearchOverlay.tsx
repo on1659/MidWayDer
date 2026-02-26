@@ -5,10 +5,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed } from 'lucide-react';
+import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
+import { getSavedLocationByLabel } from '@/lib/smart-location';
+import { startVoiceSearch } from '@/lib/voice-search';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -54,6 +56,8 @@ export default function SearchOverlay({
   gpsLoading = false,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) setRecentSearches(getRecentSearches());
@@ -92,6 +96,41 @@ export default function SearchOverlay({
     setRecentSearches(getRecentSearches());
   };
 
+  const handleVoiceSearch = async () => {
+    setIsListening(true);
+    setVoiceError(null);
+    
+    try {
+      const result = await startVoiceSearch();
+      
+      // 출발지 설정
+      if (result.start) {
+        onStartChange(result.start);
+      }
+      
+      // 도착지 설정
+      if (result.end) {
+        onEndChange(result.end);
+      }
+      
+      // 카테고리 설정
+      if (result.category) {
+        onCategoryChange(result.category);
+      }
+      
+      // 성공 메시지 (간단하게)
+      if (result.start || result.end || result.category) {
+        setVoiceError('✅ 음성 인식 완료!');
+        setTimeout(() => setVoiceError(null), 2000);
+      }
+    } catch (err: any) {
+      setVoiceError(err.message || '음성 인식 실패');
+      setTimeout(() => setVoiceError(null), 3000);
+    } finally {
+      setIsListening(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col animate-fade-in" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Header */}
@@ -104,6 +143,26 @@ export default function SearchOverlay({
           <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-strong)' }} />
         </button>
         <h2 className="text-xl font-bold flex-1" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
+        
+        {/* 음성 검색 버튼 */}
+        <button
+          onClick={handleVoiceSearch}
+          disabled={isListening}
+          className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
+          style={{ 
+            backgroundColor: isListening ? 'var(--accent)' : 'var(--bg-hover)',
+            color: isListening ? 'white' : 'var(--text-strong)',
+          }}
+          aria-label="음성으로 경로 입력"
+          title="음성으로 경로 입력 🎤"
+        >
+          {isListening ? (
+            <MicOff className="w-5 h-5 animate-pulse" />
+          ) : (
+            <Mic className="w-5 h-5" />
+          )}
+        </button>
+
         {onToggleTheme && (
           <button
             onClick={onToggleTheme}
@@ -120,8 +179,53 @@ export default function SearchOverlay({
         )}
       </div>
 
+      {/* Voice error/success message */}
+      {voiceError && (
+        <div className={`mx-4 mt-2 px-4 py-2.5 rounded-xl text-sm font-medium text-center ${voiceError.startsWith('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          {voiceError}
+        </div>
+      )}
+
       {/* Route inputs */}
       <div className="px-4 pt-3 pb-2 relative z-20">
+        {/* 스마트 출발지 빠른 선택 */}
+        <div className="flex gap-2 mb-3">
+          {(() => {
+            const home = getSavedLocationByLabel('home');
+            const work = getSavedLocationByLabel('work');
+            return (
+              <>
+                {home && (
+                  <button
+                    onClick={() => {
+                      onStartChange(home.address);
+                      if (onStartSelect) onStartSelect({ address: home.address, coordinates: home.coordinates });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                    style={{ background: 'var(--blue-150)', color: 'var(--blue-700)' }}
+                  >
+                    <Home className="w-4 h-4" />
+                    집
+                  </button>
+                )}
+                {work && (
+                  <button
+                    onClick={() => {
+                      onStartChange(work.address);
+                      if (onStartSelect) onStartSelect({ address: work.address, coordinates: work.coordinates });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                    style={{ background: 'var(--green-150)', color: 'var(--green-700)' }}
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    회사
+                  </button>
+                )}
+              </>
+            );
+          })()}
+        </div>
+        
         <div className="space-y-2.5">
           {/* 출발지 입력 + GPS 버튼 */}
           <div className="flex items-center gap-2">

@@ -20,6 +20,8 @@ import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { Coordinates } from '@/types/location';
 import type { SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
 import { prisma } from '@/lib/db/prisma';
+import { hashRoute } from '@/lib/utils/route-hash';
+import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -139,16 +141,49 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const mergedResults = Array.from(seenPlaces.values()).sort((a, b) => b.finalScore - a.finalScore);
+    let finalResults = Array.from(seenPlaces.values());
 
-    // 6. 결과 반환 (maxResults 적용)
+    // 6. 개인화 점수 적용 (ClickLog 기반)
+    const sessionId = request.cookies.get('sessionId')?.value || 'anonymous';
+    const routeHash = hashRoute(startCoords, endCoords);
+
+    try {
+      const placeIds = finalResults.map(r => r.place.id);
+      const personalizationScores = await calculatePersonalizationScores(
+        sessionId,
+        routeHash,
+        placeIds
+      );
+
+      // 최종 점수 재계산
+      finalResults = finalResults.map(result => {
+        const pScore = personalizationScores.find(p => p.placeId === result.place.id);
+        const boostedScore = result.finalScore + (pScore?.finalBoost || 0);
+        
+        return {
+          ...result,
+          personalScore: pScore?.personalScore || 0,
+          popularityScore: pScore?.popularityScore || 0,
+          finalScore: Math.max(0, Math.min(100, boostedScore)), // 0-100 범위
+        };
+      });
+
+      console.log('[Personalization] Applied to', finalResults.length, 'results');
+    } catch (error) {
+      console.error('[Personalization] Failed:', error);
+      // 개인화 실패해도 원본 결과 반환
+    }
+
+    // 재정렬 (개인화 적용 후)
+    finalResults.sort((a, b) => b.finalScore - a.finalScore);
+
+    // 7. 결과 반환 (maxResults 적용)
     const maxResults = options?.maxResults ?? 10;
-    const trimmedResults = mergedResults.slice(0, maxResults);
+    const trimmedResults = finalResults.slice(0, maxResults);
 
     const searchDuration = Date.now() - startTime;
 
-    // 7. 검색 로그 저장 (비동기, 실패해도 응답 차단 안 함)
-    const sessionId = request.cookies.get('sessionId')?.value || null;
+    // 8. 검색 로그 저장 (비동기, 실패해도 응답 차단 안 함)
     prisma.searchLog.create({
       data: {
         startAddress: start.address || `${startCoords.lat.toFixed(4)}, ${startCoords.lng.toFixed(4)}`,
@@ -156,7 +191,8 @@ export async function POST(request: NextRequest) {
         category,
         resultsCount: trimmedResults.length,
         searchDuration,
-        sessionId,
+        sessionId: sessionId === 'anonymous' ? null : sessionId,
+        routeHash, // 개인화용 경로 해시 저장
       },
     }).catch(err => console.error('[SearchLog] Failed to save:', err));
 

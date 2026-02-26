@@ -17,6 +17,27 @@ export function getKakaoNaviLink(lat: number, lng: number, name: string): string
 }
 
 /**
+ * 카카오내비 딥링크 (경유지 포함)
+ * @param start 출발지 좌표
+ * @param waypoint 경유지 좌표 + 이름
+ * @param end 도착지 좌표
+ */
+export function getKakaoNaviLinkWithWaypoint(
+  start: { lat: number; lng: number },
+  waypoint: { lat: number; lng: number; name: string },
+  end: { lat: number; lng: number; name?: string }
+): string {
+  const params = new URLSearchParams({
+    sp: `${start.lat},${start.lng}`,
+    ep: `${end.lat},${end.lng}`,
+    ...(end.name && { epname: end.name }),
+    wp: `${waypoint.lat},${waypoint.lng}`,
+    wpname: waypoint.name,
+  });
+  return `kakaonavi://navigate?${params.toString()}`;
+}
+
+/**
  * 네이버지도 딥링크
  * @see https://guide.ncloud-docs.com/docs/navermaps-android-v3-url
  */

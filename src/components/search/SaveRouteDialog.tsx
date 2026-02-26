@@ -10,7 +10,7 @@ import { X, Save } from 'lucide-react';
 interface SaveRouteDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (name: string) => void;
+  onSave: (name: string, routineType?: 'morning-commute' | 'evening-commute' | 'weekend-trip') => void;
   defaultName?: string;
 }
 
@@ -21,10 +21,12 @@ export default function SaveRouteDialog({
   defaultName = '',
 }: SaveRouteDialogProps) {
   const [name, setName] = useState(defaultName);
+  const [routineType, setRoutineType] = useState<'morning-commute' | 'evening-commute' | 'weekend-trip' | ''>('');
 
   useEffect(() => {
     if (open) {
       setName(defaultName);
+      setRoutineType(''); // 다이얼로그 열 때마다 리셋
     }
   }, [open, defaultName]);
 
@@ -35,7 +37,7 @@ export default function SaveRouteDialog({
       alert('경로 이름을 입력해주세요');
       return;
     }
-    onSave(name.trim());
+    onSave(name.trim(), routineType || undefined);
     onClose();
   };
 
@@ -67,7 +69,7 @@ export default function SaveRouteDialog({
           </div>
 
           {/* Input */}
-          <div className="mb-6">
+          <div className="mb-4">
             <label
               htmlFor="route-name-input"
               className="block text-sm font-medium mb-2"
@@ -92,6 +94,35 @@ export default function SaveRouteDialog({
               }}
               autoFocus
             />
+          </div>
+
+          {/* Routine Type */}
+          <div className="mb-6">
+            <label
+              htmlFor="routine-type-select"
+              className="block text-sm font-medium mb-2"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              루틴 설정 (선택)
+            </label>
+            <select
+              id="routine-type-select"
+              value={routineType}
+              onChange={(e) => setRoutineType(e.target.value as any)}
+              className="w-full px-4 py-3 rounded-xl text-base border-2 transition-colors outline-none"
+              style={{
+                borderColor: 'var(--border-soft)',
+                color: 'var(--text-strong)',
+              }}
+            >
+              <option value="">일반 경로</option>
+              <option value="morning-commute">🌅 출근 경로 (평일 7~9시 자동)</option>
+              <option value="evening-commute">🌆 퇴근 경로 (평일 5~7시 자동)</option>
+              <option value="weekend-trip">🚗 주말 나들이 (토·일 자동)</option>
+            </select>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+              루틴으로 설정하면 해당 시간대에 자동으로 경로를 추천해드려요
+            </p>
           </div>
 
           {/* Buttons */}

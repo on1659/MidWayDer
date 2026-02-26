@@ -96,6 +96,13 @@ export default function FavoritesList({ onSelect }: FavoritesListProps) {
                     <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-strong)' }}>
                       {fav.name}
                     </p>
+                    {fav.routineType && (
+                      <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: 'var(--accent)', color: 'white' }}>
+                        {fav.routineType === 'morning-commute' && '🌅'}
+                        {fav.routineType === 'evening-commute' && '🌆'}
+                        {fav.routineType === 'weekend-trip' && '🚗'}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
                     {fav.startAddress} → {fav.endAddress}

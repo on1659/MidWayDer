@@ -76,7 +76,18 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   };
 
   const handleNavigate = (app: 'kakao' | 'naver' | 'tmap') => {
-    openNavigationApp(app, place.coordinates.lat, place.coordinates.lng, place.name);
+    // 출발지/도착지가 있으면 경유지 포함 딥링크 사용 (카카오내비만 지원)
+    if (app === 'kakao' && start?.coordinates && end?.coordinates) {
+      const { getKakaoNaviLinkWithWaypoint } = require('@/lib/navigation-links');
+      const deepLink = getKakaoNaviLinkWithWaypoint(
+        start.coordinates,
+        { ...place.coordinates, name: place.name },
+        end.coordinates
+      );
+      window.open(deepLink, '_self');
+    } else {
+      openNavigationApp(app, place.coordinates.lat, place.coordinates.lng, place.name);
+    }
   };
 
   const handleShareWaypoint = async () => {
