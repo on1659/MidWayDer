@@ -33,6 +33,19 @@ interface ResultListProps {
   onRetry?: () => void;
 }
 
+/** 경로상 위치를 5단계 자연어 라벨로 변환 */
+function getRoutePositionLabel(result: DetourResult): string | null {
+  const toWaypointDist = result.routes.toWaypoint.distance;
+  const originalDist = result.routes.original.distance;
+  if (!originalDist || originalDist === 0) return null;
+  const progress = toWaypointDist / originalDist;
+  if (progress < 0.2) return '출발 직후';
+  if (progress < 0.4) return '경로 초반';
+  if (progress < 0.6) return '경로 중간';
+  if (progress < 0.8) return '경로 후반';
+  return '도착 직전';
+}
+
 export default function ResultList({
   results,
   selectedId,
@@ -559,6 +572,20 @@ export default function ResultList({
                       {routeLabel}
                     </span>
                   )}
+                  {/* 경로상 위치 뱃지 */}
+                  {(() => {
+                    const posLabel = getRoutePositionLabel(result);
+                    if (!posLabel) return null;
+                    return (
+                      <span
+                        className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                        style={{ background: 'var(--purple-100)', color: 'var(--purple-700)' }}
+                        title="원본 경로상 이 장소의 위치"
+                      >
+                        📍 {posLabel}
+                      </span>
+                    );
+                  })()}
                   {/* 실시간 인기도 뱃지 */}
                   {recentClicks >= 2 && (
                     <span
