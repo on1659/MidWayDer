@@ -383,6 +383,17 @@ export default function HomePage() {
     setEnd({ address: endAddr, coordinates: endCoords });
   }, [setStart, setEnd]);
 
+  const handleExpandRadius = useCallback(async () => {
+    if (!start?.address || !end?.address) return;
+    await search(
+      { address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) },
+      { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) },
+      category,
+      { bufferDistance: 2000 }
+    );
+    setBottomSheetSnap('half');
+  }, [start, end, category, search]);
+
   const handleWaypointSelect = useCallback((waypoint: typeof results[0]) => {
     selectWaypoint(waypoint);
     if (waypoint.routes.original) setOriginalRoute(waypoint.routes.original);
@@ -725,7 +736,7 @@ export default function HomePage() {
               }}
             />
           )}
-          {hasSearched && <SearchStatus isCached={useSearchStore.getState().isCached} />}
+          {hasSearched && <SearchStatus />}
           <ResultList
             results={filteredResults}
             selectedId={selectedWaypoint?.place.id || null}
@@ -746,6 +757,7 @@ export default function HomePage() {
               }
             }}
             onSaveRoute={() => setSaveDialogOpen(true)}
+            onExpandRadius={handleExpandRadius}
           />
         </div>
       </aside>
@@ -987,6 +999,7 @@ export default function HomePage() {
                   }
                 }}
                 onSaveRoute={() => setSaveDialogOpen(true)}
+                onExpandRadius={handleExpandRadius}
               />
             </div>
           </BottomSheet>

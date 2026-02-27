@@ -36,7 +36,7 @@ interface SearchState {
   /** 카테고리 변경 */
   setCategory: (category: string) => void;
   /** 검유지 검색 */
-  search: (start: SearchWaypointsRequest['start'], end: SearchWaypointsRequest['end'], category: string) => Promise<void>;
+  search: (start: SearchWaypointsRequest['start'], end: SearchWaypointsRequest['end'], category: string, extraOptions?: { bufferDistance?: number }) => Promise<void>;
   /** 검색 결과 초기화 */
   clearResults: () => void;
   /** 검색 취소 */
@@ -56,7 +56,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
 
   setCategory: (category) => set({ category }),
 
-  search: async (start, end, category) => {
+  search: async (start, end, category, extraOptions) => {
     // 이전 검색 취소
     const prevController = get().abortController;
     if (prevController) {
@@ -107,6 +107,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         category,
         options: {
           maxResults: 10,
+          ...(extraOptions?.bufferDistance ? { bufferDistance: extraOptions.bufferDistance } : {}),
         },
       };
 

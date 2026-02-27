@@ -33,6 +33,7 @@ interface ResultListProps {
   onCategoryChange?: (category: string) => void;
   onRetry?: () => void;
   onSaveRoute?: () => void;
+  onExpandRadius?: () => void;
 }
 
 const LOADING_STAGES = [
@@ -40,6 +41,22 @@ const LOADING_STAGES = [
   { icon: '📍', text: '장소 탐색 중', sub: '경로 주변 매장을 찾고 있어요' },
   { icon: '⚡', text: '비용 계산 중', sub: '이탈 비용을 정밀하게 계산 중이에요' },
 ];
+
+/** 지금 출발 시 예상 도착 시간 계산 */
+function getETAText(result: DetourResult): { waypoint: string; destination: string } | null {
+  const toSec = result.routes?.toWaypoint?.duration;
+  const fromSec = result.routes?.fromWaypoint?.duration;
+  if (!toSec || !fromSec) return null;
+  const now = Date.now();
+  const fmt = (ms: number) => {
+    const d = new Date(ms);
+    return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  return {
+    waypoint: fmt(now + toSec * 1000),
+    destination: fmt(now + toSec * 1000 + fromSec * 1000),
+  };
+}
 
 /** 경로상 위치를 5단계 자연어 라벨로 변환 */
 function getRoutePositionLabel(result: DetourResult): string | null {
@@ -65,6 +82,7 @@ export default function ResultList({
   onCategoryChange,
   onRetry,
   onSaveRoute,
+  onExpandRadius,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -514,6 +532,22 @@ export default function ResultList({
           </>
         )}
 
+        {/* 반경 확장 재검색 CTA */}
+        {onExpandRadius && (
+          <button
+            onClick={onExpandRadius}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 mb-3"
+            style={{
+              background: 'linear-gradient(135deg, var(--blue-50), var(--accent-weak))',
+              color: 'var(--blue-700)',
+              border: '1.5px solid var(--blue-200)',
+            }}
+          >
+            <span>🔍</span>
+            반경 2km로 확장해서 재검색
+          </button>
+        )}
+
         {onRetry && (
           <button
             onClick={onRetry}
@@ -907,6 +941,27 @@ export default function ResultList({
                         </p>
                       )}
                     </>
+                  );
+                })()}
+
+                {/* 지금 출발 시 예상 도착 시간 */}
+                {(() => {
+                  const eta = getETAText(result);
+                  if (!eta) return null;
+                  return (
+                    <div
+                      className="mt-2 flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-xl"
+                      style={{ background: 'var(--bg-muted, #f3f4f6)', color: 'var(--text-muted)' }}
+                    >
+                      <span>🕐</span>
+                      <span>
+                        지금 출발 시 → 경유지{' '}
+                        <strong style={{ color: 'var(--text-primary)' }}>{eta.waypoint}</strong>
+                        {' '}/ 목적지{' '}
+                        <strong style={{ color: 'var(--text-primary)' }}>{eta.destination}</strong>
+                        {' '}도착 예상
+                      </span>
+                    </div>
                   );
                 })()}
 
