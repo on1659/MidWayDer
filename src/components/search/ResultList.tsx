@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Copy, Check, Navigation, Clock, Zap, Star, Phone } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -13,7 +13,7 @@ import { openNavigationApp, getPreferredNavApp, setPreferredNavApp } from '@/lib
 import type { NavApp } from '@/lib/navigation-links';
 import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
 import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-badges';
-import { getVisitCount } from '@/lib/visit-tracking';
+import { getVisitCount, hasVisited, recordVisit } from '@/lib/visit-tracking';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { getTimeBasedCategoryHints, getTimeGreeting } from '@/lib/smart-category';
 import { getSmartOneLiner } from '@/lib/smart-summary';
@@ -149,6 +149,12 @@ export default function ResultList({
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
   const [isCompact, setIsCompact] = useState(false);
 
+  // 결과 내 이름 검색 필터
+  const [nameFilter, setNameFilter] = useState('');
+
+  // 방문 완료 상태 (placeId set)
+  const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
+
   // 출발 예정 시각 (기본: 현재 시각)
   const [departureTime, setDepartureTime] = useState<string>(() => {
     const now = new Date();
@@ -195,6 +201,21 @@ export default function ResultList({
     setFavPlaces(new Set(saved));
   }, []);
 
+  // 경로 해시 계산 (추천 뱃지 + 방문 기록용)
+  const { originalRoute } = useRouteStore();
+  const routeHash = originalRoute
+    ? hashRoute(originalRoute.start, originalRoute.end)
+    : '';
+
+  // 방문 기록 초기화 (routeHash 기반)
+  useEffect(() => {
+    if (!routeHash || results.length === 0) return;
+    const visited = new Set(
+      results.filter((r) => hasVisited(r.place.id, routeHash)).map((r) => r.place.id)
+    );
+    setVisitedIds(visited);
+  }, [results, routeHash]);
+
   const handleTogglePlaceFav = (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
     const id = result.place.id;
@@ -211,6 +232,19 @@ export default function ResultList({
         lng: result.place.coordinates.lng,
       });
       setFavPlaces((prev) => new Set([...prev, id]));
+    }
+  };
+
+  const handleVisitToggle = (e: React.MouseEvent, result: DetourResult) => {
+    e.stopPropagation();
+    const id = result.place.id;
+    if (visitedIds.has(id)) {
+      setVisitedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+    } else {
+      if (routeHash) {
+        recordVisit(id, result.place.name, result.place.category, routeHash);
+      }
+      setVisitedIds((prev) => new Set([...prev, id]));
     }
   };
 
@@ -249,13 +283,10 @@ export default function ResultList({
   useEffect(() => {
     setOpenNowOnly(false);
     setMaxDetourMin(null);
+    setNameFilter('');
   }, [results]);
 
-  // 경로 해시 계산 (추천 뱃지용)
-  const { originalRoute } = useRouteStore();
-  const routeHash = originalRoute
-    ? hashRoute(originalRoute.start, originalRoute.end)
-    : '';
+  // (routeHash is declared earlier, near visitedIds effect)
 
   // 빠른 필터 적용
   const filteredResults = useMemo(() => {
@@ -270,8 +301,12 @@ export default function ResultList({
     if (maxDetourMin !== null) {
       res = res.filter((r) => r.detourCost.duration <= maxDetourMin * 60);
     }
+    if (nameFilter.trim()) {
+      const q = nameFilter.trim().toLowerCase();
+      res = res.filter((r) => r.place.name.toLowerCase().includes(q));
+    }
     return res;
-  }, [results, openNowOnly, maxDetourMin]);
+  }, [results, openNowOnly, maxDetourMin, nameFilter]);
 
   // 상대적 이탈 비교 바 계산용 (전체 결과 기준)
   const maxDetourDuration = results.length > 1
@@ -854,14 +889,46 @@ export default function ResultList({
         </button>
       </div>
 
+      {/* ── 이름 검색 인풋 (결과 5개 이상) ── */}
+      {results.length >= 5 && (
+        <div className="relative">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+            style={{ color: 'var(--text-muted)' }}
+          />
+          <input
+            type="text"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            placeholder="매장 이름으로 검색"
+            className="w-full pl-8 pr-8 py-2 rounded-xl text-sm outline-none transition-all"
+            style={{
+              background: 'var(--bg-surface)',
+              border: '1.5px solid var(--border-soft)',
+              color: 'var(--text-primary)',
+            }}
+          />
+          {nameFilter && (
+            <button
+              onClick={() => setNameFilter('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full"
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="검색 초기화"
+            >
+              <XIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* 필터 결과 없음 안내 */}
-      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null) && (
+      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null || nameFilter.trim()) && (
         <div className="py-8 text-center">
           <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-            조건에 맞는 경유지가 없어요
+            {nameFilter.trim() ? `"${nameFilter}" 에 해당하는 매장이 없어요` : '조건에 맞는 경유지가 없어요'}
           </p>
           <button
-            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); }}
+            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); setNameFilter(''); }}
             className="mt-3 text-xs underline"
             style={{ color: 'var(--accent)' }}
           >
@@ -873,6 +940,7 @@ export default function ResultList({
       <div className="space-y-2.5">
       {filteredResults.map((result, index) => {
         const isSelected = selectedId === result.place.id;
+        const isVisited = visitedIds.has(result.place.id);
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
         const detourMin = Math.round(result.detourCost.duration / 60);
         const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
@@ -883,7 +951,21 @@ export default function ResultList({
         const swipeOpacity = Math.min(1, Math.abs(swipeDeltaX) / 80);
 
         return (
-          <div key={result.place.id} className="relative overflow-hidden rounded-2xl shadow-sm">
+          <div
+            key={result.place.id}
+            className="relative overflow-hidden rounded-2xl shadow-sm"
+            style={{ opacity: isVisited ? 0.65 : 1, transition: 'opacity 0.3s' }}
+          >
+            {/* 방문 완료 뱃지 */}
+            {isVisited && (
+              <div
+                className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none"
+                style={{ background: '#d1fae5', color: '#065f46' }}
+              >
+                <CheckCircle className="w-3 h-3" />
+                방문함
+              </div>
+            )}
             {/* Swipe right → 네비 힌트 */}
             <div
               className="absolute inset-y-0 left-0 flex items-center gap-1.5 px-5"
@@ -980,6 +1062,17 @@ export default function ResultList({
                 aria-label="네비 시작"
               >
                 <Navigation className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => handleVisitToggle(e, result)}
+                className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
+                title={isVisited ? '방문 표시 해제' : '방문했어요'}
+                aria-label={isVisited ? '방문 표시 해제' : '방문 체크'}
+              >
+                {isVisited
+                  ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                  : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                }
               </button>
             </div>
           ) : (
@@ -1349,6 +1442,17 @@ export default function ResultList({
                     <Phone className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
                   </button>
                 )}
+                {/* 방문 완료 토글 */}
+                <button
+                  onClick={(e) => handleVisitToggle(e, result)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title={isVisited ? '방문 표시 해제' : '방문했어요'}
+                >
+                  {isVisited
+                    ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                    : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                  }
+                </button>
               </div>
             </div>
           )}
