@@ -136,3 +136,11 @@ export interface BoundingBox {
   /** 북동쪽 좌표 (right-top) */
   northeast: Coordinates;
 }
+
+/**
+ * 위치 (주소 + 좌표)
+ */
+export interface Location {
+  address: string;
+  coordinates: Coordinates;
+}

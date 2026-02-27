@@ -99,19 +99,19 @@ export async function getUserCategoryPreferences(
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
     const categoryClicks = await prisma.clickLog.groupBy({
-      by: ['searchLog'],
+      by: ['searchLogId'],
       where: {
         sessionId,
         clickedAt: { gte: thirtyDaysAgo },
       },
-      _count: { searchLog: true },
+      _count: { searchLogId: true },
     });
 
     // searchLog에서 카테고리 정보 가져오기
     const searches = await prisma.searchLog.findMany({
       where: {
         id: {
-          in: categoryClicks.map((c) => c.searchLog),
+          in: categoryClicks.map((c) => c.searchLogId),
         },
       },
       select: {
@@ -125,9 +125,9 @@ export async function getUserCategoryPreferences(
     // 카테고리별 클릭 수 집계
     const preferences: Record<string, number> = {};
     categoryClicks.forEach((click) => {
-      const category = categoryMap.get(click.searchLog);
+      const category = categoryMap.get(click.searchLogId);
       if (category) {
-        preferences[category] = (preferences[category] || 0) + click._count.searchLog;
+        preferences[category] = (preferences[category] || 0) + click._count.searchLogId;
       }
     });
 

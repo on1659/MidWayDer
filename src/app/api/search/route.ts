@@ -56,18 +56,18 @@ export async function POST(request: NextRequest) {
     try {
       if (start.coordinates) {
         startCoords = start.coordinates;
-        startLocation = { coordinates: startCoords, address: start.address };
+        startLocation = { coordinates: startCoords, address: start.address ?? '' };
       } else {
         startCoords = await getGeocodingProvider().geocodeAddress(start.address!);
-        startLocation = { coordinates: startCoords, address: start.address };
+        startLocation = { coordinates: startCoords, address: start.address ?? '' };
       }
 
       if (end.coordinates) {
         endCoords = end.coordinates;
-        endLocation = { coordinates: endCoords, address: end.address };
+        endLocation = { coordinates: endCoords, address: end.address ?? '' };
       } else {
         endCoords = await getGeocodingProvider().geocodeAddress(end.address!);
-        endLocation = { coordinates: endCoords, address: end.address };
+        endLocation = { coordinates: endCoords, address: end.address ?? '' };
       }
     } catch (error: any) {
       const errorResponse: SearchWaypointsErrorResponse = {
