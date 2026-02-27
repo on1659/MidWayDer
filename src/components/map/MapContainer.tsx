@@ -41,6 +41,8 @@ interface MapContainerProps {
   onMapClick?: (coords: Coordinates) => void;
   /** 클릭한 위치 표시용 좌표 */
   clickedCoords?: Coordinates | null;
+  /** 지도 팬/줌 후 idle 상태 콜백 (중심 좌표 반환) */
+  onMapIdle?: (center: Coordinates) => void;
 }
 
 export default function MapContainer({
@@ -54,6 +56,7 @@ export default function MapContainer({
   onWaypointSelect,
   onMapClick,
   clickedCoords,
+  onMapIdle,
 }: MapContainerProps) {
   // 환경 변수 기본값 + 런타임 전환 가능
   const defaultProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER || 'kakao';
@@ -85,6 +88,19 @@ export default function MapContainer({
       kakao.maps.event.removeListener(kakaoMap, 'click', handler as any);
     };
   }, [kakaoMap, onMapClick]);
+
+  // 지도 idle 이벤트 (팬/줌 완료 시) → 재검색 버튼 표시용
+  useEffect(() => {
+    if (!kakaoMap || !onMapIdle) return;
+    const handler = () => {
+      const c = kakaoMap.getCenter();
+      onMapIdle({ lat: c.getLat(), lng: c.getLng() });
+    };
+    kakao.maps.event.addListener(kakaoMap, 'idle', handler as any);
+    return () => {
+      kakao.maps.event.removeListener(kakaoMap, 'idle', handler as any);
+    };
+  }, [kakaoMap, onMapIdle]);
 
   // 클릭 위치 마커 표시
   useEffect(() => {

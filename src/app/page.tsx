@@ -209,8 +209,10 @@ export default function HomePage() {
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [hoveredWaypointId, setHoveredWaypointId] = useState<string | null>(null);
+  const [mapPanned, setMapPanned] = useState(false);
   const urlProcessed = useRef(false);
   const autoSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mapIdleIgnoreRef = useRef(false);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -332,6 +334,21 @@ export default function HomePage() {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
   }, [setStart, showToast]);
+
+  // 지도 팬/줌 후 idle → 재검색 버튼 표시 (새 검색 결과 직후 2초간 무시)
+  useEffect(() => {
+    if (results.length > 0) {
+      mapIdleIgnoreRef.current = true;
+      setMapPanned(false);
+      const t = setTimeout(() => { mapIdleIgnoreRef.current = false; }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [results]);
+
+  const handleMapIdle = useCallback(() => {
+    if (!hasSearched || mapIdleIgnoreRef.current) return;
+    setMapPanned(true);
+  }, [hasSearched]);
 
   // Share function
   const handleShare = useCallback(async () => {
@@ -839,7 +856,35 @@ export default function HomePage() {
           onWaypointSelect={handleWaypointSelect}
           onMapClick={handleMapClick}
           clickedCoords={mapClickInfo?.coords || null}
+          onMapIdle={handleMapIdle}
         />
+
+        {/* 지도 영역 재검색 버튼 (지도 팬 후 표시) */}
+        {mapPanned && hasSearched && !isLoading && (
+          <button
+            className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all active:scale-95 hover:shadow-xl"
+            style={{
+              background: 'white',
+              color: 'var(--accent)',
+              border: '1.5px solid var(--accent)',
+            }}
+            onClick={async () => {
+              setMapPanned(false);
+              if (!start?.address || !end?.address) return;
+              clearResults();
+              selectWaypoint(null);
+              setOriginalRoute(null);
+              await search(
+                { address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) },
+                { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) },
+                category
+              );
+              setBottomSheetSnap('half');
+            }}
+          >
+            🔄 이 지역 재검색
+          </button>
+        )}
 
         {/* GPS Button */}
         <button

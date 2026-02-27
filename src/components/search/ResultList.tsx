@@ -197,6 +197,7 @@ export default function ResultList({
   // 빠른 필터 상태
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
+  const [unvisitedOnly, setUnvisitedOnly] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
 
   // 결과 내 이름 검색 필터
@@ -344,6 +345,7 @@ export default function ResultList({
   useEffect(() => {
     setOpenNowOnly(false);
     setMaxDetourMin(null);
+    setUnvisitedOnly(false);
     setNameFilter('');
     setVisibleCount(10);
   }, [results]);
@@ -380,12 +382,15 @@ export default function ResultList({
     if (maxDetourMin !== null) {
       res = res.filter((r) => r.detourCost.duration <= maxDetourMin * 60);
     }
+    if (unvisitedOnly) {
+      res = res.filter((r) => !visitedDates.has(r.place.id));
+    }
     if (nameFilter.trim()) {
       const q = nameFilter.trim().toLowerCase();
       res = res.filter((r) => r.place.name.toLowerCase().includes(q));
     }
     return res;
-  }, [results, openNowOnly, maxDetourMin, nameFilter]);
+  }, [results, openNowOnly, maxDetourMin, unvisitedOnly, visitedDates, nameFilter]);
 
   // 결과 더보기: filteredResults를 visibleCount만큼만 잘라서 렌더링
   const visibleResults = useMemo(
@@ -1021,8 +1026,29 @@ export default function ResultList({
             </button>
           ))}
 
+          {/* 미방문만 보기 */}
+          {visitedDates.size > 0 && (
+            <button
+              onClick={() => setUnvisitedOnly((v) => !v)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: unvisitedOnly ? 'var(--orange-500, #f97316)' : 'var(--orange-50, #fff7ed)',
+                color: unvisitedOnly ? 'white' : 'var(--orange-700, #c2410c)',
+                border: `1.5px solid ${unvisitedOnly ? 'var(--orange-500, #f97316)' : 'var(--orange-200, #fed7aa)'}`,
+              }}
+            >
+              <Circle className="w-3 h-3" />
+              미방문만
+              {!unvisitedOnly && (
+                <span className="ml-0.5 opacity-70">
+                  ({results.length - visitedDates.size})
+                </span>
+              )}
+            </button>
+          )}
+
           {/* 필터 적용 중 안내 */}
-          {(openNowOnly || maxDetourMin !== null) && (
+          {(openNowOnly || maxDetourMin !== null || unvisitedOnly) && (
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {filteredResults.length}개 (전체 {results.length}개)
             </span>
