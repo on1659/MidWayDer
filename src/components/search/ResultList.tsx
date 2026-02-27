@@ -540,13 +540,25 @@ export default function ResultList({
     };
   }, [focusedIndex, results]);
 
-  // 포커스된 항목 자동 스크롤
+  // 포커스된 항목 자동 스크롤 (키보드 탐색)
   useEffect(() => {
     const item = document.querySelector(`[data-result-index="${focusedIndex}"]`);
     if (item) {
       item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }, [focusedIndex]);
+
+  // selectedId 변경 시 해당 카드로 자동 스크롤 (지도 마커 클릭 동기화)
+  useEffect(() => {
+    if (!selectedId || filteredResults.length === 0) return;
+    const idx = filteredResults.findIndex((r) => r.place.id === selectedId);
+    if (idx === -1) return;
+    const timer = setTimeout(() => {
+      const item = document.querySelector(`[data-result-index="${idx}"]`);
+      if (item) item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -1311,42 +1323,34 @@ export default function ResultList({
                 </div>
 
                 {/* 상대적 이탈 비교 바 */}
-                {detourRange > 30 && (
-                  <div className="mt-2.5 flex items-center gap-2">
-                    <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>이탈</span>
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: `${Math.max(4, Math.round(((result.detourCost.duration - minDetourDuration) / detourRange) * 100))}%`,
-                          background:
-                            (result.detourCost.duration - minDetourDuration) / detourRange < 0.3
-                              ? '#22c55e'
-                              : (result.detourCost.duration - minDetourDuration) / detourRange < 0.65
-                              ? '#f59e0b'
-                              : '#f97316',
-                        }}
-                      />
+                {detourRange > 30 && (() => {
+                  const deltaSec = result.detourCost.duration - minDetourDuration;
+                  const deltaMin = Math.round(deltaSec / 60);
+                  const ratio = deltaSec / detourRange;
+                  const barColor = ratio < 0.3 ? '#22c55e' : ratio < 0.65 ? '#f59e0b' : '#f97316';
+                  const textColor = ratio < 0.3 ? '#16a34a' : ratio < 0.65 ? '#b45309' : '#ea580c';
+                  const isBest = deltaSec < 30;
+                  return (
+                    <div className="mt-2.5 flex items-center gap-2">
+                      <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>이탈</span>
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.max(4, Math.round(ratio * 100))}%`,
+                            background: barColor,
+                          }}
+                        />
+                      </div>
+                      <span
+                        className="text-[10px] font-semibold shrink-0 min-w-[44px] text-right"
+                        style={{ color: isBest ? '#16a34a' : textColor }}
+                      >
+                        {isBest ? '⭐최단' : `+${deltaMin}분 더`}
+                      </span>
                     </div>
-                    <span
-                      className="text-[10px] font-semibold shrink-0 w-6"
-                      style={{
-                        color:
-                          (result.detourCost.duration - minDetourDuration) / detourRange < 0.3
-                            ? '#16a34a'
-                            : (result.detourCost.duration - minDetourDuration) / detourRange < 0.65
-                            ? '#b45309'
-                            : '#ea580c',
-                      }}
-                    >
-                      {(result.detourCost.duration - minDetourDuration) / detourRange < 0.3
-                        ? '최소'
-                        : (result.detourCost.duration - minDetourDuration) / detourRange < 0.65
-                        ? '보통'
-                        : '높음'}
-                    </span>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* 📊 점수 분해 상세 */}
                 {scoreDetailOpenId === result.place.id && (() => {
