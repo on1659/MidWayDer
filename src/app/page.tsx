@@ -958,12 +958,117 @@ export default function HomePage() {
         {/* ========== MOBILE BOTTOM SHEET ========== */}
         <div className="md:hidden">
           <BottomSheet
-            visible={hasResults}
-            snap={bottomSheetSnap}
+            visible={hasResults || favorites.length > 0 || recentSearches.length > 0}
+            snap={hasResults ? bottomSheetSnap : 'collapsed'}
             onSnapChange={setBottomSheetSnap}
             peekHeight={160}
           >
             <div className="px-4 pb-4">
+              {/* 검색 전 상태: 즐겨찾기 경로 + 최근 검색 */}
+              {!hasResults && !isLoading && (
+                <div className="mb-2">
+                  {favorites.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-sm font-semibold mb-2.5 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
+                        <Star className="w-4 h-4" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
+                        즐겨찾기 경로
+                      </p>
+                      <div className="space-y-2">
+                        {favorites.slice(0, 5).map((fav) => (
+                          <div
+                            key={fav.id}
+                            className="flex items-center gap-2 p-3 rounded-xl transition-all active:scale-[0.99]"
+                            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+                          >
+                            <button
+                              className="flex-1 text-left min-w-0"
+                              onClick={() => {
+                                setStart({ address: fav.startAddress, coordinates: fav.startCoords });
+                                setEnd({ address: fav.endAddress, coordinates: fav.endCoords });
+                                setCategory(fav.category);
+                                if (fav.startCoords && fav.endCoords) {
+                                  search(
+                                    { address: fav.startAddress, coordinates: fav.startCoords },
+                                    { address: fav.endAddress, coordinates: fav.endCoords },
+                                    fav.category
+                                  ).then(() => setBottomSheetSnap('half'));
+                                }
+                              }}
+                            >
+                              <p className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-strong)' }}>
+                                <Star className="w-3 h-3 inline mr-1" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
+                                {fav.name}
+                              </p>
+                              <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+                                {fav.startAddress} → {fav.endAddress}
+                              </p>
+                              <p className="text-[11px]" style={{ color: 'var(--text-disabled)' }}>{fav.category}</p>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setStart({ address: fav.startAddress, coordinates: fav.startCoords });
+                                setEnd({ address: fav.endAddress, coordinates: fav.endCoords });
+                                setCategory(fav.category);
+                                if (fav.startCoords && fav.endCoords) {
+                                  search(
+                                    { address: fav.startAddress, coordinates: fav.startCoords },
+                                    { address: fav.endAddress, coordinates: fav.endCoords },
+                                    fav.category
+                                  ).then(() => setBottomSheetSnap('half'));
+                                }
+                              }}
+                              className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95"
+                              style={{ background: 'var(--accent)', color: 'white' }}
+                              title="바로 검색"
+                            >
+                              ▶
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {recentSearches.length > 0 && favorites.length === 0 && (
+                    <div>
+                      <p className="text-sm font-semibold mb-2.5 flex items-center gap-2" style={{ color: 'var(--text-strong)' }}>
+                        <Search className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                        최근 검색
+                      </p>
+                      <div className="space-y-2">
+                        {recentSearches.slice(0, 3).map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-2 p-3 rounded-xl"
+                            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+                          >
+                            <button
+                              className="flex-1 text-left min-w-0"
+                              onClick={() => {
+                                setStart({ address: item.startAddress, coordinates: item.startCoords });
+                                setEnd({ address: item.endAddress, coordinates: item.endCoords });
+                                setCategory(item.category);
+                              }}
+                            >
+                              <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>
+                                {item.startAddress} → {item.endAddress}
+                              </p>
+                              <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                            </button>
+                            <button
+                              onClick={() => handleInstantSearch(item)}
+                              className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95"
+                              style={{ background: 'var(--accent)', color: 'white' }}
+                              title="바로 검색"
+                            >
+                              ▶
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {results.length > 0 && (
                 <>
                   <div className="flex items-center justify-between mb-1.5">
@@ -1063,8 +1168,8 @@ export default function HomePage() {
           </BottomSheet>
         </div>
 
-        {/* Bottom Quick Bar (모바일, 검색 전) */}
-        {!hasResults && !selectedWaypoint && !mapClickInfo && (
+        {/* Bottom Quick Bar (모바일, 검색 전 + 즐겨찾기/최근 검색 없을 때) */}
+        {!hasResults && !selectedWaypoint && !mapClickInfo && favorites.length === 0 && recentSearches.length === 0 && (
           <div className="md:hidden absolute bottom-0 inset-x-0 z-20 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div className="mx-3 bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
               {/* 루틴 배너 */}

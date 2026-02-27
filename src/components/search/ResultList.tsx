@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Copy, Check, Navigation, Clock, Zap, Star } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
@@ -44,12 +44,12 @@ const LOADING_STAGES = [
   { icon: '⚡', text: '비용 계산 중', sub: '이탈 비용을 정밀하게 계산 중이에요' },
 ];
 
-/** 지금 출발 시 예상 도착 시간 계산 */
-function getETAText(result: DetourResult): { waypoint: string; destination: string } | null {
+/** 예상 도착 시간 계산 (baseMs: 출발 기준 밀리초, 기본값 지금) */
+function getETAText(result: DetourResult, baseMs?: number): { waypoint: string; destination: string } | null {
   const toSec = result.routes?.toWaypoint?.duration;
   const fromSec = result.routes?.fromWaypoint?.duration;
   if (!toSec || !fromSec) return null;
-  const now = Date.now();
+  const now = baseMs ?? Date.now();
   const fmt = (ms: number) => {
     const d = new Date(ms);
     return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -100,6 +100,21 @@ export default function ResultList({
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
   const [isCompact, setIsCompact] = useState(false);
+
+  // 출발 예정 시각 (기본: 현재 시각)
+  const [departureTime, setDepartureTime] = useState<string>(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  });
+
+  // departureTime → ms 변환 (과거 시각이면 다음날로)
+  const departureMs = useMemo(() => {
+    const [h, m] = departureTime.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    if (d.getTime() < Date.now() - 60000) d.setDate(d.getDate() + 1);
+    return d.getTime();
+  }, [departureTime]);
 
   // 실시간 인기도 (최근 1시간 클릭 수)
   const [popularityMap, setPopularityMap] = useState<Record<string, number>>({});
@@ -603,36 +618,67 @@ export default function ResultList({
     <div className="space-y-3">
       {/* 결과 요약 스마트 헤더 */}
       <div
-        className="flex items-center justify-between px-4 py-3 rounded-2xl"
+        className="px-4 py-3 rounded-2xl space-y-2.5"
         style={{
           background: 'linear-gradient(135deg, var(--blue-50), var(--accent-weak))',
           border: '1px solid var(--blue-200)',
         }}
       >
-        <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
-          <span className="text-sm font-bold" style={{ color: 'var(--blue-700)' }}>
-            ✅ {results.length}개 발견
-          </span>
-          <span
-            className="text-xs px-2 py-1 rounded-full font-semibold"
-            style={{ background: 'var(--blue-150)', color: 'var(--blue-600)' }}
-          >
-            평균 +{avgDetourMin}분
-          </span>
-          {withinFiveMin > 0 && (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
+            <span className="text-sm font-bold" style={{ color: 'var(--blue-700)' }}>
+              ✅ {results.length}개 발견
+            </span>
             <span
               className="text-xs px-2 py-1 rounded-full font-semibold"
-              style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
+              style={{ background: 'var(--blue-150)', color: 'var(--blue-600)' }}
             >
-              ⚡ {withinFiveMin}개 +5분 이내
+              평균 +{avgDetourMin}분
             </span>
-          )}
+            {withinFiveMin > 0 && (
+              <span
+                className="text-xs px-2 py-1 rounded-full font-semibold"
+                style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
+              >
+                ⚡ {withinFiveMin}개 +5분 이내
+              </span>
+            )}
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>최단</p>
+            <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--text-primary)' }}>
+              {bestResult.place.name}
+            </p>
+          </div>
         </div>
-        <div className="shrink-0 text-right ml-2">
-          <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>최단</p>
-          <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--text-primary)' }}>
-            {bestResult.place.name}
-          </p>
+
+        {/* 출발 예정 시각 설정 */}
+        <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--blue-200)' }}>
+          <span className="text-[12px] font-semibold shrink-0" style={{ color: 'var(--blue-700)' }}>
+            🕐 출발 시각
+          </span>
+          <input
+            type="time"
+            value={departureTime}
+            onChange={(e) => setDepartureTime(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 min-w-0 px-3 py-1.5 rounded-xl text-sm font-bold border-0 outline-none focus:ring-2 transition-all"
+            style={{
+              background: 'white',
+              color: 'var(--text-primary)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+            }}
+          />
+          <button
+            onClick={() => {
+              const now = new Date();
+              setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+            }}
+            className="shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
+            style={{ background: 'var(--blue-200)', color: 'var(--blue-700)' }}
+          >
+            지금
+          </button>
         </div>
       </div>
 
@@ -1067,10 +1113,11 @@ export default function ResultList({
                   );
                 })()}
 
-                {/* 지금 출발 시 예상 도착 시간 */}
+                {/* 출발 시각 기준 예상 도착 시간 */}
                 {(() => {
-                  const eta = getETAText(result);
+                  const eta = getETAText(result, departureMs);
                   if (!eta) return null;
+                  const isNowDeparture = Math.abs(departureMs - Date.now()) < 120000;
                   return (
                     <div
                       className="mt-2 flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-xl"
@@ -1078,7 +1125,7 @@ export default function ResultList({
                     >
                       <span>🕐</span>
                       <span>
-                        지금 출발 시 → 경유지{' '}
+                        {isNowDeparture ? '지금 출발' : `${departureTime} 출발`} → 경유지{' '}
                         <strong style={{ color: 'var(--text-primary)' }}>{eta.waypoint}</strong>
                         {' '}/ 목적지{' '}
                         <strong style={{ color: 'var(--text-primary)' }}>{eta.destination}</strong>
