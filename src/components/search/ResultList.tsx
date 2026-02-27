@@ -67,6 +67,7 @@ export default function ResultList({
   // 빠른 필터 상태
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
+  const [isCompact, setIsCompact] = useState(false);
 
   // 실시간 인기도 (최근 1시간 클릭 수)
   const [popularityMap, setPopularityMap] = useState<Record<string, number>>({});
@@ -92,6 +93,12 @@ export default function ResultList({
       });
   }, [results]);
 
+  // 새로운 검색 결과 로드 시 빠른 필터 자동 초기화
+  useEffect(() => {
+    setOpenNowOnly(false);
+    setMaxDetourMin(null);
+  }, [results]);
+
   // 경로 해시 계산 (추천 뱃지용)
   const { originalRoute } = useRouteStore();
   const routeHash = originalRoute
@@ -113,6 +120,15 @@ export default function ResultList({
     }
     return res;
   }, [results, openNowOnly, maxDetourMin]);
+
+  // 상대적 이탈 비교 바 계산용 (전체 결과 기준)
+  const maxDetourDuration = results.length > 1
+    ? Math.max(...results.map((r) => r.detourCost.duration))
+    : 0;
+  const minDetourDuration = results.length > 1
+    ? Math.min(...results.map((r) => r.detourCost.duration))
+    : 0;
+  const detourRange = maxDetourDuration - minDetourDuration;
 
   const handleCopyAddress = async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -486,6 +502,20 @@ export default function ResultList({
             {filteredResults.length}개 표시 중
           </span>
         )}
+
+        {/* 간략/자세히 보기 토글 */}
+        <button
+          onClick={() => setIsCompact((v) => !v)}
+          className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 shrink-0"
+          style={{
+            background: isCompact ? 'var(--text-primary)' : 'var(--bg-muted, #f3f4f6)',
+            color: isCompact ? 'white' : 'var(--text-secondary)',
+            border: '1.5px solid var(--border-soft)',
+          }}
+          title={isCompact ? '자세히 보기로 전환' : '간략 보기로 전환'}
+        >
+          {isCompact ? '☰ 자세히' : '≡ 간략'}
+        </button>
       </div>
 
       {/* 필터 결과 없음 안내 */}
@@ -516,12 +546,57 @@ export default function ResultList({
           <button
             key={result.place.id}
             onClick={() => handleSelect(result, index + 1)}
-            className="w-full p-4 rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm"
+            className={`w-full ${isCompact ? 'px-3 py-2.5' : 'p-4'} rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm`}
             style={{
               background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
               border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
             }}
           >
+          {isCompact ? (
+            // ── 컴팩트 모드 ──
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                style={{
+                  background: index === 0 ? 'var(--accent)' : 'var(--blue-150)',
+                  color: index === 0 ? 'white' : 'var(--accent)',
+                }}
+              >
+                {index + 1}
+              </div>
+              <span className="text-base shrink-0">{getCategoryIcon(result.place.category)}</span>
+              <p className="text-sm font-bold flex-1 truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
+                {result.place.name}
+              </p>
+              {(() => {
+                const compactPos = getRoutePositionLabel(result);
+                return compactPos ? (
+                  <span
+                    className="shrink-0 text-[11px] px-2 py-0.5 rounded-full"
+                    style={{ background: 'var(--purple-100)', color: 'var(--purple-700)' }}
+                  >
+                    📍 {compactPos}
+                  </span>
+                ) : null;
+              })()}
+              <span
+                className="shrink-0 text-[12px] font-bold px-2 py-1 rounded-full"
+                style={{ background: 'var(--yellow-100)', color: 'var(--yellow-700)' }}
+              >
+                +{detourMin}분
+              </span>
+              <button
+                onClick={(e) => handleOpenNavi(e, result.place)}
+                className="shrink-0 p-2 rounded-lg active:scale-95"
+                style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
+                title="네비 시작"
+                aria-label="네비 시작"
+              >
+                <Navigation className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            // ── 전체 카드 모드 ──
             <div className="flex items-start gap-3">
               {/* Rank badge with category icon */}
               <div className="flex flex-col items-center gap-1 shrink-0">
@@ -613,6 +688,44 @@ export default function ResultList({
                     );
                   })()}
                 </div>
+
+                {/* 상대적 이탈 비교 바 */}
+                {detourRange > 30 && (
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>이탈</span>
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${Math.max(4, Math.round(((result.detourCost.duration - minDetourDuration) / detourRange) * 100))}%`,
+                          background:
+                            (result.detourCost.duration - minDetourDuration) / detourRange < 0.3
+                              ? '#22c55e'
+                              : (result.detourCost.duration - minDetourDuration) / detourRange < 0.65
+                              ? '#f59e0b'
+                              : '#f97316',
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="text-[10px] font-semibold shrink-0 w-6"
+                      style={{
+                        color:
+                          (result.detourCost.duration - minDetourDuration) / detourRange < 0.3
+                            ? '#16a34a'
+                            : (result.detourCost.duration - minDetourDuration) / detourRange < 0.65
+                            ? '#b45309'
+                            : '#ea580c',
+                      }}
+                    >
+                      {(result.detourCost.duration - minDetourDuration) / detourRange < 0.3
+                        ? '최소'
+                        : (result.detourCost.duration - minDetourDuration) / detourRange < 0.65
+                        ? '보통'
+                        : '높음'}
+                    </span>
+                  </div>
+                )}
 
                 {/* 추천 이유 뱃지 + 스마트 한 줄 요약 */}
                 {(() => {
@@ -709,6 +822,7 @@ export default function ResultList({
                 )}
               </button>
             </div>
+          )}
           </button>
         );
       })}

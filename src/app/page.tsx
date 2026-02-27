@@ -1,5 +1,5 @@
 /**
- * Main Page - MidWayDer v0.4.0
+ * Main Page - MidWayDer v0.4.4
  *
  * 네이버지도 스타일 - 전체화면 지도 + 검색바 오버레이
  */
@@ -1110,7 +1110,7 @@ export default function HomePage() {
               </div>
               {/* 버전 */}
               <div className="px-5 pb-3">
-                <span className="text-xs" style={{ color: 'var(--text-disabled)' }}>v0.4.0</span>
+                <span className="text-xs" style={{ color: 'var(--text-disabled)' }}>v0.4.4</span>
               </div>
             </div>
           </div>
