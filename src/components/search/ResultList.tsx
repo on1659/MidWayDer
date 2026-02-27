@@ -190,6 +190,10 @@ export default function ResultList({
   } | null>(null);
   const [swipeVisual, setSwipeVisual] = useState<{ id: string; deltaX: number } | null>(null);
 
+  // 스와이프 힌트 애니메이션 (첫 결과 로드 시 1회)
+  const [swipeHintId, setSwipeHintId] = useState<string | null>(null);
+  const [swipeHintDeltaX, setSwipeHintDeltaX] = useState(0);
+
   // 빠른 필터 상태
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
@@ -343,6 +347,23 @@ export default function ResultList({
     setNameFilter('');
     setVisibleCount(10);
   }, [results]);
+
+  // 스와이프 힌트 애니메이션: 첫 결과 로드 1회, 우→복귀→좌→복귀 순으로 카드 흔들기
+  useEffect(() => {
+    if (results.length === 0) return;
+    if (typeof window === 'undefined') return;
+    if (localStorage.getItem('swipe-hint-shown')) return;
+    const id = results[0].place.id;
+    const t0 = setTimeout(() => { setSwipeHintId(id); setSwipeHintDeltaX(62); }, 900);
+    const t1 = setTimeout(() => setSwipeHintDeltaX(0), 1350);
+    const t2 = setTimeout(() => setSwipeHintDeltaX(-62), 1650);
+    const t3 = setTimeout(() => {
+      setSwipeHintDeltaX(0);
+      setSwipeHintId(null);
+      localStorage.setItem('swipe-hint-shown', '1');
+    }, 2100);
+    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [results]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // (routeHash is declared earlier, near visitedIds effect)
 
@@ -1086,7 +1107,8 @@ export default function ResultList({
         const recentClicks = popularityMap[result.place.id] ?? 0;
 
         const isBeingSwiped = swipeVisual?.id === result.place.id;
-        const swipeDeltaX = isBeingSwiped ? swipeVisual!.deltaX : 0;
+        const isHinting = swipeHintId === result.place.id;
+        const swipeDeltaX = isBeingSwiped ? swipeVisual!.deltaX : (isHinting ? swipeHintDeltaX : 0);
         const swipeOpacity = Math.min(1, Math.abs(swipeDeltaX) / 80);
 
         return (
@@ -1103,6 +1125,17 @@ export default function ResultList({
               >
                 <CheckCircle className="w-3 h-3" />
                 방문함{visitedAt ? ` (${getVisitDateLabel(visitedAt)})` : ''}
+              </div>
+            )}
+            {/* 스와이프 힌트 툴팁 (첫 로드 1회) */}
+            {isHinting && (
+              <div
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 px-3 py-1.5 rounded-full text-[11px] font-bold pointer-events-none"
+                style={{ background: 'rgba(0,0,0,0.72)', color: 'white', whiteSpace: 'nowrap' }}
+              >
+                <span>← 주소 복사</span>
+                <span style={{ opacity: 0.35 }}>|</span>
+                <span>네비 →</span>
               </div>
             )}
             {/* Swipe right → 네비 힌트 */}
@@ -1146,7 +1179,7 @@ export default function ResultList({
               background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
               border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
               transform: `translateX(${swipeDeltaX}px)`,
-              transition: !isBeingSwiped ? 'transform 0.2s ease' : 'none',
+              transition: !isBeingSwiped ? 'transform 0.35s ease' : 'none',
             }}
           >
           {isCompact ? (

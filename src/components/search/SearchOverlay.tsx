@@ -12,6 +12,7 @@ import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/
 import { getSavedLocationByLabel } from '@/lib/smart-location';
 import { startVoiceSearch } from '@/lib/voice-search';
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
+import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -307,6 +308,34 @@ export default function SearchOverlay({
 
       {/* Category chips */}
       <div className="px-4 pb-3 relative z-10">
+        {/* 시간대별 스마트 제안 칩 */}
+        {(() => {
+          const timeHints = getTimeBasedCategoryHints();
+          if (timeHints.length === 0) return null;
+          return (
+            <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+              <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--text-muted)' }}>
+                지금은?
+              </span>
+              {timeHints.map((hint) => (
+                <button
+                  key={hint.category}
+                  onClick={() => onCategoryChange(hint.category)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95"
+                  style={{
+                    background: category === hint.category ? 'var(--accent)' : 'var(--bg-hover)',
+                    color: category === hint.category ? 'white' : 'var(--text-secondary)',
+                    border: `1px solid ${category === hint.category ? 'var(--accent)' : 'var(--border-soft)'}`,
+                  }}
+                  title={hint.reason}
+                >
+                  <span>{hint.emoji}</span>
+                  <span>{hint.label}</span>
+                </button>
+              ))}
+            </div>
+          );
+        })()}
         <p className="text-sm font-semibold mb-2.5" style={{ color: 'var(--text-primary)' }}>어디 들를까요?</p>
         <CategorySelect selected={category} onChange={onCategoryChange} />
       </div>
