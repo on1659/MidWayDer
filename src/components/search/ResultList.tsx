@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Copy, Check, Navigation, Clock, Zap, Star } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star, Phone } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -72,6 +72,42 @@ function getRoutePositionLabel(result: DetourResult): string | null {
   if (progress < 0.6) return '경로 중간';
   if (progress < 0.8) return '경로 후반';
   return '도착 직전';
+}
+
+/** 현재 카테고리와 연관된 인접 카테고리 목록 */
+const RELATED_CATEGORIES: Record<string, string[]> = {
+  '스타벅스': ['이디야', '빽다방', '메가커피', 'CU', 'GS25'],
+  '이디야': ['스타벅스', '메가커피', '빽다방', 'CU', '편의점'],
+  '카페': ['편의점', 'CU', 'GS25', '베이커리', '스타벅스'],
+  '다이소': ['올리브영', 'CU', 'GS25', '약국', '편의점'],
+  'CU': ['GS25', '세븐일레븐', '스타벅스', '이디야', '약국'],
+  'GS25': ['CU', '세븐일레븐', '스타벅스', '이디야', '약국'],
+  '편의점': ['CU', 'GS25', '세븐일레븐', '스타벅스', '약국'],
+  '세븐일레븐': ['CU', 'GS25', '이마트24', '스타벅스', '약국'],
+  '이마트24': ['CU', 'GS25', '세븐일레븐', '스타벅스', '약국'],
+  '맥도날드': ['버거킹', '롯데리아', '맘스터치', '스타벅스', 'CU'],
+  '버거킹': ['맥도날드', '롯데리아', '맘스터치', '스타벅스', 'CU'],
+  '롯데리아': ['맥도날드', '버거킹', '맘스터치', 'CU', '편의점'],
+  '주유소': ['편의점', 'CU', 'GS25', '세차장', '맥도날드'],
+  '올리브영': ['다이소', '편의점', 'CU', '약국', '스타벅스'],
+  '약국': ['편의점', 'CU', 'GS25', '병원', '올리브영'],
+  '은행': ['편의점', 'CU', '우체국', '약국', '스타벅스'],
+  '우체국': ['편의점', 'CU', '은행', '약국', '스타벅스'],
+  '주차장': ['편의점', 'CU', 'GS25', '맥도날드', '스타벅스'],
+};
+
+function getRelatedCategories(currentCategory: string): string[] {
+  if (RELATED_CATEGORIES[currentCategory]) {
+    return RELATED_CATEGORIES[currentCategory];
+  }
+  for (const [key, cats] of Object.entries(RELATED_CATEGORIES)) {
+    if (currentCategory.includes(key) || key.includes(currentCategory)) {
+      return cats.filter((c) => c !== currentCategory);
+    }
+  }
+  return ['편의점', 'CU', 'GS25', '스타벅스', '약국', '맥도날드'].filter(
+    (c) => c !== currentCategory
+  );
 }
 
 export default function ResultList({
@@ -1277,7 +1313,7 @@ export default function ResultList({
                 </div>
               </div>
 
-              {/* 즐겨찾기 + 주소 복사 버튼 */}
+              {/* 즐겨찾기 + 주소 복사 + 전화 버튼 */}
               <div className="flex flex-col gap-1 shrink-0 self-start">
                 <button
                   onClick={(e) => handleTogglePlaceFav(e, result)}
@@ -1301,6 +1337,18 @@ export default function ResultList({
                     <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   )}
                 </button>
+                {result.place.phone && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`tel:${result.place.phone}`);
+                    }}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                    title={`전화: ${result.place.phone}`}
+                  >
+                    <Phone className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1309,6 +1357,37 @@ export default function ResultList({
         );
       })}
       </div>
+
+      {/* 이 근처에도 있어요 — 인접 카테고리 제안 */}
+      {results.length > 0 && onCategoryChange && (() => {
+        const relatedCats = getRelatedCategories(currentCategory).slice(0, 5);
+        if (relatedCats.length === 0) return null;
+        return (
+          <div className="pt-1 space-y-2">
+            <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+              👀 이 근처에도 있어요
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              {relatedCats.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => onCategoryChange(cat)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 shrink-0"
+                  style={{
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
+                    border: '1.5px solid var(--border-soft)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <span>{getCategoryIcon(cat)}</span>
+                  <span>{cat}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 즐겨찾기 저장 CTA */}
       {results.length > 0 && onSaveRoute && (
