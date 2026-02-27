@@ -745,6 +745,7 @@ export default function HomePage() {
                 search({ address: start.address }, { address: end.address }, category);
               }
             }}
+            onSaveRoute={() => setSaveDialogOpen(true)}
           />
         </div>
       </aside>
@@ -985,6 +986,7 @@ export default function HomePage() {
                     search({ address: start.address }, { address: end.address }, category);
                   }
                 }}
+                onSaveRoute={() => setSaveDialogOpen(true)}
               />
             </div>
           </BottomSheet>

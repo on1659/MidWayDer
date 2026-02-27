@@ -31,6 +31,7 @@ interface ResultListProps {
   onSelect: (result: DetourResult) => void;
   onCategoryChange?: (category: string) => void;
   onRetry?: () => void;
+  onSaveRoute?: () => void;
 }
 
 /** 경로상 위치를 5단계 자연어 라벨로 변환 */
@@ -56,6 +57,7 @@ export default function ResultList({
   onSelect,
   onCategoryChange,
   onRetry,
+  onSaveRoute,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -71,6 +73,9 @@ export default function ResultList({
 
   // 실시간 인기도 (최근 1시간 클릭 수)
   const [popularityMap, setPopularityMap] = useState<Record<string, number>>({});
+
+  // 데이터 기반 인기 카테고리 (결과 없을 때 표시)
+  const [statsCategories, setStatsCategories] = useState<string[]>([]);
 
   // 선호 네비 앱
   const [preferredNavApp, setPreferredNavAppState] = useState<NavApp | null>(null);
@@ -92,6 +97,23 @@ export default function ResultList({
         // 실패해도 UX 차단 안 함
       });
   }, [results]);
+
+  // 결과 없을 때 인기 카테고리 데이터 로드 (SearchLog 기반)
+  useEffect(() => {
+    if (!hasSearched || results.length > 0) return;
+    fetch('/api/stats?period=week')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data?.categoryBreakdown)) {
+          const cats = (json.data.categoryBreakdown as { category: string }[])
+            .map((c) => c.category)
+            .filter((c) => c !== currentCategory)
+            .slice(0, 6);
+          if (cats.length > 0) setStatsCategories(cats);
+        }
+      })
+      .catch(() => {});
+  }, [hasSearched, results.length, currentCategory]);
 
   // 새로운 검색 결과 로드 시 빠른 필터 자동 초기화
   useEffect(() => {
@@ -350,11 +372,12 @@ export default function ResultList({
       );
     }
 
-    // 검색 후 결과 없음: 대안 제시
-    const alternativeCategories = [
+    // 검색 후 결과 없음: 대안 제시 (SearchLog 기반 → 없으면 폴백)
+    const fallbackCategories = [
       '다이소', '스타벅스', '이디야', 'CU', 'GS25', '세븐일레븐',
       '맥도날드', '버거킹', '주유소', '휴게소', '은행', '우체국'
     ].filter(cat => cat !== currentCategory).slice(0, 6);
+    const alternativeCategories = statsCategories.length > 0 ? statsCategories : fallbackCategories;
 
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
@@ -370,7 +393,7 @@ export default function ResultList({
         {onCategoryChange && alternativeCategories.length > 0 && (
           <>
             <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
-              대신 이런 카테고리는 어때요?
+              {statsCategories.length > 0 ? '🔥 이 경로에서 인기 있는 카테고리' : '대신 이런 카테고리는 어때요?'}
             </p>
             <div className="flex flex-wrap gap-2 justify-center mb-6">
               {alternativeCategories.map((cat) => (
@@ -545,6 +568,7 @@ export default function ResultList({
         return (
           <button
             key={result.place.id}
+            data-result-index={index}
             onClick={() => handleSelect(result, index + 1)}
             className={`w-full ${isCompact ? 'px-3 py-2.5' : 'p-4'} rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm`}
             style={{
@@ -828,9 +852,25 @@ export default function ResultList({
       })}
       </div>
 
+      {/* 즐겨찾기 저장 CTA */}
+      {results.length > 0 && onSaveRoute && (
+        <button
+          onClick={onSaveRoute}
+          className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-[15px] transition-all active:scale-[0.98] shadow-sm"
+          style={{
+            background: 'linear-gradient(135deg, var(--yellow-100), var(--orange-50, #fff7ed))',
+            color: 'var(--yellow-700)',
+            border: '1.5px solid var(--yellow-300)',
+          }}
+        >
+          <span className="text-lg">⭐</span>
+          이 경로 즐겨찾기로 저장
+        </button>
+      )}
+
       {/* Feedback Section */}
       {results.length > 0 && (
-        <div className="mt-6 p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="mt-4 p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
           <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
             이 검색 결과가 도움됐나요?
           </p>
