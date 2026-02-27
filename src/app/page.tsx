@@ -1,5 +1,5 @@
 /**
- * Main Page - MidWayDer v0.4.4
+ * Main Page - MidWayDer v0.4.9
  *
  * 네이버지도 스타일 - 전체화면 지도 + 검색바 오버레이
  */
@@ -45,7 +45,7 @@ type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
 export default function HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
-  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, isCached, setCategory, search, clearResults } = useSearchStore();
+  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, isCached, setCategory, search, clearResults, cancelSearch } = useSearchStore();
   const { toasts, showToast } = useToast();
 
   const [appReady, setAppReady] = useState(false);
@@ -209,6 +209,7 @@ export default function HomePage() {
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const urlProcessed = useRef(false);
+  const autoSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -394,6 +395,25 @@ export default function HomePage() {
     setBottomSheetSnap('half');
   }, [start, end, category, search]);
 
+  // 카테고리 변경 핸들러: 검색 결과가 있는 상태에서 바꾸면 800ms 후 자동 재검색
+  const handleCategoryChange = useCallback((cat: string) => {
+    setCategory(cat);
+    if (!hasSearched || !start?.address || !end?.address || isLoading) return;
+    if (autoSearchTimerRef.current) clearTimeout(autoSearchTimerRef.current);
+    autoSearchTimerRef.current = setTimeout(async () => {
+      clearResults();
+      selectWaypoint(null);
+      setOriginalRoute(null);
+      setPreviewRoute(null);
+      await search(
+        { address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) },
+        { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) },
+        cat
+      );
+      setBottomSheetSnap('half');
+    }, 800);
+  }, [hasSearched, start, end, isLoading, setCategory, clearResults, selectWaypoint, setOriginalRoute, search]);
+
   // 최근 검색 즉시 실행 (주소 채우기 + 바로 검색)
   const handleInstantSearch = useCallback(async (item: RecentSearch) => {
     setStart({ address: item.startAddress, coordinates: item.startCoords });
@@ -549,7 +569,7 @@ export default function HomePage() {
 
           <div className="space-y-2">
             <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>어디 들를까?</span>
-            <CategorySelect selected={category} onChange={setCategory} />
+            <CategorySelect selected={category} onChange={handleCategoryChange} />
           </div>
 
           {/* Route Preview */}
@@ -791,6 +811,8 @@ export default function HomePage() {
             }}
             onSaveRoute={() => setSaveDialogOpen(true)}
             onExpandRadius={handleExpandRadius}
+            onCancel={cancelSearch}
+            sortBy={sortBy}
           />
         </div>
       </aside>
@@ -920,7 +942,7 @@ export default function HomePage() {
             onStartSelect={handleStartSelect}
             onEndSelect={handleEndSelect}
             mapCenter={mapCenter}
-            onCategoryChange={setCategory}
+            onCategoryChange={handleCategoryChange}
             onSearch={handleSearch}
             onSwap={handleSwap}
             isLoading={isLoading}
@@ -1034,6 +1056,8 @@ export default function HomePage() {
                 }}
                 onSaveRoute={() => setSaveDialogOpen(true)}
                 onExpandRadius={handleExpandRadius}
+                onCancel={cancelSearch}
+                sortBy={sortBy}
               />
             </div>
           </BottomSheet>
@@ -1159,7 +1183,7 @@ export default function HomePage() {
               </div>
               {/* 버전 */}
               <div className="px-5 pb-3">
-                <span className="text-xs" style={{ color: 'var(--text-disabled)' }}>v0.4.4</span>
+                <span className="text-xs" style={{ color: 'var(--text-disabled)' }}>v0.4.9</span>
               </div>
             </div>
           </div>

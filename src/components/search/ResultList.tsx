@@ -34,6 +34,8 @@ interface ResultListProps {
   onRetry?: () => void;
   onSaveRoute?: () => void;
   onExpandRadius?: () => void;
+  onCancel?: () => void;
+  sortBy?: 'score' | 'distance' | 'duration';
 }
 
 const LOADING_STAGES = [
@@ -83,6 +85,8 @@ export default function ResultList({
   onRetry,
   onSaveRoute,
   onExpandRadius,
+  onCancel,
+  sortBy,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -401,6 +405,22 @@ export default function ResultList({
           >
             {LOADING_STAGES[loadingStage].sub}
           </p>
+          {/* 취소 버튼 */}
+          {onCancel && (
+            <div className="flex justify-center mt-3">
+              <button
+                onClick={onCancel}
+                className="px-5 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+                style={{
+                  background: 'var(--bg-surface)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-soft)',
+                }}
+              >
+                취소
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 스켈레톤 카드 */}
@@ -796,18 +816,28 @@ export default function ResultList({
 
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                  {/* 기본 정보 뱃지: 이탈 거리/시간 */}
+                  {/* 기본 정보 뱃지: 이탈 거리/시간 — sortBy 강조 */}
                   <span
-                    className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                    style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
+                    style={
+                      sortBy === 'distance'
+                        ? { background: 'var(--accent)', color: 'white' }
+                        : { background: 'var(--accent-weak)', color: 'var(--accent)' }
+                    }
+                    title={sortBy === 'distance' ? '거리순 정렬 기준' : undefined}
                   >
-                    +{detourKm}km
+                    {sortBy === 'distance' && '📏 '}+{detourKm}km
                   </span>
                   <span
-                    className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                    style={{ background: 'var(--yellow-100)', color: 'var(--yellow-600)' }}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
+                    style={
+                      sortBy === 'duration'
+                        ? { background: 'var(--yellow-500, #eab308)', color: 'white' }
+                        : { background: 'var(--yellow-100)', color: 'var(--yellow-600)' }
+                    }
+                    title={sortBy === 'duration' ? '시간순 정렬 기준' : undefined}
                   >
-                    +{detourMin}분
+                    {sortBy === 'duration' && '⏱ '}+{detourMin}분
                   </span>
                   {routeLabel && (
                     <span
@@ -857,7 +887,7 @@ export default function ResultList({
                       </span>
                     );
                   })()}
-                  {/* 점수 분해 토글 버튼 */}
+                  {/* 점수 분해 토글 버튼 — sortBy=score 시 강조 */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -867,11 +897,21 @@ export default function ResultList({
                     }}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all active:scale-95"
                     style={{
-                      background: scoreDetailOpenId === result.place.id ? 'var(--accent)' : 'var(--blue-100)',
+                      background: scoreDetailOpenId === result.place.id
+                        ? 'var(--accent)'
+                        : sortBy === 'score'
+                        ? 'var(--blue-200)'
+                        : 'var(--blue-100)',
                       color: scoreDetailOpenId === result.place.id ? 'white' : 'var(--blue-700)',
-                      border: `1px solid ${scoreDetailOpenId === result.place.id ? 'var(--accent)' : 'var(--blue-200)'}`,
+                      border: `1.5px solid ${
+                        scoreDetailOpenId === result.place.id
+                          ? 'var(--accent)'
+                          : sortBy === 'score'
+                          ? 'var(--blue-400)'
+                          : 'var(--blue-200)'
+                      }`,
                     }}
-                    title="추천 점수 분석 보기"
+                    title={sortBy === 'score' ? '점수순 정렬 기준 — 클릭해서 상세 보기' : '추천 점수 분석 보기'}
                   >
                     📊 {Math.round(result.finalScore)}점
                   </button>
