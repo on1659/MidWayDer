@@ -13,7 +13,7 @@ import { openNavigationApp, getPreferredNavApp, setPreferredNavApp } from '@/lib
 import type { NavApp } from '@/lib/navigation-links';
 import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
 import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-badges';
-import { getVisitCount, hasVisited, recordVisit } from '@/lib/visit-tracking';
+import { getVisitHistory, getVisitCount, recordVisit } from '@/lib/visit-tracking';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { getTimeBasedCategoryHints, getTimeGreeting } from '@/lib/smart-category';
 import { getSmartOneLiner } from '@/lib/smart-summary';
@@ -59,6 +59,28 @@ function getETAText(result: DetourResult, baseMs?: number): { waypoint: string; 
     waypoint: fmt(now + toSec * 1000),
     destination: fmt(now + toSec * 1000 + fromSec * 1000),
   };
+}
+
+/** 방문 날짜 상대 라벨 (visitedAt ms → "오늘", "어제", "N일 전" 등) */
+function getVisitDateLabel(ms: number): string {
+  const diffMs = Date.now() - ms;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffDay = Math.floor(diffMs / 86400000);
+  if (diffMin < 60) return '방금';
+  if (diffDay === 0) return '오늘';
+  if (diffDay === 1) return '어제';
+  if (diffDay < 7) return `${diffDay}일 전`;
+  if (diffDay < 30) return `${Math.floor(diffDay / 7)}주 전`;
+  return `${Math.floor(diffDay / 30)}달 전`;
+}
+
+/** 베스트 픽 이유 한 줄 (1등 카드용) */
+function getBestPickReason(result: DetourResult): string {
+  const detourMin = Math.round(result.detourCost.duration / 60);
+  if (result.detourCost.distance <= 150) return '경로에서 거의 이탈 없음 — 그냥 지나가는 길!';
+  if (detourMin <= 2) return `+${detourMin}분으로 들를 수 있어요`;
+  if (result.proximityScore >= 75) return '경로 바로 옆 — 접근성 최고';
+  return '이탈 비용 + 접근성 종합 1위';
 }
 
 /** nameFilter 검색어 하이라이팅 */
@@ -176,8 +198,8 @@ export default function ResultList({
   // 결과 내 이름 검색 필터
   const [nameFilter, setNameFilter] = useState('');
 
-  // 방문 완료 상태 (placeId set)
-  const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
+  // 방문 완료 상태 (placeId → visitedAt timestamp)
+  const [visitedDates, setVisitedDates] = useState<Map<string, number>>(new Map());
 
   // 출발 예정 시각 (기본: 현재 시각)
   const [departureTime, setDepartureTime] = useState<string>(() => {
@@ -231,13 +253,17 @@ export default function ResultList({
     ? hashRoute(originalRoute.start, originalRoute.end)
     : '';
 
-  // 방문 기록 초기화 (routeHash 기반)
+  // 방문 기록 초기화 (routeHash 기반 — placeId → 가장 최근 visitedAt 매핑)
   useEffect(() => {
     if (!routeHash || results.length === 0) return;
-    const visited = new Set(
-      results.filter((r) => hasVisited(r.place.id, routeHash)).map((r) => r.place.id)
-    );
-    setVisitedIds(visited);
+    const history = getVisitHistory();
+    const dateMap = new Map<string, number>();
+    for (const visit of history) {
+      if (visit.routeHash === routeHash && !dateMap.has(visit.placeId)) {
+        dateMap.set(visit.placeId, visit.visitedAt);
+      }
+    }
+    setVisitedDates(dateMap);
   }, [results, routeHash]);
 
   const handleTogglePlaceFav = (e: React.MouseEvent, result: DetourResult) => {
@@ -262,13 +288,14 @@ export default function ResultList({
   const handleVisitToggle = (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
     const id = result.place.id;
-    if (visitedIds.has(id)) {
-      setVisitedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+    if (visitedDates.has(id)) {
+      setVisitedDates((prev) => { const m = new Map(prev); m.delete(id); return m; });
     } else {
       if (routeHash) {
         recordVisit(id, result.place.name, result.place.category, routeHash);
       }
-      setVisitedIds((prev) => new Set([...prev, id]));
+      const ts = Date.now();
+      setVisitedDates((prev) => new Map([...prev, [id, ts]]));
     }
   };
 
@@ -1000,7 +1027,8 @@ export default function ResultList({
       <div className="space-y-2.5">
       {filteredResults.map((result, index) => {
         const isSelected = selectedId === result.place.id;
-        const isVisited = visitedIds.has(result.place.id);
+        const isVisited = visitedDates.has(result.place.id);
+        const visitedAt = visitedDates.get(result.place.id);
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
         const detourMin = Math.round(result.detourCost.duration / 60);
         const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
@@ -1023,7 +1051,7 @@ export default function ResultList({
                 style={{ background: '#d1fae5', color: '#065f46' }}
               >
                 <CheckCircle className="w-3 h-3" />
-                방문함
+                방문함{visitedAt ? ` (${getVisitDateLabel(visitedAt)})` : ''}
               </div>
             )}
             {/* Swipe right → 네비 힌트 */}
@@ -1137,6 +1165,21 @@ export default function ResultList({
             </div>
           ) : (
             // ── 전체 카드 모드 ──
+            <>
+            {/* 🏆 베스트 픽 배너 (1등 카드만) */}
+            {index === 0 && (
+              <div
+                className="mb-3 -mx-1 px-3 py-1.5 rounded-xl flex items-center gap-2 text-[12px] font-bold"
+                style={{
+                  background: 'linear-gradient(90deg, var(--yellow-100), var(--orange-50, #fff7ed))',
+                  color: 'var(--yellow-700)',
+                  border: '1px solid var(--yellow-300)',
+                }}
+              >
+                <span>🏆</span>
+                <span>베스트 픽 — {getBestPickReason(result)}</span>
+              </div>
+            )}
             <div className="flex items-start gap-3">
               {/* Rank badge with category icon */}
               <div className="flex flex-col items-center gap-1 shrink-0">
@@ -1515,6 +1558,7 @@ export default function ResultList({
                 </button>
               </div>
             </div>
+            </>
           )}
           </button>
           </div>
