@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2 } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2, Bookmark } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -212,6 +212,9 @@ export default function ResultList({
   // 공유 성공 표시 (Web Share API 미지원 시 클립보드 복사 후 표시)
   const [sharedId, setSharedId] = useState<string | null>(null);
 
+  // 카드 핀 고정 (선택한 결과 항상 상단 유지)
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+
   // 출발 예정 시각 (기본: 현재 시각)
   const [departureTime, setDepartureTime] = useState<string>(() => {
     const now = new Date();
@@ -348,6 +351,7 @@ export default function ResultList({
     setUnvisitedOnly(false);
     setNameFilter('');
     setVisibleCount(10);
+    setPinnedIds(new Set());
   }, [results]);
 
   // 스와이프 힌트 애니메이션: 첫 결과 로드 1회, 우→복귀→좌→복귀 순으로 카드 흔들기
@@ -392,10 +396,18 @@ export default function ResultList({
     return res;
   }, [results, openNowOnly, maxDetourMin, unvisitedOnly, visitedDates, nameFilter]);
 
-  // 결과 더보기: filteredResults를 visibleCount만큼만 잘라서 렌더링
+  // 핀 고정 카드 항상 상단 정렬
+  const sortedWithPins = useMemo(() => {
+    if (pinnedIds.size === 0) return filteredResults;
+    const pinned = filteredResults.filter((r) => pinnedIds.has(r.place.id));
+    const rest = filteredResults.filter((r) => !pinnedIds.has(r.place.id));
+    return [...pinned, ...rest];
+  }, [filteredResults, pinnedIds]);
+
+  // 결과 더보기: sortedWithPins를 visibleCount만큼만 잘라서 렌더링
   const visibleResults = useMemo(
-    () => filteredResults.slice(0, visibleCount),
-    [filteredResults, visibleCount]
+    () => sortedWithPins.slice(0, visibleCount),
+    [sortedWithPins, visibleCount]
   );
 
   // 상대적 이탈 비교 바 계산용 (전체 결과 기준)
@@ -527,17 +539,42 @@ export default function ResultList({
     }
   }, [preferredNavApp]);
 
-  const handleOpenNavi = (e: React.MouseEvent, place: DetourResult['place']) => {
+  // 핀 고정 토글
+  const handleTogglePin = useCallback((e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
-    // 선호 앱이 있으면 바로 열기
+    const id = result.place.id;
+    setPinnedIds((prev) => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id);
+      else s.add(id);
+      return s;
+    });
+  }, []);
+
+  // 네비게이션 공통 트리거 (e 없이 직접 호출 가능)
+  const triggerNav = useCallback((place: DetourResult['place']) => {
     if (preferredNavApp) {
       openNavigationApp(preferredNavApp, place.coordinates.lat, place.coordinates.lng, place.name)
         .catch((err) => console.error('[Navigation] Failed:', err));
-      return;
+    } else {
+      setSelectedPlace(place);
+      setNaviSheetOpen(true);
     }
-    setSelectedPlace(place);
-    setNaviSheetOpen(true);
+  }, [preferredNavApp]);
+
+  const handleOpenNavi = (e: React.MouseEvent, place: DetourResult['place']) => {
+    e.stopPropagation();
+    triggerNav(place);
   };
+
+  // 베스트 픽으로 바로 출발 (원탭)
+  const handleQuickGo = useCallback(() => {
+    const top = sortedWithPins[0];
+    if (!top) return;
+    const now = new Date();
+    setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+    triggerNav(top.place);
+  }, [sortedWithPins, triggerNav]);
 
   const handleOpenNaviSheet = (e: React.MouseEvent, place: DetourResult['place']) => {
     e.stopPropagation();
@@ -948,6 +985,21 @@ export default function ResultList({
             지금
           </button>
         </div>
+
+        {/* 🚀 베스트 픽으로 바로 출발 원탭 버튼 */}
+        <button
+          onClick={handleQuickGo}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 mt-1"
+          style={{
+            background: 'linear-gradient(135deg, var(--accent), #2563eb)',
+            color: 'white',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+          }}
+          title={`베스트 픽: ${sortedWithPins[0]?.place.name ?? ''}`}
+        >
+          🚀 <span>베스트 픽으로 바로 출발</span>
+          {pinnedIds.size > 0 && <span className="opacity-70 text-[11px]">(📌 고정 기준)</span>}
+        </button>
       </div>
 
       {/* ── 빠른 카테고리 전환 칩 ── */}
@@ -1107,13 +1159,17 @@ export default function ResultList({
       )}
 
       {/* 필터 결과 없음 안내 */}
-      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null || nameFilter.trim()) && (
+      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null || unvisitedOnly || nameFilter.trim()) && (
         <div className="py-8 text-center">
           <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {nameFilter.trim() ? `"${nameFilter}" 에 해당하는 매장이 없어요` : '조건에 맞는 경유지가 없어요'}
+            {nameFilter.trim()
+              ? `"${nameFilter}" 에 해당하는 매장이 없어요`
+              : unvisitedOnly
+              ? '이미 방문한 곳이에요. 필터를 해제해보세요'
+              : '조건에 맞는 경유지가 없어요'}
           </p>
           <button
-            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); setNameFilter(''); }}
+            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); setUnvisitedOnly(false); setNameFilter(''); }}
             className="mt-3 text-xs underline"
             style={{ color: 'var(--accent)' }}
           >
@@ -1143,6 +1199,15 @@ export default function ResultList({
             className="relative overflow-hidden rounded-2xl shadow-sm"
             style={{ opacity: isVisited ? 0.65 : 1, transition: 'opacity 0.3s' }}
           >
+            {/* 핀 고정 뱃지 */}
+            {pinnedIds.has(result.place.id) && !isVisited && (
+              <div
+                className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none"
+                style={{ background: 'var(--accent)', color: 'white' }}
+              >
+                📌 상단 고정
+              </div>
+            )}
             {/* 방문 완료 뱃지 */}
             {isVisited && (
               <div
@@ -1271,6 +1336,18 @@ export default function ResultList({
                   ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
                   : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                 }
+              </button>
+              {/* 📌 핀 고정 버튼 (컴팩트) */}
+              <button
+                onClick={(e) => handleTogglePin(e, result)}
+                className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
+                title={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '상단에 고정'}
+              >
+                <Bookmark
+                  className="w-4 h-4"
+                  fill={pinnedIds.has(result.place.id) ? 'var(--accent)' : 'none'}
+                  style={{ color: pinnedIds.has(result.place.id) ? 'var(--accent)' : 'var(--text-muted)' }}
+                />
               </button>
             </div>
           ) : (
@@ -1670,6 +1747,18 @@ export default function ResultList({
                     : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   }
                 </button>
+                {/* 📌 핀 고정 버튼 (전체) */}
+                <button
+                  onClick={(e) => handleTogglePin(e, result)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title={pinnedIds.has(result.place.id) ? '핀 고정 해제 (상단 고정 중)' : '이 결과 상단에 고정'}
+                >
+                  <Bookmark
+                    className="w-4 h-4"
+                    fill={pinnedIds.has(result.place.id) ? 'var(--accent)' : 'none'}
+                    style={{ color: pinnedIds.has(result.place.id) ? 'var(--accent)' : 'var(--text-muted)' }}
+                  />
+                </button>
               </div>
             </div>
             </>
@@ -1681,9 +1770,9 @@ export default function ResultList({
       </div>
 
       {/* ── 결과 더보기 버튼 ── */}
-      {filteredResults.length > visibleCount && (
+      {sortedWithPins.length > visibleCount && (
         <button
-          onClick={() => setVisibleCount(filteredResults.length)}
+          onClick={() => setVisibleCount(sortedWithPins.length)}
           className="w-full py-3.5 rounded-2xl font-bold text-[14px] transition-all active:scale-[0.98] shadow-sm"
           style={{
             background: 'var(--bg-surface)',
@@ -1691,11 +1780,11 @@ export default function ResultList({
             border: '2px solid var(--accent-weak)',
           }}
         >
-          결과 더 보기 ({filteredResults.length - visibleCount}개 남음)
+          결과 더 보기 ({sortedWithPins.length - visibleCount}개 남음)
         </button>
       )}
       {/* 접기 버튼 (전체 표시 중일 때만, 10개 초과 시) */}
-      {filteredResults.length > 10 && visibleCount >= filteredResults.length && (
+      {sortedWithPins.length > 10 && visibleCount >= sortedWithPins.length && (
         <button
           onClick={() => {
             setVisibleCount(10);
