@@ -32,6 +32,7 @@ interface SearchOverlayProps {
   onToggleTheme?: () => void;
   onGPS?: () => void;
   gpsLoading?: boolean;
+  onInstantSearch?: (item: RecentSearch) => void;
 }
 
 export default function SearchOverlay({
@@ -54,6 +55,7 @@ export default function SearchOverlay({
   onToggleTheme,
   onGPS,
   gpsLoading = false,
+  onInstantSearch,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [isListening, setIsListening] = useState(false);
@@ -89,6 +91,16 @@ export default function SearchOverlay({
     if (item.startCoords && onStartSelect) onStartSelect({ address: item.startAddress, coordinates: item.startCoords });
     if (item.endCoords && onEndSelect) onEndSelect({ address: item.endAddress, coordinates: item.endCoords });
     onCategoryChange(item.category);
+  };
+
+  const handleInstantSearchClick = (item: RecentSearch) => {
+    if (onInstantSearch) {
+      onInstantSearch(item);
+      onClose();
+    } else {
+      handleRecentSelect(item);
+      handleSearch();
+    }
   };
 
   const handleRecentDelete = (id: string) => {
@@ -300,22 +312,30 @@ export default function SearchOverlay({
             {recentSearches.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 transition-colors"
               >
                 <button
                   className="flex-1 text-left min-w-0"
                   onClick={() => handleRecentSelect(item)}
                 >
-                  <p className="text-[15px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>
+                  <p className="text-[14px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>
                     {item.startAddress} → {item.endAddress}
                   </p>
-                  <p className="text-[13px] mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                </button>
+                <button
+                  onClick={() => handleInstantSearchClick(item)}
+                  className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95"
+                  style={{ background: 'var(--accent)', color: 'white' }}
+                  title="바로 검색 실행"
+                >
+                  ▶
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
                   className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
                 >
-                  <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                  <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                 </button>
               </div>
             ))}

@@ -394,6 +394,31 @@ export default function HomePage() {
     setBottomSheetSnap('half');
   }, [start, end, category, search]);
 
+  // 최근 검색 즉시 실행 (주소 채우기 + 바로 검색)
+  const handleInstantSearch = useCallback(async (item: RecentSearch) => {
+    setStart({ address: item.startAddress, coordinates: item.startCoords });
+    setEnd({ address: item.endAddress, coordinates: item.endCoords });
+    setCategory(item.category);
+    addRecentSearch({
+      startAddress: item.startAddress,
+      endAddress: item.endAddress,
+      startCoords: item.startCoords,
+      endCoords: item.endCoords,
+      category: item.category,
+    });
+    setRecentSearches(getRecentSearches());
+    clearResults();
+    selectWaypoint(null);
+    setOriginalRoute(null);
+    setPreviewRoute(null);
+    await search(
+      { address: item.startAddress, ...(item.startCoords ? { coordinates: item.startCoords } : {}) },
+      { address: item.endAddress, ...(item.endCoords ? { coordinates: item.endCoords } : {}) },
+      item.category
+    );
+    setBottomSheetSnap('half');
+  }, [setStart, setEnd, setCategory, clearResults, selectWaypoint, setOriginalRoute, search]);
+
   const handleWaypointSelect = useCallback((waypoint: typeof results[0]) => {
     selectWaypoint(waypoint);
     if (waypoint.routes.original) setOriginalRoute(waypoint.routes.original);
@@ -686,7 +711,7 @@ export default function HomePage() {
                     {recentSearches.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
                       >
                         <button
                           className="flex-1 text-left min-w-0"
@@ -700,6 +725,14 @@ export default function HomePage() {
                             {item.startAddress} → {item.endAddress}
                           </p>
                           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                        </button>
+                        <button
+                          onClick={() => handleInstantSearch(item)}
+                          className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95"
+                          style={{ background: 'var(--accent)', color: 'white' }}
+                          title="바로 검색"
+                        >
+                          ▶
                         </button>
                         <button
                           onClick={() => {
@@ -896,6 +929,7 @@ export default function HomePage() {
             onToggleTheme={toggleTheme}
             onGPS={handleGPS}
             gpsLoading={gpsLoading}
+            onInstantSearch={handleInstantSearch}
           />
         </div>
 
