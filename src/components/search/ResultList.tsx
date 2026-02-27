@@ -61,6 +61,24 @@ function getETAText(result: DetourResult, baseMs?: number): { waypoint: string; 
   };
 }
 
+/** nameFilter 검색어 하이라이팅 */
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+  const lower = text.toLowerCase();
+  const q = query.toLowerCase().trim();
+  const idx = lower.indexOf(q);
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark style={{ background: '#fef08a', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>
+        {text.slice(idx, idx + q.length)}
+      </mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
 /** 경로상 위치를 5단계 자연어 라벨로 변환 */
 function getRoutePositionLabel(result: DetourResult): string | null {
   const toWaypointDist = result.routes.toWaypoint.distance;
@@ -73,6 +91,12 @@ function getRoutePositionLabel(result: DetourResult): string | null {
   if (progress < 0.8) return '경로 후반';
   return '도착 직전';
 }
+
+/** 빠른 카테고리 전환 칩에 표시할 인기 카테고리 목록 (순서 = 우선순위) */
+const POPULAR_CATEGORIES = [
+  '편의점', 'CU', 'GS25', '세븐일레븐', '스타벅스', '이디야', '메가커피', '카페',
+  '다이소', '올리브영', '약국', '맥도날드', '버거킹', '롯데리아', '주유소', '은행', '우체국',
+];
 
 /** 현재 카테고리와 연관된 인접 카테고리 목록 */
 const RELATED_CATEGORIES: Record<string, string[]> = {
@@ -822,6 +846,42 @@ export default function ResultList({
         </div>
       </div>
 
+      {/* ── 빠른 카테고리 전환 칩 ── */}
+      {onCategoryChange && (
+        <div className="flex gap-2 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+          {/* 현재 카테고리 (강조) */}
+          <button
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-bold whitespace-nowrap shrink-0 transition-all"
+            style={{
+              background: 'var(--accent)',
+              color: 'white',
+              border: '1.5px solid var(--accent)',
+            }}
+            disabled
+            aria-current="true"
+          >
+            <span>{getCategoryIcon(currentCategory)}</span>
+            <span>{currentCategory}</span>
+          </button>
+          {/* 다른 카테고리 칩 (현재 카테고리 제외) */}
+          {POPULAR_CATEGORIES.filter((c) => c !== currentCategory).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => onCategoryChange(cat)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shrink-0 transition-all active:scale-95"
+              style={{
+                background: 'var(--bg-surface)',
+                color: 'var(--text-secondary)',
+                border: '1.5px solid var(--border-soft)',
+              }}
+            >
+              <span>{getCategoryIcon(cat)}</span>
+              <span>{cat}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── 빠른 필터 칩 ── */}
       <div className="flex items-center justify-between gap-2">
         {/* 왼쪽: 필터 칩들 */}
@@ -1024,7 +1084,7 @@ export default function ResultList({
               </div>
               <span className="text-base shrink-0">{getCategoryIcon(result.place.category)}</span>
               <p className="text-sm font-bold flex-1 truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
-                {result.place.name}
+                {highlightText(result.place.name, nameFilter)}
               </p>
               {(() => {
                 const compactPos = getRoutePositionLabel(result);
@@ -1095,12 +1155,12 @@ export default function ResultList({
               <div className="flex-1 min-w-0 mr-2">
                 {/* Name */}
                 <h3 className="text-[17px] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
-                  {result.place.name}
+                  {highlightText(result.place.name, nameFilter)}
                 </h3>
                 {/* Address */}
                 {(result.place.roadAddress || result.place.address) && (
                   <p className="text-[13px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
-                    {result.place.roadAddress || result.place.address}
+                    {highlightText(result.place.roadAddress || result.place.address || '', nameFilter)}
                   </p>
                 )}
 
