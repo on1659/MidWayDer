@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2 } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -201,6 +201,12 @@ export default function ResultList({
   // 방문 완료 상태 (placeId → visitedAt timestamp)
   const [visitedDates, setVisitedDates] = useState<Map<string, number>>(new Map());
 
+  // 결과 더보기 (초기 10개 표시, 더보기 클릭 시 전체 표시)
+  const [visibleCount, setVisibleCount] = useState(10);
+
+  // 공유 성공 표시 (Web Share API 미지원 시 클립보드 복사 후 표시)
+  const [sharedId, setSharedId] = useState<string | null>(null);
+
   // 출발 예정 시각 (기본: 현재 시각)
   const [departureTime, setDepartureTime] = useState<string>(() => {
     const now = new Date();
@@ -330,11 +336,12 @@ export default function ResultList({
       .catch(() => {});
   }, [hasSearched, results.length, currentCategory]);
 
-  // 새로운 검색 결과 로드 시 빠른 필터 자동 초기화
+  // 새로운 검색 결과 로드 시 빠른 필터 + 페이지네이션 자동 초기화
   useEffect(() => {
     setOpenNowOnly(false);
     setMaxDetourMin(null);
     setNameFilter('');
+    setVisibleCount(10);
   }, [results]);
 
   // (routeHash is declared earlier, near visitedIds effect)
@@ -358,6 +365,12 @@ export default function ResultList({
     }
     return res;
   }, [results, openNowOnly, maxDetourMin, nameFilter]);
+
+  // 결과 더보기: filteredResults를 visibleCount만큼만 잘라서 렌더링
+  const visibleResults = useMemo(
+    () => filteredResults.slice(0, visibleCount),
+    [filteredResults, visibleCount]
+  );
 
   // 상대적 이탈 비교 바 계산용 (전체 결과 기준)
   const maxDetourDuration = results.length > 1
@@ -402,6 +415,32 @@ export default function ResultList({
       setTimeout(() => setFeedbackSent(false), 3000);
     } catch (err) {
       console.error('[Feedback] Failed:', err);
+    }
+  };
+
+  // ── 카드 공유 핸들러 (Web Share API + 클립보드 폴백) ──
+  const handleShare = async (e: React.MouseEvent, result: DetourResult) => {
+    e.stopPropagation();
+    const detourMin = Math.round(result.detourCost.duration / 60);
+    const detourKm = (result.detourCost.distance / 1000).toFixed(1);
+    const address = result.place.roadAddress || result.place.address || '';
+    const text = `📍 ${result.place.name}\n🏠 ${address}\n⏱ +${detourMin}분 · 📏 +${detourKm}km 이탈\n🗺 midwayder.up.railway.app`;
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: result.place.name,
+          text,
+        });
+      } catch {
+        /* 사용자가 취소한 경우 무시 */
+      }
+    } else {
+      const success = await copyToClipboard(text);
+      if (success) {
+        setSharedId(result.place.id);
+        setTimeout(() => setSharedId(null), 2000);
+      }
     }
   };
 
@@ -964,7 +1003,7 @@ export default function ResultList({
           {/* 필터 적용 중 안내 */}
           {(openNowOnly || maxDetourMin !== null) && (
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {filteredResults.length}개 표시 중
+              {filteredResults.length}개 (전체 {results.length}개)
             </span>
           )}
         </div>
@@ -1037,7 +1076,7 @@ export default function ResultList({
       )}
 
       <div className="space-y-2.5">
-      {filteredResults.map((result, index) => {
+      {visibleResults.map((result, index) => {
         const isSelected = selectedId === result.place.id;
         const isVisited = visitedDates.has(result.place.id);
         const visitedAt = visitedDates.get(result.place.id);
@@ -1549,6 +1588,18 @@ export default function ResultList({
                     <Phone className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
                   </button>
                 )}
+                {/* 공유 버튼 */}
+                <button
+                  onClick={(e) => handleShare(e, result)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title="공유하기"
+                >
+                  {sharedId === result.place.id ? (
+                    <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                  ) : (
+                    <Share2 className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                  )}
+                </button>
                 {/* 방문 완료 토글 */}
                 <button
                   onClick={(e) => handleVisitToggle(e, result)}
@@ -1569,6 +1620,35 @@ export default function ResultList({
         );
       })}
       </div>
+
+      {/* ── 결과 더보기 버튼 ── */}
+      {filteredResults.length > visibleCount && (
+        <button
+          onClick={() => setVisibleCount(filteredResults.length)}
+          className="w-full py-3.5 rounded-2xl font-bold text-[14px] transition-all active:scale-[0.98] shadow-sm"
+          style={{
+            background: 'var(--bg-surface)',
+            color: 'var(--accent)',
+            border: '2px solid var(--accent-weak)',
+          }}
+        >
+          결과 더 보기 ({filteredResults.length - visibleCount}개 남음)
+        </button>
+      )}
+      {/* 접기 버튼 (전체 표시 중일 때만, 10개 초과 시) */}
+      {filteredResults.length > 10 && visibleCount >= filteredResults.length && (
+        <button
+          onClick={() => {
+            setVisibleCount(10);
+            // 리스트 상단으로 스크롤
+            if (listRef.current) listRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          className="w-full py-2.5 rounded-2xl font-medium text-[13px] transition-all active:scale-[0.98]"
+          style={{ background: 'var(--bg-muted, #f3f4f6)', color: 'var(--text-muted)' }}
+        >
+          접기
+        </button>
+      )}
 
       {/* 이 근처에도 있어요 — 인접 카테고리 제안 */}
       {results.length > 0 && onCategoryChange && (() => {

@@ -106,7 +106,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         end,
         category,
         options: {
-          maxResults: 10,
+          maxResults: 20, // 결과 더보기 지원 (UI에서 처음 10개만 표시)
           ...(extraOptions?.bufferDistance ? { bufferDistance: extraOptions.bufferDistance } : {}),
         },
       };
