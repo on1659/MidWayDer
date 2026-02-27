@@ -5,12 +5,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff } from 'lucide-react';
+import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 import { getSavedLocationByLabel } from '@/lib/smart-location';
 import { startVoiceSearch } from '@/lib/voice-search';
+import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -58,12 +59,21 @@ export default function SearchOverlay({
   onInstantSearch,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) setRecentSearches(getRecentSearches());
+    if (open) {
+      setRecentSearches(getRecentSearches());
+      setPlaceFavorites(getPlaceFavorites());
+    }
   }, [open]);
+
+  const handlePlaceFavDelete = (placeId: string) => {
+    removePlaceFavorite(placeId);
+    setPlaceFavorites(getPlaceFavorites());
+  };
 
   // Esc 키로 닫기
   useEffect(() => {
@@ -301,6 +311,47 @@ export default function SearchOverlay({
         <CategorySelect selected={category} onChange={onCategoryChange} />
       </div>
 
+      {/* Saved places */}
+      {placeFavorites.length > 0 && (
+        <div className="px-4 pb-3">
+          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+            <Star className="w-4 h-4" style={{ color: 'var(--yellow-500, #eab308)' }} />
+            저장된 장소
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+            {placeFavorites.map((place) => (
+              <div
+                key={place.placeId}
+                className="shrink-0 flex flex-col gap-1 p-3 rounded-xl min-w-[140px] max-w-[160px] relative"
+                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+              >
+                <button
+                  className="absolute top-1.5 right-1.5 p-1 rounded-full transition-colors hover:bg-red-50"
+                  onClick={(e) => { e.stopPropagation(); handlePlaceFavDelete(place.placeId); }}
+                  title="즐겨찾기 삭제"
+                >
+                  <X className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                </button>
+                <button
+                  className="text-left w-full pr-4"
+                  onClick={() => onCategoryChange(place.category)}
+                >
+                  <p className="text-[13px] font-bold truncate" style={{ color: 'var(--text-strong)' }}>
+                    {place.placeName}
+                  </p>
+                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+                    {place.category}
+                  </p>
+                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+                    {place.address.length > 18 ? place.address.slice(0, 18) + '…' : place.address}
+                  </p>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Recent searches */}
       {recentSearches.length > 0 && (
         <div className="px-4 pb-3 flex-1 overflow-y-auto">
@@ -344,7 +395,7 @@ export default function SearchOverlay({
       )}
 
       {/* Spacer */}
-      {recentSearches.length === 0 && <div className="flex-1" />}
+      {recentSearches.length === 0 && placeFavorites.length === 0 && <div className="flex-1" />}
 
       {/* Search button */}
       <div className="px-4 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">

@@ -637,62 +637,69 @@ export default function ResultList({
       </div>
 
       {/* ── 빠른 필터 칩 ── */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* 지금 열려있는 곳만 */}
-        {hasBusinessHoursData && (
-          <button
-            onClick={() => setOpenNowOnly((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
-            style={{
-              background: openNowOnly ? 'var(--green-500)' : 'var(--green-50)',
-              color: openNowOnly ? 'white' : 'var(--green-700)',
-              border: `1.5px solid ${openNowOnly ? 'var(--green-500)' : 'var(--green-200)'}`,
-            }}
-          >
-            <Clock className="w-3 h-3" />
-            지금 열려있는 곳만
-            {openNowOnly && openNowCount > 0 && (
-              <span className="ml-0.5 opacity-80">({openNowCount})</span>
-            )}
-          </button>
-        )}
+      <div className="flex items-center justify-between gap-2">
+        {/* 왼쪽: 필터 칩들 */}
+        <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+          {/* 지금 열려있는 곳만 */}
+          {hasBusinessHoursData && (
+            <button
+              onClick={() => setOpenNowOnly((v) => !v)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: openNowOnly ? 'var(--green-500)' : 'var(--green-50)',
+                color: openNowOnly ? 'white' : 'var(--green-700)',
+                border: `1.5px solid ${openNowOnly ? 'var(--green-500)' : 'var(--green-200)'}`,
+              }}
+            >
+              <Clock className="w-3 h-3" />
+              지금 열려있는 곳만
+              {openNowOnly && openNowCount > 0 && (
+                <span className="ml-0.5 opacity-80">({openNowCount})</span>
+              )}
+            </button>
+          )}
 
-        {/* 이탈 시간 상한 */}
-        {([5, 10, 15] as const).map((min) => (
-          <button
-            key={min}
-            onClick={() => setMaxDetourMin((v) => (v === min ? null : min))}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
-            style={{
-              background: maxDetourMin === min ? 'var(--accent)' : 'var(--blue-50)',
-              color: maxDetourMin === min ? 'white' : 'var(--blue-700)',
-              border: `1.5px solid ${maxDetourMin === min ? 'var(--accent)' : 'var(--blue-200)'}`,
-            }}
-          >
-            <Zap className="w-3 h-3" />
-            +{min}분 이내
-          </button>
-        ))}
+          {/* 이탈 시간 상한 */}
+          {([5, 10, 15] as const).map((min) => (
+            <button
+              key={min}
+              onClick={() => setMaxDetourMin((v) => (v === min ? null : min))}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: maxDetourMin === min ? 'var(--accent)' : 'var(--blue-50)',
+                color: maxDetourMin === min ? 'white' : 'var(--blue-700)',
+                border: `1.5px solid ${maxDetourMin === min ? 'var(--accent)' : 'var(--blue-200)'}`,
+              }}
+            >
+              <Zap className="w-3 h-3" />
+              +{min}분 이내
+            </button>
+          ))}
 
-        {/* 필터 적용 중 안내 */}
-        {(openNowOnly || maxDetourMin !== null) && (
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {filteredResults.length}개 표시 중
-          </span>
-        )}
+          {/* 필터 적용 중 안내 */}
+          {(openNowOnly || maxDetourMin !== null) && (
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {filteredResults.length}개 표시 중
+            </span>
+          )}
+        </div>
 
-        {/* 간략/자세히 보기 토글 */}
+        {/* 오른쪽: 간략/자세히 보기 토글 (항상 고정) */}
         <button
           onClick={() => setIsCompact((v) => !v)}
-          className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 shrink-0"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
           style={{
-            background: isCompact ? 'var(--text-primary)' : 'var(--bg-muted, #f3f4f6)',
+            background: isCompact
+              ? 'linear-gradient(135deg, var(--accent), var(--blue-600, #2563eb))'
+              : 'var(--bg-surface)',
             color: isCompact ? 'white' : 'var(--text-secondary)',
-            border: '1.5px solid var(--border-soft)',
+            border: `1.5px solid ${isCompact ? 'transparent' : 'var(--border-soft)'}`,
+            boxShadow: isCompact ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
           }}
           title={isCompact ? '자세히 보기로 전환' : '간략 보기로 전환'}
         >
-          {isCompact ? '☰ 자세히' : '≡ 간략'}
+          <span className="text-sm leading-none">{isCompact ? '☰' : '≡'}</span>
+          {isCompact ? '자세히' : '간략'}
         </button>
       </div>
 
