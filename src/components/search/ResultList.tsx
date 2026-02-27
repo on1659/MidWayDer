@@ -36,6 +36,7 @@ interface ResultListProps {
   onExpandRadius?: () => void;
   onCancel?: () => void;
   sortBy?: 'score' | 'distance' | 'duration';
+  onHoverResult?: (id: string | null) => void;
 }
 
 const LOADING_STAGES = [
@@ -87,6 +88,7 @@ export default function ResultList({
   onExpandRadius,
   onCancel,
   sortBy,
+  onHoverResult,
 }: ResultListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -95,6 +97,16 @@ export default function ResultList({
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [scoreDetailOpenId, setScoreDetailOpenId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // 스와이프 액션 상태 (ref = 실제 추적, state = 시각적 반영)
+  const swipeInfoRef = useRef<{
+    id: string;
+    startX: number;
+    startY: number;
+    deltaX: number;
+    locked: boolean;
+  } | null>(null);
+  const [swipeVisual, setSwipeVisual] = useState<{ id: string; deltaX: number } | null>(null);
 
   // 빠른 필터 상태
   const [openNowOnly, setOpenNowOnly] = useState(false);
@@ -270,6 +282,63 @@ export default function ResultList({
       console.error('[Feedback] Failed:', err);
     }
   };
+
+  // ── 스와이프 액션 핸들러 ──
+  const handleCardTouchStart = useCallback((e: React.TouchEvent, id: string) => {
+    swipeInfoRef.current = {
+      id,
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY,
+      deltaX: 0,
+      locked: false,
+    };
+  }, []);
+
+  const handleCardTouchMove = useCallback((e: React.TouchEvent, id: string) => {
+    const info = swipeInfoRef.current;
+    if (!info || info.id !== id) return;
+    const deltaX = e.touches[0].clientX - info.startX;
+    const deltaY = e.touches[0].clientY - info.startY;
+    if (!info.locked) {
+      if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        swipeInfoRef.current = null;
+        setSwipeVisual(null);
+        return;
+      }
+      info.locked = true;
+    }
+    info.deltaX = deltaX;
+    setSwipeVisual({ id, deltaX });
+  }, []);
+
+  const handleCardTouchEnd = useCallback((result: DetourResult) => {
+    const info = swipeInfoRef.current;
+    swipeInfoRef.current = null;
+    setSwipeVisual(null);
+    if (!info || info.id !== result.place.id || !info.locked) return;
+    if (info.deltaX > 80) {
+      // Swipe right → 네비
+      if (preferredNavApp) {
+        openNavigationApp(preferredNavApp, result.place.coordinates.lat, result.place.coordinates.lng, result.place.name)
+          .catch((err) => console.error('[Navigation] Failed:', err));
+      } else {
+        setSelectedPlace(result.place);
+        setNaviSheetOpen(true);
+      }
+    } else if (info.deltaX < -80) {
+      // Swipe left → 주소 복사
+      const address = result.place.roadAddress || result.place.address;
+      if (address) {
+        copyToClipboard(address).then((success) => {
+          if (success) {
+            setCopiedId(result.place.id);
+            setTimeout(() => setCopiedId(null), 2000);
+          }
+        });
+      }
+    }
+  }, [preferredNavApp]);
 
   const handleOpenNavi = (e: React.MouseEvent, place: DetourResult['place']) => {
     e.stopPropagation();
@@ -773,15 +842,54 @@ export default function ResultList({
         const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
         const recentClicks = popularityMap[result.place.id] ?? 0;
 
+        const isBeingSwiped = swipeVisual?.id === result.place.id;
+        const swipeDeltaX = isBeingSwiped ? swipeVisual!.deltaX : 0;
+        const swipeOpacity = Math.min(1, Math.abs(swipeDeltaX) / 80);
+
         return (
+          <div key={result.place.id} className="relative overflow-hidden rounded-2xl shadow-sm">
+            {/* Swipe right → 네비 힌트 */}
+            <div
+              className="absolute inset-y-0 left-0 flex items-center gap-1.5 px-5"
+              style={{
+                background: `rgba(34, 197, 94, ${swipeOpacity})`,
+                opacity: swipeDeltaX > 8 ? 1 : 0,
+                transition: !isBeingSwiped ? 'all 0.2s' : 'none',
+                minWidth: 88,
+                pointerEvents: 'none',
+              }}
+            >
+              <Navigation className="w-5 h-5 text-white" />
+              <span className="text-white text-xs font-bold whitespace-nowrap">네비</span>
+            </div>
+            {/* Swipe left → 복사 힌트 */}
+            <div
+              className="absolute inset-y-0 right-0 flex items-center justify-end gap-1.5 px-5"
+              style={{
+                background: `rgba(59, 130, 246, ${swipeOpacity})`,
+                opacity: swipeDeltaX < -8 ? 1 : 0,
+                transition: !isBeingSwiped ? 'all 0.2s' : 'none',
+                minWidth: 88,
+                pointerEvents: 'none',
+              }}
+            >
+              <span className="text-white text-xs font-bold whitespace-nowrap">복사</span>
+              <Copy className="w-5 h-5 text-white" />
+            </div>
           <button
-            key={result.place.id}
             data-result-index={index}
             onClick={() => handleSelect(result, index + 1)}
-            className={`w-full ${isCompact ? 'px-3 py-2.5' : 'p-4'} rounded-2xl text-left transition-all active:scale-[0.98] shadow-sm`}
+            onMouseEnter={() => onHoverResult?.(result.place.id)}
+            onMouseLeave={() => onHoverResult?.(null)}
+            onTouchStart={(e) => handleCardTouchStart(e, result.place.id)}
+            onTouchMove={(e) => handleCardTouchMove(e, result.place.id)}
+            onTouchEnd={() => handleCardTouchEnd(result)}
+            className={`w-full ${isCompact ? 'px-3 py-2.5' : 'p-4'} rounded-2xl text-left active:scale-[0.98]`}
             style={{
               background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
               border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
+              transform: `translateX(${swipeDeltaX}px)`,
+              transition: !isBeingSwiped ? 'transform 0.2s ease' : 'none',
             }}
           >
           {isCompact ? (
@@ -1197,6 +1305,7 @@ export default function ResultList({
             </div>
           )}
           </button>
+          </div>
         );
       })}
       </div>

@@ -14,6 +14,7 @@ interface KakaoWaypointMarkerProps {
   map: kakao.maps.Map | null;
   waypoints: DetourResult[];
   selectedId: string | null;
+  hoveredId?: string | null;
   onMarkerClick: (waypoint: DetourResult) => void;
 }
 
@@ -21,12 +22,15 @@ export default function KakaoWaypointMarker({
   map,
   waypoints,
   selectedId,
+  hoveredId,
   onMarkerClick,
 }: KakaoWaypointMarkerProps) {
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
   const infoOverlayRef = useRef<kakao.maps.CustomOverlay | null>(null);
   const onMarkerClickRef = useRef(onMarkerClick);
   const mapClickHandlerRef = useRef<(() => void) | null>(null);
+  // 마커 inner 엘리먼트 ref (호버 동기화용)
+  const markerInnersRef = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // 최신 콜백 유지
   useEffect(() => {
@@ -47,6 +51,7 @@ export default function KakaoWaypointMarker({
     // 기존 오버레이 제거
     overlaysRef.current.forEach((overlay) => overlay.setMap(null));
     overlaysRef.current = [];
+    markerInnersRef.current = new Map();
     closeInfoWindow();
 
     // 기존 지도 클릭 핸들러 제거
@@ -95,6 +100,8 @@ export default function KakaoWaypointMarker({
       `;
       markerInner.textContent = String(index + 1);
       markerContent.appendChild(markerInner);
+      // 호버 동기화용 ref 저장
+      markerInnersRef.current.set(waypoint.place.id, markerInner);
 
       const overlay = new window.kakao.maps.CustomOverlay({
         position: new window.kakao.maps.LatLng(
@@ -215,6 +222,24 @@ export default function KakaoWaypointMarker({
       }
     };
   }, [map, waypoints, selectedId, closeInfoWindow]);
+
+  // 호버 동기화: hoveredId 변경 시 마커 스타일만 업데이트 (마커 재생성 없음)
+  useEffect(() => {
+    markerInnersRef.current.forEach((el, id) => {
+      const isSelected = selectedId === id;
+      const isHovered = hoveredId === id;
+      if (isSelected) {
+        el.style.transform = 'scale(1)';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
+      } else if (isHovered) {
+        el.style.transform = 'scale(1.25)';
+        el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.45)';
+      } else {
+        el.style.transform = 'scale(1)';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
+      }
+    });
+  }, [hoveredId, selectedId]);
 
   return null;
 }

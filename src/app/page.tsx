@@ -208,6 +208,7 @@ export default function HomePage() {
   const [mapClickInfo, setMapClickInfo] = useState<{ name: string; address?: string; category?: string; phone?: string; placeUrl?: string; coords: { lat: number; lng: number } } | null>(null);
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [hoveredWaypointId, setHoveredWaypointId] = useState<string | null>(null);
   const urlProcessed = useRef(false);
   const autoSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -813,6 +814,7 @@ export default function HomePage() {
             onExpandRadius={handleExpandRadius}
             onCancel={cancelSearch}
             sortBy={sortBy}
+            onHoverResult={setHoveredWaypointId}
           />
         </div>
       </aside>
@@ -833,6 +835,7 @@ export default function HomePage() {
           }
           waypoints={filteredResults}
           selectedWaypointId={selectedWaypoint?.place.id || null}
+          hoveredWaypointId={hoveredWaypointId}
           onWaypointSelect={handleWaypointSelect}
           onMapClick={handleMapClick}
           clickedCoords={mapClickInfo?.coords || null}
@@ -1163,6 +1166,7 @@ export default function HomePage() {
                 onExpandRadius={handleExpandRadius}
                 onCancel={cancelSearch}
                 sortBy={sortBy}
+                onHoverResult={setHoveredWaypointId}
               />
             </div>
           </BottomSheet>

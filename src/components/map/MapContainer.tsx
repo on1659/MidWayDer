@@ -33,6 +33,8 @@ interface MapContainerProps {
   waypoints: DetourResult[];
   /** 선택된 경유지 ID */
   selectedWaypointId: string | null;
+  /** 리스트 호버 중인 경유지 ID (지도 마커 강조용) */
+  hoveredWaypointId?: string | null;
   /** 경유지 선택 핸들러 */
   onWaypointSelect: (waypoint: DetourResult) => void;
   /** 지도 클릭 핸들러 (좌표 반환) */
@@ -48,6 +50,7 @@ export default function MapContainer({
   detourRoute,
   waypoints,
   selectedWaypointId,
+  hoveredWaypointId,
   onWaypointSelect,
   onMapClick,
   clickedCoords,
@@ -217,6 +220,7 @@ export default function MapContainer({
           map={kakaoMap}
           waypoints={waypoints}
           selectedId={selectedWaypointId}
+          hoveredId={hoveredWaypointId}
           onMarkerClick={onWaypointSelect}
         />
       )}
