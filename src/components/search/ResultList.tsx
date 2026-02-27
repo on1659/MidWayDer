@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Copy, Check, Navigation, Clock, Zap } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -20,6 +20,7 @@ import { getSmartOneLiner } from '@/lib/smart-summary';
 import { useRouteStore } from '@/store/route-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
+import { getPlaceFavorites, addPlaceFavorite, removePlaceFavorite } from '@/lib/place-favorites';
 
 interface ResultListProps {
   results: DetourResult[];
@@ -33,6 +34,12 @@ interface ResultListProps {
   onRetry?: () => void;
   onSaveRoute?: () => void;
 }
+
+const LOADING_STAGES = [
+  { icon: '🔍', text: '경로 분석 중', sub: '최적 경로를 계산하고 있어요' },
+  { icon: '📍', text: '장소 탐색 중', sub: '경로 주변 매장을 찾고 있어요' },
+  { icon: '⚡', text: '비용 계산 중', sub: '이탈 비용을 정밀하게 계산 중이에요' },
+];
 
 /** 경로상 위치를 5단계 자연어 라벨로 변환 */
 function getRoutePositionLabel(result: DetourResult): string | null {
@@ -83,6 +90,43 @@ export default function ResultList({
   useEffect(() => {
     setPreferredNavAppState(getPreferredNavApp());
   }, []);
+
+  // 로딩 단계 (0: 경로 분석, 1: 장소 탐색, 2: 비용 계산)
+  const [loadingStage, setLoadingStage] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) { setLoadingStage(0); return; }
+    const t1 = setTimeout(() => setLoadingStage(1), 2500);
+    const t2 = setTimeout(() => setLoadingStage(2), 6000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [isLoading]);
+
+  // 개별 장소 즐겨찾기
+  const [favPlaces, setFavPlaces] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const saved = getPlaceFavorites().map((f) => f.placeId);
+    setFavPlaces(new Set(saved));
+  }, []);
+
+  const handleTogglePlaceFav = (e: React.MouseEvent, result: DetourResult) => {
+    e.stopPropagation();
+    const id = result.place.id;
+    if (favPlaces.has(id)) {
+      removePlaceFavorite(id);
+      setFavPlaces((prev) => { const s = new Set(prev); s.delete(id); return s; });
+    } else {
+      addPlaceFavorite({
+        placeId: id,
+        placeName: result.place.name,
+        category: result.place.category,
+        address: result.place.roadAddress || result.place.address || '',
+        lat: result.place.coordinates.lat,
+        lng: result.place.coordinates.lng,
+      });
+      setFavPlaces((prev) => new Set([...prev, id]));
+    }
+  };
 
   // 검색 결과 로드 완료 시 인기도 데이터 비동기 로드
   useEffect(() => {
@@ -278,14 +322,70 @@ export default function ResultList({
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center justify-center py-4">
-          <div className="flex gap-2 items-center">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        {/* 3단계 로딩 인디케이터 */}
+        <div
+          className="px-4 py-5 rounded-2xl"
+          style={{
+            background: 'linear-gradient(135deg, var(--blue-50), var(--accent-weak))',
+            border: '1px solid var(--blue-200)',
+          }}
+        >
+          {/* 단계 아이콘 */}
+          <div className="flex justify-between items-start mb-3">
+            {LOADING_STAGES.map((stage, i) => (
+              <div
+                key={i}
+                className={`flex flex-col items-center gap-1.5 flex-1 transition-all duration-500 ${
+                  i <= loadingStage ? 'opacity-100' : 'opacity-30'
+                }`}
+              >
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-300 ${
+                    i < loadingStage
+                      ? 'bg-green-100'
+                      : i === loadingStage
+                      ? 'shadow-md scale-110'
+                      : 'bg-gray-100'
+                  }`}
+                  style={i === loadingStage ? { background: 'var(--accent-weak)' } : {}}
+                >
+                  {i < loadingStage ? '✅' : stage.icon}
+                </div>
+                <span
+                  className={`text-[11px] font-semibold text-center leading-tight ${
+                    i === loadingStage ? 'font-bold' : ''
+                  }`}
+                  style={{ color: i <= loadingStage ? 'var(--text-primary)' : 'var(--text-muted)' }}
+                >
+                  {stage.text}
+                </span>
+              </div>
+            ))}
           </div>
+          {/* 진행 바 */}
+          <div
+            className="relative mx-6 h-1 rounded-full mb-3"
+            style={{ background: 'var(--border-soft)' }}
+          >
+            <div
+              className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${(loadingStage / (LOADING_STAGES.length - 1)) * 100}%`,
+                background: 'var(--accent)',
+              }}
+            />
+          </div>
+          {/* 설명 텍스트 */}
+          <p
+            className="text-center text-sm font-medium animate-pulse"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            {LOADING_STAGES[loadingStage].sub}
+          </p>
         </div>
-        {[1, 2, 3, 4].map((i) => (
+
+        {/* 스켈레톤 카드 */}
+        {[1, 2, 3].map((i) => (
           <div key={i} className="relative overflow-hidden p-4 bg-white rounded-2xl shadow-sm">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
             <div className="flex items-start gap-3">
@@ -610,6 +710,17 @@ export default function ResultList({
                 +{detourMin}분
               </span>
               <button
+                onClick={(e) => handleTogglePlaceFav(e, result)}
+                className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
+                title={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 저장'}
+              >
+                <Star
+                  className="w-4 h-4"
+                  fill={favPlaces.has(result.place.id) ? '#f59e0b' : 'none'}
+                  style={{ color: favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
+                />
+              </button>
+              <button
                 onClick={(e) => handleOpenNavi(e, result.place)}
                 className="shrink-0 p-2 rounded-lg active:scale-95"
                 style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
@@ -833,18 +944,31 @@ export default function ResultList({
                 </div>
               </div>
 
-              {/* Copy button */}
-              <button
-                onClick={(e) => handleCopyAddress(e, result)}
-                className="shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95 self-start"
-                title="주소 복사"
-              >
-                {copiedId === result.place.id ? (
-                  <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
-                ) : (
-                  <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                )}
-              </button>
+              {/* 즐겨찾기 + 주소 복사 버튼 */}
+              <div className="flex flex-col gap-1 shrink-0 self-start">
+                <button
+                  onClick={(e) => handleTogglePlaceFav(e, result)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 저장'}
+                >
+                  <Star
+                    className="w-4 h-4"
+                    fill={favPlaces.has(result.place.id) ? '#f59e0b' : 'none'}
+                    style={{ color: favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
+                  />
+                </button>
+                <button
+                  onClick={(e) => handleCopyAddress(e, result)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title="주소 복사"
+                >
+                  {copiedId === result.place.id ? (
+                    <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                  ) : (
+                    <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                  )}
+                </button>
+              </div>
             </div>
           )}
           </button>
