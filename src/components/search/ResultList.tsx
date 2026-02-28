@@ -247,6 +247,12 @@ export default function ResultList({
   // 카드 더보기 메뉴 열림 상태
   const [overflowMenuId, setOverflowMenuId] = useState<string | null>(null);
 
+  // 컴팩트 모드 아코디언: 탭한 카드 ID → 주소/ETA/네비 인라인 표시
+  const [expandedCompactId, setExpandedCompactId] = useState<string | null>(null);
+
+  // 상세 필터 칩 표시 여부 (기본 접힘, 활성 필터 있을 때 자동 펼침)
+  const [showFilterChips, setShowFilterChips] = useState(false);
+
   // 결과 내 이름 검색 필터
   const [nameFilter, setNameFilter] = useState('');
 
@@ -465,6 +471,13 @@ export default function ResultList({
     setDwellMinutes(getDefaultDwellMinutes(currentCategory));
   }, [currentCategory]);
 
+  // 활성 필터가 생기면 상세 필터 칩 영역 자동 펼침
+  useEffect(() => {
+    if (openNowOnly || maxDetourMin !== null || maxDetourKm !== null || proxScoreOnly || unvisitedOnly) {
+      setShowFilterChips(true);
+    }
+  }, [openNowOnly, maxDetourMin, maxDetourKm, proxScoreOnly, unvisitedOnly]);
+
   // 새로운 검색 결과 로드 시 빠른 필터 + 페이지네이션 자동 초기화
   useEffect(() => {
     setOpenNowOnly(false);
@@ -479,6 +492,8 @@ export default function ResultList({
     setShowStickyBar(false);
     setActivePreset(null);
     setOverflowMenuId(null);
+    setExpandedCompactId(null);
+    setShowFilterChips(false);
   }, [results]);
 
   // 결과 요약 헤더 가시성 감지 → 미니 요약 바 표시 제어
@@ -1132,7 +1147,7 @@ export default function ResultList({
   }).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={listRef} tabIndex={-1} style={{ outline: 'none' }}>
       {/* 결과 요약 스마트 헤더 */}
       <div
         ref={summaryHeaderRef}
@@ -1481,8 +1496,40 @@ export default function ResultList({
         </div>
       )}
 
-      {/* ── 필터 프리셋 원탭 버튼 ── */}
-      <div className="flex gap-2">
+      {/* ── 🔒 Sticky 필터 바 (스크롤 시 상단 고정 + ⬆ 맨 위로 버튼) ── */}
+      <div
+        className="sticky top-0 z-20"
+        style={{
+          background: 'var(--bg-surface)',
+          boxShadow: showStickyBar ? '0 4px 20px rgba(0,0,0,0.10)' : 'none',
+          borderBottomLeftRadius: showStickyBar ? 20 : 0,
+          borderBottomRightRadius: showStickyBar ? 20 : 0,
+          paddingBottom: showStickyBar ? 10 : 0,
+          paddingTop: showStickyBar ? 10 : 0,
+          marginLeft: showStickyBar ? -4 : 0,
+          marginRight: showStickyBar ? -4 : 0,
+          paddingLeft: showStickyBar ? 4 : 0,
+          paddingRight: showStickyBar ? 4 : 0,
+          transition: 'box-shadow 0.25s, border-radius 0.25s, padding 0.2s',
+        }}
+      >
+        <div className="space-y-2">
+        {/* ⬆ 맨 위로 버튼 (헤더가 스크롤 아웃된 경우 표시) */}
+        {showStickyBar && (
+          <div className="flex justify-end">
+            <button
+              onClick={() => summaryHeaderRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all active:scale-95"
+              style={{ background: 'var(--blue-100)', color: 'var(--blue-600)', border: '1px solid var(--blue-200)' }}
+              aria-label="맨 위로 스크롤"
+            >
+              ⬆ 맨 위로
+            </button>
+          </div>
+        )}
+
+        {/* ── 필터 프리셋 원탭 버튼 + 상세 필터 토글 + 간략/자세히 ── */}
+        <div className="flex gap-2">
         <button
           onClick={() => applyPreset('quick')}
           className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
@@ -1495,7 +1542,6 @@ export default function ResultList({
         >
           <Zap className="w-3.5 h-3.5" />
           빠른 경유
-          <span className="text-[11px] opacity-75">영업중+5분</span>
         </button>
         <button
           onClick={() => applyPreset('now')}
@@ -1507,15 +1553,50 @@ export default function ResultList({
           }}
           title="영업중 + 5분이내 + 경로근접 + 1km이내 자동 적용"
         >
-          🔥 지금 당장!
-          <span className="text-[11px] opacity-75">5분+근접+1km</span>
+          🔥 당장!
+        </button>
+        {/* 상세 필터 토글 버튼 */}
+        <button
+          onClick={() => setShowFilterChips((v) => !v)}
+          className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+          style={{
+            background: showFilterChips
+              ? 'var(--blue-200)'
+              : (openNowOnly || maxDetourMin !== null || maxDetourKm !== null || proxScoreOnly || unvisitedOnly)
+              ? 'var(--accent)'
+              : 'var(--bg-surface)',
+            color: (showFilterChips || openNowOnly || maxDetourMin !== null || maxDetourKm !== null || proxScoreOnly || unvisitedOnly)
+              ? showFilterChips ? 'var(--blue-700)' : 'white'
+              : 'var(--text-secondary)',
+            border: '1.5px solid var(--border-soft)',
+          }}
+          title="상세 필터 열기/닫기"
+          aria-expanded={showFilterChips}
+        >
+          🎛{showFilterChips ? '▲' : '▼'}
+        </button>
+        {/* 간략/자세히 토글 (프리셋 줄에 상주 — 필터 칩 접혀도 항상 표시) */}
+        <button
+          onClick={() => setIsCompact((v) => !v)}
+          className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+          style={{
+            background: isCompact
+              ? 'linear-gradient(135deg, var(--accent), var(--blue-600, #2563eb))'
+              : 'var(--bg-surface)',
+            color: isCompact ? 'white' : 'var(--text-secondary)',
+            border: `1.5px solid ${isCompact ? 'transparent' : 'var(--border-soft)'}`,
+            boxShadow: isCompact ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+          }}
+          title={isCompact ? '자세히 보기로 전환' : '간략 보기로 전환'}
+        >
+          <span className="text-sm leading-none">{isCompact ? '☰' : '≡'}</span>
+          {isCompact ? '자세히' : '간략'}
         </button>
       </div>
 
-      {/* ── 빠른 필터 칩 ── */}
-      <div className="flex items-center justify-between gap-2">
-        {/* 왼쪽: 필터 칩들 */}
-        <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+      {/* ── 빠른 필터 칩 (showFilterChips 토글) ── */}
+      {showFilterChips && (
+      <div className="flex items-center gap-1.5 flex-wrap">
           {/* 지금 열려있는 곳만 */}
           {hasBusinessHoursData && (
             <button
@@ -1608,26 +1689,8 @@ export default function ResultList({
               {filteredResults.length}개 (전체 {results.length}개)
             </span>
           )}
-        </div>
-
-        {/* 오른쪽: 간략/자세히 보기 토글 (항상 고정) */}
-        <button
-          onClick={() => setIsCompact((v) => !v)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-          style={{
-            background: isCompact
-              ? 'linear-gradient(135deg, var(--accent), var(--blue-600, #2563eb))'
-              : 'var(--bg-surface)',
-            color: isCompact ? 'white' : 'var(--text-secondary)',
-            border: `1.5px solid ${isCompact ? 'transparent' : 'var(--border-soft)'}`,
-            boxShadow: isCompact ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-          }}
-          title={isCompact ? '자세히 보기로 전환' : '간략 보기로 전환'}
-        >
-          <span className="text-sm leading-none">{isCompact ? '☰' : '≡'}</span>
-          {isCompact ? '자세히' : '간략'}
-        </button>
       </div>
+      )}{/* END showFilterChips */}
 
       {/* ── 이름 검색 인풋 (결과 5개 이상) ── */}
       {results.length >= 5 && (
@@ -1753,6 +1816,8 @@ export default function ResultList({
           </button>
         </div>
       )}
+        </div>{/* END 필터 space-y-2 */}
+      </div>{/* END sticky filter bar */}
 
       <div className="space-y-2.5">
       {visibleResults.map((result, index) => {
@@ -1761,7 +1826,7 @@ export default function ResultList({
         const visitedAt = visitedDates.get(result.place.id);
         const detourKm = (result.detourCost.distance / 1000).toFixed(1);
         const detourMin = Math.round(result.detourCost.duration / 60);
-        const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
+        const routeLabel = result.routeType === 'shortest' ? '최단거리' : result.routeType === 'fastest' ? '최단시간' : null;
         const recentClicks = popularityMap[result.place.id] ?? 0;
 
         const currentDistKm = currentLocation
@@ -1855,7 +1920,19 @@ export default function ResultList({
             </div>
           <button
             data-result-index={index}
-            onClick={() => handleSelect(result, index + 1)}
+            onClick={() => {
+              if (isCompact) {
+                // 컴팩트 모드: 이미 확장된 카드면 선택, 아니면 인라인 확장
+                if (expandedCompactId === result.place.id) {
+                  handleSelect(result, index + 1);
+                } else {
+                  setExpandedCompactId(result.place.id);
+                  onSelect(result); // 지도 마커 선택은 유지
+                }
+              } else {
+                handleSelect(result, index + 1);
+              }
+            }}
             onMouseEnter={() => onHoverResult?.(result.place.id)}
             onMouseLeave={() => onHoverResult?.(null)}
             onTouchStart={(e) => handleCardTouchStart(e, result.place.id)}
@@ -1871,6 +1948,7 @@ export default function ResultList({
           >
           {isCompact ? (
             // ── 컴팩트 모드 ──
+            <>
             <div className="flex items-center gap-2.5">
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
@@ -1971,6 +2049,49 @@ export default function ResultList({
                 />
               </button>
             </div>
+
+            {/* ── 컴팩트 아코디언 확장 영역 (탭 시 인라인 세부 정보) ── */}
+            {expandedCompactId === result.place.id && (() => {
+              const eta = getETAText(result, isNowDeparture ? nowMs : departureMs, dwellMinutes);
+              const address = result.place.roadAddress || result.place.address;
+              return (
+                <div
+                  className="mt-2 pt-2 border-t space-y-2"
+                  style={{ borderColor: 'var(--border-soft)' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {address && (
+                    <p className="text-[12px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                      {address}
+                    </p>
+                  )}
+                  {eta && (
+                    <div
+                      className="flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-xl"
+                      style={{ background: 'var(--bg-muted, #f3f4f6)', color: 'var(--text-muted)' }}
+                    >
+                      {isNowDeparture ? <span className="animate-pulse">🟢</span> : <span>🕐</span>}
+                      <span>
+                        경유지 <strong style={{ color: 'var(--text-primary)' }}>{eta.waypoint}</strong>
+                        {' '}/ 목적지 <strong style={{ color: 'var(--text-primary)' }}>{eta.destination}</strong>
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => { triggerNav(result.place); setExpandedCompactId(null); }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold text-[13px] transition-all active:scale-95"
+                    style={{ background: 'var(--accent)', color: 'white' }}
+                  >
+                    <Navigation className="w-4 h-4" />
+                    {preferredNavApp === 'kakao' ? '카카오내비' : preferredNavApp === 'naver' ? '네이버지도' : preferredNavApp === 'tmap' ? '티맵' : '네비'} 시작
+                  </button>
+                  <p className="text-[10px] text-center" style={{ color: 'var(--text-muted)' }}>
+                    한 번 더 탭하면 선택됩니다
+                  </p>
+                </div>
+              );
+            })()}
+            </>
           ) : (
             // ── 전체 카드 모드 ──
             <>
