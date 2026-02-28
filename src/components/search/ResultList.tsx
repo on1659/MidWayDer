@@ -57,19 +57,38 @@ function haversineDistanceKm(lat1: number, lng1: number, lat2: number, lng2: num
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/** 예상 도착 시간 계산 (baseMs: 출발 기준 밀리초, 기본값 지금) */
-function getETAText(result: DetourResult, baseMs?: number): { waypoint: string; destination: string } | null {
+/** 카테고리별 기본 체류 시간 (분) */
+function getDefaultDwellMinutes(category: string): number {
+  const map: Record<string, number> = {
+    '편의점': 5, 'CU': 5, 'GS25': 5, '세븐일레븐': 5, '이마트24': 5,
+    '스타벅스': 20, '이디야': 15, '메가커피': 15, '빽다방': 15, '카페': 15,
+    '다이소': 20, '올리브영': 15,
+    '맥도날드': 20, '버거킹': 20, '롯데리아': 20, '맘스터치': 20,
+    '주유소': 10, '세차장': 15,
+    '은행': 15, '우체국': 10,
+    '약국': 5, '병원': 20,
+    '주차장': 5,
+  };
+  for (const [key, val] of Object.entries(map)) {
+    if (category === key || category.includes(key) || key.includes(category)) return val;
+  }
+  return 10;
+}
+
+/** 예상 도착 시간 계산 (baseMs: 출발 기준 밀리초, dwellMin: 경유지 체류 시간(분)) */
+function getETAText(result: DetourResult, baseMs?: number, dwellMin?: number): { waypoint: string; destination: string } | null {
   const toSec = result.routes?.toWaypoint?.duration;
   const fromSec = result.routes?.fromWaypoint?.duration;
   if (!toSec || !fromSec) return null;
   const now = baseMs ?? Date.now();
+  const dwellMs = (dwellMin ?? 0) * 60 * 1000;
   const fmt = (ms: number) => {
     const d = new Date(ms);
     return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
   };
   return {
     waypoint: fmt(now + toSec * 1000),
-    destination: fmt(now + toSec * 1000 + fromSec * 1000),
+    destination: fmt(now + toSec * 1000 + dwellMs + fromSec * 1000),
   };
 }
 
@@ -209,6 +228,8 @@ export default function ResultList({
   // 빠른 필터 상태
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [maxDetourMin, setMaxDetourMin] = useState<5 | 10 | 15 | null>(null);
+  const [maxDetourKm, setMaxDetourKm] = useState<1 | 2 | 3 | null>(null);
+  const [proxScoreOnly, setProxScoreOnly] = useState(false);
   const [unvisitedOnly, setUnvisitedOnly] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
 
@@ -246,6 +267,9 @@ export default function ResultList({
     const now = new Date();
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   });
+
+  // 경유지 체류 시간 (분) - 카테고리별 기본값 자동 설정
+  const [dwellMinutes, setDwellMinutes] = useState(() => getDefaultDwellMinutes(currentCategory));
 
   // departureTime → ms 변환 (과거 시각이면 다음날로)
   const departureMs = useMemo(() => {
@@ -414,10 +438,17 @@ export default function ResultList({
     try { localStorage.setItem('header-expanded', String(isHeaderExpanded)); } catch { /* ignore */ }
   }, [isHeaderExpanded]);
 
+  // 카테고리 변경 시 체류 시간 기본값 자동 갱신
+  useEffect(() => {
+    setDwellMinutes(getDefaultDwellMinutes(currentCategory));
+  }, [currentCategory]);
+
   // 새로운 검색 결과 로드 시 빠른 필터 + 페이지네이션 자동 초기화
   useEffect(() => {
     setOpenNowOnly(false);
     setMaxDetourMin(null);
+    setMaxDetourKm(null);
+    setProxScoreOnly(false);
     setUnvisitedOnly(false);
     setNameFilter('');
     setVisibleCount(10);
@@ -470,6 +501,12 @@ export default function ResultList({
     if (maxDetourMin !== null) {
       res = res.filter((r) => r.detourCost.duration <= maxDetourMin * 60);
     }
+    if (maxDetourKm !== null) {
+      res = res.filter((r) => r.detourCost.distance <= maxDetourKm * 1000);
+    }
+    if (proxScoreOnly) {
+      res = res.filter((r) => r.proximityScore >= 70);
+    }
     if (unvisitedOnly) {
       res = res.filter((r) => !visitedDates.has(r.place.id));
     }
@@ -478,7 +515,7 @@ export default function ResultList({
       res = res.filter((r) => r.place.name.toLowerCase().includes(q));
     }
     return res;
-  }, [results, openNowOnly, maxDetourMin, unvisitedOnly, visitedDates, nameFilter]);
+  }, [results, openNowOnly, maxDetourMin, maxDetourKm, proxScoreOnly, unvisitedOnly, visitedDates, nameFilter]);
 
   // 핀 고정 카드 항상 상단 정렬
   const sortedWithPins = useMemo(() => {
@@ -1232,6 +1269,29 @@ export default function ResultList({
               ))}
             </div>
 
+            {/* 🏪 경유지 체류 시간 설정 */}
+            <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--blue-200)' }}>
+              <span className="text-[12px] font-semibold shrink-0 flex items-center gap-1" style={{ color: 'var(--blue-700)' }}>
+                🏪 체류 시간
+              </span>
+              <div className="flex gap-1 flex-1 justify-end">
+                {([5, 10, 15, 20, 30] as const).map((min) => (
+                  <button
+                    key={min}
+                    onClick={() => setDwellMinutes(min)}
+                    className="px-2 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
+                    style={{
+                      background: dwellMinutes === min ? 'var(--accent)' : 'var(--blue-100)',
+                      color: dwellMinutes === min ? 'white' : 'var(--blue-700)',
+                      border: `1px solid ${dwellMinutes === min ? 'var(--accent)' : 'var(--blue-200)'}`,
+                    }}
+                  >
+                    {min}분
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* 🚀 베스트 픽으로 바로 출발 원탭 버튼 */}
             <button
               onClick={handleQuickGo}
@@ -1394,6 +1454,35 @@ export default function ResultList({
             </button>
           ))}
 
+          {/* 이탈 거리 상한 */}
+          {([1, 2] as const).map((km) => (
+            <button
+              key={km}
+              onClick={() => setMaxDetourKm((v) => (v === km ? null : km))}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-50, #f5f3ff)',
+                color: maxDetourKm === km ? 'white' : 'var(--purple-700, #6d28d9)',
+                border: `1.5px solid ${maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-200, #ddd6fe)'}`,
+              }}
+            >
+              📏 +{km}km 이내
+            </button>
+          ))}
+
+          {/* 경로 근접 필터 (proxScore >= 70) */}
+          <button
+            onClick={() => setProxScoreOnly((v) => !v)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+            style={{
+              background: proxScoreOnly ? '#0f766e' : '#f0fdfa',
+              color: proxScoreOnly ? 'white' : '#0f766e',
+              border: `1.5px solid ${proxScoreOnly ? '#0f766e' : '#99f6e4'}`,
+            }}
+          >
+            📍 경로 근접
+          </button>
+
           {/* 미방문만 보기 */}
           {visitedDates.size > 0 && (
             <button
@@ -1416,7 +1505,7 @@ export default function ResultList({
           )}
 
           {/* 필터 적용 중 안내 */}
-          {(openNowOnly || maxDetourMin !== null || unvisitedOnly) && (
+          {(openNowOnly || maxDetourMin !== null || maxDetourKm !== null || proxScoreOnly || unvisitedOnly) && (
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {filteredResults.length}개 (전체 {results.length}개)
             </span>
@@ -1475,7 +1564,7 @@ export default function ResultList({
       )}
 
       {/* 필터 결과 없음 안내 */}
-      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null || unvisitedOnly || nameFilter.trim()) && (
+      {filteredResults.length === 0 && (openNowOnly || maxDetourMin !== null || maxDetourKm !== null || proxScoreOnly || unvisitedOnly || nameFilter.trim()) && (
         <div className="py-8 text-center">
           <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
             {nameFilter.trim()
@@ -1485,7 +1574,7 @@ export default function ResultList({
               : '조건에 맞는 경유지가 없어요'}
           </p>
           <button
-            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); setUnvisitedOnly(false); setNameFilter(''); }}
+            onClick={() => { setOpenNowOnly(false); setMaxDetourMin(null); setMaxDetourKm(null); setProxScoreOnly(false); setUnvisitedOnly(false); setNameFilter(''); }}
             className="mt-3 text-xs underline"
             style={{ color: 'var(--accent)' }}
           >
@@ -2081,7 +2170,7 @@ export default function ResultList({
 
                 {/* 출발 시각 기준 예상 도착 시간 (지금 출발 시 1분마다 자동 갱신) */}
                 {(() => {
-                  const eta = getETAText(result, isNowDeparture ? nowMs : departureMs);
+                  const eta = getETAText(result, isNowDeparture ? nowMs : departureMs, dwellMinutes);
                   if (!eta) return null;
                   return (
                     <div
@@ -2096,6 +2185,9 @@ export default function ResultList({
                       <span>
                         {isNowDeparture ? '지금 출발 중' : `${departureTime} 출발`} → 경유지{' '}
                         <strong style={{ color: 'var(--text-primary)' }}>{eta.waypoint}</strong>
+                        {dwellMinutes > 0 && (
+                          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}> (+{dwellMinutes}분 체류)</span>
+                        )}
                         {' '}/ 목적지{' '}
                         <strong style={{ color: 'var(--text-primary)' }}>{eta.destination}</strong>
                         {' '}도착 예상
