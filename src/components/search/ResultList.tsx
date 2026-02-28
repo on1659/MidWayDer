@@ -153,6 +153,23 @@ function getRoutePositionLabel(result: DetourResult): string | null {
   return '도착 직전';
 }
 
+/** 경로 구간 라벨 → 이모지 */
+function getSegmentEmoji(label: string): string {
+  switch (label) {
+    case '출발 직후': return '🚦';
+    case '경로 초반': return '🛣️';
+    case '경로 중간': return '📍';
+    case '경로 후반': return '🏁';
+    case '도착 직전': return '🎯';
+    default: return '📌';
+  }
+}
+
+/** 구간별 그룹핑 렌더 아이템 유니온 타입 */
+type RenderItem =
+  | { type: 'header'; label: string; count: number }
+  | { type: 'card'; result: DetourResult; index: number };
+
 /** 빠른 카테고리 전환 칩에 표시할 인기 카테고리 목록 (순서 = 우선순위) */
 const POPULAR_CATEGORIES = [
   '편의점', 'CU', 'GS25', '세븐일레븐', '스타벅스', '이디야', '메가커피', '카페',
@@ -240,6 +257,7 @@ export default function ResultList({
   const [proxScoreOnly, setProxScoreOnly] = useState(false);
   const [unvisitedOnly, setUnvisitedOnly] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+  const [isGrouped, setIsGrouped] = useState(false);
 
   // 필터 프리셋 ("빠른 경유" / "지금 당장!")
   const [activePreset, setActivePreset] = useState<'quick' | 'now' | null>(null);
@@ -494,6 +512,7 @@ export default function ResultList({
     setOverflowMenuId(null);
     setExpandedCompactId(null);
     setShowFilterChips(false);
+    setIsGrouped(false);
   }, [results]);
 
   // 결과 요약 헤더 가시성 감지 → 미니 요약 바 표시 제어
@@ -569,6 +588,29 @@ export default function ResultList({
     () => sortedWithPins.slice(0, visibleCount),
     [sortedWithPins, visibleCount]
   );
+
+  // 경로 구간별 그룹핑 렌더 아이템
+  // isGrouped=false: 기존 페이지네이션 적용한 flat list
+  // isGrouped=true: 구간 헤더 + 전체 카드 (visibleCount 무시)
+  const renderItems = useMemo((): RenderItem[] => {
+    if (!isGrouped) {
+      return visibleResults.map((result, index) => ({ type: 'card' as const, result, index }));
+    }
+    const items: RenderItem[] = [];
+    let prevSegment: string | null = null;
+    sortedWithPins.forEach((result, index) => {
+      const segment = getRoutePositionLabel(result) ?? '기타';
+      if (segment !== prevSegment) {
+        const segCount = sortedWithPins.filter(
+          (r) => (getRoutePositionLabel(r) ?? '기타') === segment
+        ).length;
+        items.push({ type: 'header' as const, label: segment, count: segCount });
+        prevSegment = segment;
+      }
+      items.push({ type: 'card' as const, result, index });
+    });
+    return items;
+  }, [isGrouped, sortedWithPins, visibleResults]);
 
   // 상대적 이탈 비교 바 계산용 (전체 결과 기준)
   const maxDetourDuration = results.length > 1
@@ -1146,6 +1188,16 @@ export default function ResultList({
     return getBusinessStatus(r.place.businessHours).isOpen;
   }).length;
 
+  // 각 필터 칩의 미리보기 카운트 (비활성 상태에서 "(N개)" 표시)
+  const filterCounts = {
+    detour5: results.filter((r) => r.detourCost.duration <= 300).length,
+    detour10: results.filter((r) => r.detourCost.duration <= 600).length,
+    detour15: results.filter((r) => r.detourCost.duration <= 900).length,
+    dist1km: results.filter((r) => r.detourCost.distance <= 1000).length,
+    dist2km: results.filter((r) => r.detourCost.distance <= 2000).length,
+    proxScore: results.filter((r) => r.proximityScore >= 70).length,
+  };
+
   return (
     <div className="space-y-3" ref={listRef} tabIndex={-1} style={{ outline: 'none' }}>
       {/* 결과 요약 스마트 헤더 */}
@@ -1592,6 +1644,23 @@ export default function ResultList({
           <span className="text-sm leading-none">{isCompact ? '☰' : '≡'}</span>
           {isCompact ? '자세히' : '간략'}
         </button>
+        {/* 🗂️ 경로 구간별 그룹핑 토글 */}
+        <button
+          onClick={() => setIsGrouped((v) => !v)}
+          className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+          style={{
+            background: isGrouped
+              ? 'linear-gradient(135deg, #16a34a, #15803d)'
+              : 'var(--bg-surface)',
+            color: isGrouped ? 'white' : 'var(--text-secondary)',
+            border: `1.5px solid ${isGrouped ? 'transparent' : 'var(--border-soft)'}`,
+            boxShadow: isGrouped ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+          }}
+          title={isGrouped ? '구간별 보기 끄기' : '경로 구간별로 묶어보기'}
+        >
+          <span className="text-sm leading-none">🗺️</span>
+          구간
+        </button>
       </div>
 
       {/* ── 빠른 필터 칩 (showFilterChips 토글) ── */}
@@ -1617,37 +1686,50 @@ export default function ResultList({
           )}
 
           {/* 이탈 시간 상한 */}
-          {([5, 10, 15] as const).map((min) => (
-            <button
-              key={min}
-              onClick={() => { setMaxDetourMin((v) => (v === min ? null : min)); setActivePreset(null); }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
-              style={{
-                background: maxDetourMin === min ? 'var(--accent)' : 'var(--blue-50)',
-                color: maxDetourMin === min ? 'white' : 'var(--blue-700)',
-                border: `1.5px solid ${maxDetourMin === min ? 'var(--accent)' : 'var(--blue-200)'}`,
-              }}
-            >
-              <Zap className="w-3 h-3" />
-              +{min}분 이내
-            </button>
-          ))}
+          {([5, 10, 15] as const).map((min) => {
+            const countKey = min === 5 ? 'detour5' : min === 10 ? 'detour10' : 'detour15';
+            const chipCount = filterCounts[countKey];
+            return (
+              <button
+                key={min}
+                onClick={() => { setMaxDetourMin((v) => (v === min ? null : min)); setActivePreset(null); }}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+                style={{
+                  background: maxDetourMin === min ? 'var(--accent)' : 'var(--blue-50)',
+                  color: maxDetourMin === min ? 'white' : 'var(--blue-700)',
+                  border: `1.5px solid ${maxDetourMin === min ? 'var(--accent)' : 'var(--blue-200)'}`,
+                }}
+              >
+                <Zap className="w-3 h-3" />
+                +{min}분 이내
+                {chipCount > 0 && chipCount < results.length && (
+                  <span className="ml-0.5 opacity-70 text-[10px]">({chipCount})</span>
+                )}
+              </button>
+            );
+          })}
 
           {/* 이탈 거리 상한 */}
-          {([1, 2] as const).map((km) => (
-            <button
-              key={km}
-              onClick={() => { setMaxDetourKm((v) => (v === km ? null : km)); setActivePreset(null); }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
-              style={{
-                background: maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-50, #f5f3ff)',
-                color: maxDetourKm === km ? 'white' : 'var(--purple-700, #6d28d9)',
-                border: `1.5px solid ${maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-200, #ddd6fe)'}`,
-              }}
-            >
-              📏 +{km}km 이내
-            </button>
-          ))}
+          {([1, 2] as const).map((km) => {
+            const chipCount = km === 1 ? filterCounts.dist1km : filterCounts.dist2km;
+            return (
+              <button
+                key={km}
+                onClick={() => { setMaxDetourKm((v) => (v === km ? null : km)); setActivePreset(null); }}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+                style={{
+                  background: maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-50, #f5f3ff)',
+                  color: maxDetourKm === km ? 'white' : 'var(--purple-700, #6d28d9)',
+                  border: `1.5px solid ${maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-200, #ddd6fe)'}`,
+                }}
+              >
+                📏 +{km}km 이내
+                {chipCount > 0 && chipCount < results.length && (
+                  <span className="ml-0.5 opacity-70 text-[10px]">({chipCount})</span>
+                )}
+              </button>
+            );
+          })}
 
           {/* 경로 근접 필터 (proxScore >= 70) */}
           <button
@@ -1660,6 +1742,9 @@ export default function ResultList({
             }}
           >
             📍 경로 근접
+            {filterCounts.proxScore > 0 && filterCounts.proxScore < results.length && !proxScoreOnly && (
+              <span className="ml-0.5 opacity-70 text-[10px]">({filterCounts.proxScore})</span>
+            )}
           </button>
 
           {/* 미방문만 보기 */}
@@ -1820,7 +1905,36 @@ export default function ResultList({
       </div>{/* END sticky filter bar */}
 
       <div className="space-y-2.5">
-      {visibleResults.map((result, index) => {
+      {renderItems.map((item) => {
+        // ── 구간 헤더 ──
+        if (item.type === 'header') {
+          return (
+            <div
+              key={`seg-${item.label}`}
+              className="flex items-center gap-2 pt-1"
+              aria-label={`경로 구간: ${item.label}`}
+            >
+              <div className="flex-1 h-px" style={{ background: 'var(--border-soft)' }} />
+              <span
+                className="flex items-center gap-1.5 text-[12px] font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0"
+                style={{ background: 'var(--blue-100)', color: 'var(--blue-700)', border: '1px solid var(--blue-200)' }}
+              >
+                <span>{getSegmentEmoji(item.label)}</span>
+                <span>{item.label}</span>
+                <span
+                  className="ml-0.5 text-[11px] font-semibold opacity-75 px-1.5 py-0.5 rounded-full"
+                  style={{ background: 'var(--blue-200)', color: 'var(--blue-700)' }}
+                >
+                  {item.count}곳
+                </span>
+              </span>
+              <div className="flex-1 h-px" style={{ background: 'var(--border-soft)' }} />
+            </div>
+          );
+        }
+
+        // ── 결과 카드 ──
+        const { result, index } = item;
         const isSelected = selectedId === result.place.id;
         const isVisited = visitedDates.has(result.place.id);
         const visitedAt = visitedDates.get(result.place.id);
@@ -2686,8 +2800,8 @@ export default function ResultList({
       })}
       </div>
 
-      {/* ── 결과 더보기 버튼 ── */}
-      {sortedWithPins.length > visibleCount && (
+      {/* ── 결과 더보기 버튼 (구간별 보기에서는 숨김 — 전체 표시) ── */}
+      {!isGrouped && sortedWithPins.length > visibleCount && (
         <button
           onClick={() => setVisibleCount(sortedWithPins.length)}
           className="w-full py-3.5 rounded-2xl font-bold text-[14px] transition-all active:scale-[0.98] shadow-sm"
@@ -2700,8 +2814,8 @@ export default function ResultList({
           결과 더 보기 ({sortedWithPins.length - visibleCount}개 남음)
         </button>
       )}
-      {/* 접기 버튼 (전체 표시 중일 때만, 10개 초과 시) */}
-      {sortedWithPins.length > 10 && visibleCount >= sortedWithPins.length && (
+      {/* 접기 버튼 (전체 표시 중일 때만, 10개 초과 시, 구간별 보기 제외) */}
+      {!isGrouped && sortedWithPins.length > 10 && visibleCount >= sortedWithPins.length && (
         <button
           onClick={() => {
             setVisibleCount(10);
