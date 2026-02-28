@@ -161,6 +161,27 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [autoTheme]);
 
+  // sortBy localStorage 복원
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('sort-by') as 'score' | 'distance' | 'duration' | null;
+      if (saved && ['score', 'distance', 'duration'].includes(saved)) setSortBy(saved);
+    } catch { /* ignore */ }
+  }, []);
+
+  // sortBy 변경 시 localStorage 저장
+  useEffect(() => {
+    try { localStorage.setItem('sort-by', sortBy); } catch { /* ignore */ }
+  }, [sortBy]);
+
+  // 카테고리 전환 재검색 완료 → 토스트 알림
+  useEffect(() => {
+    if (pendingCategoryToastRef.current && !isLoading && results.length > 0) {
+      showToast(`✨ ${pendingCategoryToastRef.current} ${results.length}개 새로 발견!`, 'success');
+      pendingCategoryToastRef.current = null;
+    }
+  }, [results, isLoading, showToast]);
+
   // theme-color 메타 동기화
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -213,6 +234,7 @@ export default function HomePage() {
   const urlProcessed = useRef(false);
   const autoSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mapIdleIgnoreRef = useRef(false);
+  const pendingCategoryToastRef = useRef<string | null>(null);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -418,6 +440,7 @@ export default function HomePage() {
     setCategory(cat);
     if (!hasSearched || !start?.address || !end?.address || isLoading) return;
     if (autoSearchTimerRef.current) clearTimeout(autoSearchTimerRef.current);
+    pendingCategoryToastRef.current = cat;
     autoSearchTimerRef.current = setTimeout(async () => {
       clearResults();
       selectWaypoint(null);

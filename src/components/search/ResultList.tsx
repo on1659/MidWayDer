@@ -268,6 +268,16 @@ export default function ResultList({
   // 데이터 기반 인기 카테고리 (결과 없을 때 표시)
   const [statsCategories, setStatsCategories] = useState<string[]>([]);
 
+  // 모바일 하단 고정 미니 요약 바
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const summaryHeaderRef = useRef<HTMLDivElement>(null);
+
+  // 헤더 접기/펼치기 (localStorage 기억)
+  const [isHeaderExpanded, setIsHeaderExpanded] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('header-expanded') !== 'false';
+  });
+
   // 선호 네비 앱
   const [preferredNavApp, setPreferredNavAppState] = useState<NavApp | null>(null);
 
@@ -396,6 +406,11 @@ export default function ResultList({
       .catch(() => {});
   }, [hasSearched, results.length, currentCategory]);
 
+  // isHeaderExpanded 변경 시 localStorage 저장
+  useEffect(() => {
+    try { localStorage.setItem('header-expanded', String(isHeaderExpanded)); } catch { /* ignore */ }
+  }, [isHeaderExpanded]);
+
   // 새로운 검색 결과 로드 시 빠른 필터 + 페이지네이션 자동 초기화
   useEffect(() => {
     setOpenNowOnly(false);
@@ -405,7 +420,20 @@ export default function ResultList({
     setVisibleCount(10);
     setPinnedIds(new Set());
     setShowCompare(false);
+    setShowStickyBar(false);
   }, [results]);
+
+  // 결과 요약 헤더 가시성 감지 → 미니 요약 바 표시 제어
+  useEffect(() => {
+    const el = summaryHeaderRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 스와이프 힌트 애니메이션: 첫 결과 로드 1회, 우→복귀→좌→복귀 순으로 카드 흔들기
   useEffect(() => {
@@ -1017,6 +1045,7 @@ export default function ResultList({
     <div className="space-y-3">
       {/* 결과 요약 스마트 헤더 */}
       <div
+        ref={summaryHeaderRef}
         className="px-4 py-3 rounded-2xl space-y-2.5"
         style={{
           background: 'linear-gradient(135deg, var(--blue-50), var(--accent-weak))',
@@ -1043,103 +1072,129 @@ export default function ResultList({
               </span>
             )}
           </div>
-          <div className="shrink-0 text-right">
-            <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>최단</p>
-            <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--text-primary)' }}>
-              {bestResult.place.name}
-            </p>
+          <div className="flex items-center gap-2 shrink-0">
+            {!isHeaderExpanded && (
+              <span className="text-[11px] font-medium truncate max-w-[80px]" style={{ color: 'var(--text-secondary)' }}>
+                최단 {bestResult.place.name}
+              </span>
+            )}
+            <button
+              onClick={() => setIsHeaderExpanded((v) => !v)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
+              style={{
+                background: 'var(--blue-200)',
+                color: 'var(--blue-700)',
+              }}
+              aria-label={isHeaderExpanded ? '헤더 접기' : '헤더 펼치기'}
+            >
+              {isHeaderExpanded ? '▲ 접기' : '▼ 펼치기'}
+            </button>
           </div>
         </div>
 
-        {/* 📊 경로 구간별 분포 미니 차트 */}
-        {results.length >= 3 && (() => {
-          const segs = [
-            { label: '출발직후', key: '출발 직후', color: '#60a5fa' },
-            { label: '초반', key: '경로 초반', color: '#34d399' },
-            { label: '중간', key: '경로 중간', color: '#a78bfa' },
-            { label: '후반', key: '경로 후반', color: '#f59e0b' },
-            { label: '도착직전', key: '도착 직전', color: '#f87171' },
-          ];
-          const counts = segs.map((s) => results.filter((r) => getRoutePositionLabel(r) === s.key).length);
-          const maxCount = Math.max(...counts, 1);
-          if (counts.every((c) => c === 0)) return null;
-          return (
-            <div className="pt-2 border-t" style={{ borderColor: 'var(--blue-200)' }}>
-              <p className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--blue-600)' }}>
-                📊 경로 구간별 분포
-              </p>
-              <div className="flex items-end gap-1" style={{ height: 40 }}>
-                {segs.map((seg, i) => {
-                  const count = counts[i];
-                  const barH = count === 0 ? 3 : Math.max(8, Math.round((count / maxCount) * 32));
-                  return (
-                    <div key={seg.key} className="flex flex-col items-center flex-1">
-                      {count > 0 && (
-                        <span className="text-[10px] font-bold mb-0.5" style={{ color: seg.color }}>{count}</span>
-                      )}
-                      <div
-                        className="w-full rounded-t transition-all duration-500"
-                        style={{ height: barH, background: count > 0 ? seg.color : 'var(--border-soft)', opacity: count > 0 ? 1 : 0.35 }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex gap-1 mt-0.5">
-                {segs.map((seg) => (
-                  <span key={seg.key} className="flex-1 text-center text-[8px] truncate" style={{ color: 'var(--text-muted)' }}>
-                    {seg.label}
-                  </span>
-                ))}
+        {isHeaderExpanded && (
+          <>
+            {/* 최단 정보 */}
+            <div className="flex justify-end">
+              <div className="text-right">
+                <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>최단</p>
+                <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--text-primary)' }}>
+                  {bestResult.place.name}
+                </p>
               </div>
             </div>
-          );
-        })()}
 
-        {/* 출발 예정 시각 설정 */}
-        <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--blue-200)' }}>
-          <span className="text-[12px] font-semibold shrink-0 flex items-center gap-1" style={{ color: 'var(--blue-700)' }}>
-            {isNowDeparture ? <span className="animate-pulse">🟢</span> : '🕐'}
-            {isNowDeparture ? '출발 중' : '출발 시각'}
-          </span>
-          <input
-            type="time"
-            value={departureTime}
-            onChange={(e) => setDepartureTime(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            className="flex-1 min-w-0 px-3 py-1.5 rounded-xl text-sm font-bold border-0 outline-none focus:ring-2 transition-all"
-            style={{
-              background: 'white',
-              color: 'var(--text-primary)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-            }}
-          />
-          <button
-            onClick={() => {
-              const now = new Date();
-              setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
-            }}
-            className="shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
-            style={{ background: 'var(--blue-200)', color: 'var(--blue-700)' }}
-          >
-            지금
-          </button>
-        </div>
+            {/* 📊 경로 구간별 분포 미니 차트 */}
+            {results.length >= 3 && (() => {
+              const segs = [
+                { label: '출발직후', key: '출발 직후', color: '#60a5fa' },
+                { label: '초반', key: '경로 초반', color: '#34d399' },
+                { label: '중간', key: '경로 중간', color: '#a78bfa' },
+                { label: '후반', key: '경로 후반', color: '#f59e0b' },
+                { label: '도착직전', key: '도착 직전', color: '#f87171' },
+              ];
+              const counts = segs.map((s) => results.filter((r) => getRoutePositionLabel(r) === s.key).length);
+              const maxCount = Math.max(...counts, 1);
+              if (counts.every((c) => c === 0)) return null;
+              return (
+                <div className="pt-2 border-t" style={{ borderColor: 'var(--blue-200)' }}>
+                  <p className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--blue-600)' }}>
+                    📊 경로 구간별 분포
+                  </p>
+                  <div className="flex items-end gap-1" style={{ height: 40 }}>
+                    {segs.map((seg, i) => {
+                      const count = counts[i];
+                      const barH = count === 0 ? 3 : Math.max(8, Math.round((count / maxCount) * 32));
+                      return (
+                        <div key={seg.key} className="flex flex-col items-center flex-1">
+                          {count > 0 && (
+                            <span className="text-[10px] font-bold mb-0.5" style={{ color: seg.color }}>{count}</span>
+                          )}
+                          <div
+                            className="w-full rounded-t transition-all duration-500"
+                            style={{ height: barH, background: count > 0 ? seg.color : 'var(--border-soft)', opacity: count > 0 ? 1 : 0.35 }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-1 mt-0.5">
+                    {segs.map((seg) => (
+                      <span key={seg.key} className="flex-1 text-center text-[8px] truncate" style={{ color: 'var(--text-muted)' }}>
+                        {seg.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
-        {/* 🚀 베스트 픽으로 바로 출발 원탭 버튼 */}
-        <button
-          onClick={handleQuickGo}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 mt-1"
-          style={{
-            background: 'linear-gradient(135deg, var(--accent), #2563eb)',
-            color: 'white',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
-          }}
-          title={`베스트 픽: ${sortedWithPins[0]?.place.name ?? ''}`}
-        >
-          🚀 <span>베스트 픽으로 바로 출발</span>
-          {pinnedIds.size > 0 && <span className="opacity-70 text-[11px]">(📌 고정 기준)</span>}
-        </button>
+            {/* 출발 예정 시각 설정 */}
+            <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--blue-200)' }}>
+              <span className="text-[12px] font-semibold shrink-0 flex items-center gap-1" style={{ color: 'var(--blue-700)' }}>
+                {isNowDeparture ? <span className="animate-pulse">🟢</span> : '🕐'}
+                {isNowDeparture ? '출발 중' : '출발 시각'}
+              </span>
+              <input
+                type="time"
+                value={departureTime}
+                onChange={(e) => setDepartureTime(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 min-w-0 px-3 py-1.5 rounded-xl text-sm font-bold border-0 outline-none focus:ring-2 transition-all"
+                style={{
+                  background: 'white',
+                  color: 'var(--text-primary)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                }}
+              />
+              <button
+                onClick={() => {
+                  const now = new Date();
+                  setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+                }}
+                className="shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
+                style={{ background: 'var(--blue-200)', color: 'var(--blue-700)' }}
+              >
+                지금
+              </button>
+            </div>
+
+            {/* 🚀 베스트 픽으로 바로 출발 원탭 버튼 */}
+            <button
+              onClick={handleQuickGo}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 mt-1"
+              style={{
+                background: 'linear-gradient(135deg, var(--accent), #2563eb)',
+                color: 'white',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+              }}
+              title={`베스트 픽: ${sortedWithPins[0]?.place.name ?? ''}`}
+            >
+              🚀 <span>베스트 픽으로 바로 출발</span>
+              {pinnedIds.size > 0 && <span className="opacity-70 text-[11px]">(📌 고정 기준)</span>}
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── 빠른 카테고리 전환 칩 ── */}
@@ -1409,12 +1464,24 @@ export default function ResultList({
         const swipeDeltaX = isBeingSwiped ? swipeVisual!.deltaX : (isHinting ? swipeHintDeltaX : 0);
         const swipeOpacity = Math.min(1, Math.abs(swipeDeltaX) / 80);
 
+        // 이탈비용 컬러 스트라이프
+        const detourRatio = detourRange > 30
+          ? (result.detourCost.duration - minDetourDuration) / detourRange
+          : 0;
+        const stripeColor = detourRatio < 0.3 ? '#22c55e' : detourRatio < 0.65 ? '#f59e0b' : '#f97316';
+
         return (
           <div
             key={result.place.id}
             className="relative overflow-hidden rounded-2xl shadow-sm"
             style={{ opacity: isVisited ? 0.65 : 1, transition: 'opacity 0.3s' }}
           >
+            {/* 이탈비용 컬러 스트라이프 (좌측 4px 히트맵 색상 바) */}
+            <div
+              className="absolute left-0 top-0 bottom-0 z-[1] rounded-l-2xl pointer-events-none"
+              style={{ width: 4, background: stripeColor }}
+              aria-hidden="true"
+            />
             {/* 핀 고정 뱃지 */}
             {pinnedIds.has(result.place.id) && !isVisited && (
               <div
@@ -2207,6 +2274,40 @@ export default function ResultList({
           )}
         </div>
       )}
+
+      {/* 📌 모바일 하단 고정 미니 요약 바 — 헤더가 뷰포트 밖으로 나가면 표시 */}
+      {showStickyBar && sortedWithPins.length > 0 && (() => {
+        const best = sortedWithPins[0];
+        const bMin = Math.round(best.detourCost.duration / 60);
+        const bKm = (best.detourCost.distance / 1000).toFixed(1);
+        return (
+          <div
+            className="sticky bottom-0 left-0 right-0 z-10 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, var(--bg-surface), var(--blue-50))',
+              border: '1.5px solid var(--blue-200)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <span className="text-lg shrink-0">🏆</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+                {best.place.name}
+              </p>
+              <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                베스트 픽 · +{bMin}분 · +{bKm}km
+              </p>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleQuickGo(); }}
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+              style={{ background: 'var(--accent)', color: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.18)' }}
+            >
+              🚀 바로 출발
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Navigation App Selection Bottom Sheet */}
       <BottomSheet
