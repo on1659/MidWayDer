@@ -210,6 +210,39 @@ export function formatBusinessHours(businessHours: string | undefined): string {
 }
 
 /**
+ * 영업시간 문자열에서 시작/종료 분(분 단위) 반환 — 타임라인 시각화용
+ *
+ * @returns { startMin, endMin, is24h } | null
+ *   - startMin: 0~1439 (자정=0, 09:00=540)
+ *   - endMin: 0~1439+1440 (자정 넘어갈 경우 +1440)
+ *   - is24h: 24시간 영업 여부
+ */
+export function getBusinessHoursRange(businessHours: string | undefined): {
+  startMin: number;
+  endMin: number;
+  is24h: boolean;
+} | null {
+  if (!businessHours) return null;
+
+  if (businessHours.includes('24시간') || businessHours.includes('24hours')) {
+    return { startMin: 0, endMin: 24 * 60, is24h: true };
+  }
+
+  const closedKeywords = ['영업종료', '휴무', '휴점', '폐점', '준비중'];
+  if (closedKeywords.some((k) => businessHours.includes(k))) return null;
+
+  const timeRangeRegex = /(\d{1,2}):?(\d{2})?\s*[~-]\s*(\d{1,2}):?(\d{2})?/;
+  const match = businessHours.match(timeRangeRegex);
+  if (!match) return null;
+
+  const startMin = parseInt(match[1], 10) * 60 + (match[2] ? parseInt(match[2], 10) : 0);
+  const rawEndMin = parseInt(match[3], 10) * 60 + (match[4] ? parseInt(match[4], 10) : 0);
+  const endMin = rawEndMin < startMin ? rawEndMin + 24 * 60 : rawEndMin;
+
+  return { startMin, endMin, is24h: false };
+}
+
+/**
  * 영업시간 상세 정보 파싱 (요일별)
  * 
  * @param businessHours - 복합 영업시간 문자열

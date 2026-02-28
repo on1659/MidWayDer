@@ -11,7 +11,7 @@ import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { openNavigationApp, getPreferredNavApp, setPreferredNavApp } from '@/lib/navigation-links';
 import type { NavApp } from '@/lib/navigation-links';
-import { getBusinessStatus, formatBusinessHours, getMinutesUntilClose, getMinutesUntilOpen } from '@/lib/business-hours';
+import { getBusinessStatus, formatBusinessHours, getMinutesUntilClose, getMinutesUntilOpen, getBusinessHoursRange } from '@/lib/business-hours';
 import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-badges';
 import { getVisitHistory, getVisitCount, recordVisit } from '@/lib/visit-tracking';
 import { hashRoute } from '@/lib/utils/route-hash';
@@ -226,6 +226,9 @@ export default function ResultList({
 
   // 공유 성공 표시 (Web Share API 미지원 시 클립보드 복사 후 표시)
   const [sharedId, setSharedId] = useState<string | null>(null);
+
+  // 전체 결과 텍스트 내보내기 복사 완료 피드백
+  const [exportCopied, setExportCopied] = useState(false);
 
   // 카드 핀 고정 (선택한 결과 항상 상단 유지)
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
@@ -1078,6 +1081,40 @@ export default function ResultList({
                 최단 {bestResult.place.name}
               </span>
             )}
+            {/* 📋 전체 결과 텍스트 내보내기 버튼 */}
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                const lines = sortedWithPins.map((r, i) => {
+                  const dMin = Math.round(r.detourCost.duration / 60);
+                  const dKm = (r.detourCost.distance / 1000).toFixed(1);
+                  const bizStatus = r.place.businessHours
+                    ? getBusinessStatus(r.place.businessHours)
+                    : null;
+                  const bizLabel =
+                    bizStatus && bizStatus.label !== '정보 없음'
+                      ? ` [${bizStatus.label}]`
+                      : '';
+                  return `${i + 1}. ${r.place.name} — +${dMin}분 +${dKm}km${bizLabel}`;
+                });
+                const text =
+                  `[MidWayDer] ${currentCategory} 검색 결과 (${results.length}개)\n` +
+                  lines.join('\n');
+                const success = await copyToClipboard(text);
+                if (success) {
+                  setExportCopied(true);
+                  setTimeout(() => setExportCopied(false), 2000);
+                }
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
+              style={{
+                background: exportCopied ? 'var(--green-500)' : 'var(--blue-100)',
+                color: exportCopied ? 'white' : 'var(--blue-700)',
+              }}
+              title="전체 결과 목록 클립보드에 복사"
+            >
+              {exportCopied ? '✓ 복사됨' : '📋'}
+            </button>
             <button
               onClick={() => setIsHeaderExpanded((v) => !v)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
@@ -1177,6 +1214,22 @@ export default function ResultList({
               >
                 지금
               </button>
+            </div>
+            {/* ⏱ 빠른 출발 시각 설정 버튼 (+30분/+1시간/+2시간) */}
+            <div className="flex items-center gap-1.5">
+              {([30, 60, 120] as const).map((mins) => (
+                <button
+                  key={mins}
+                  onClick={() => {
+                    const d = new Date(Date.now() + mins * 60000);
+                    setDepartureTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+                  }}
+                  className="flex-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
+                  style={{ background: 'var(--blue-100)', color: 'var(--blue-700)', border: '1px solid var(--blue-200)' }}
+                >
+                  +{mins < 60 ? `${mins}분` : `${mins / 60}시간`}
+                </button>
+              ))}
             </div>
 
             {/* 🚀 베스트 픽으로 바로 출발 원탭 버튼 */}
@@ -1661,19 +1714,33 @@ export default function ResultList({
           ) : (
             // ── 전체 카드 모드 ──
             <>
-            {/* 🏆 베스트 픽 배너 (1등 카드만) */}
+            {/* 🏆 베스트 픽 배너 (1등 카드만) — 탭하면 점수 분해 자동 열기/닫기 */}
             {index === 0 && (
-              <div
-                className="mb-3 -mx-1 px-3 py-1.5 rounded-xl flex items-center gap-2 text-[12px] font-bold"
+              <button
+                className="mb-3 -mx-1 px-3 py-1.5 rounded-xl flex items-center gap-2 text-[12px] font-bold transition-all active:scale-[0.98]"
                 style={{
+                  width: 'calc(100% + 8px)',
+                  textAlign: 'left',
                   background: 'linear-gradient(90deg, var(--yellow-100), var(--orange-50, #fff7ed))',
                   color: 'var(--yellow-700)',
-                  border: '1px solid var(--yellow-300)',
+                  border: scoreDetailOpenId === result.place.id
+                    ? '1.5px solid var(--yellow-400, #facc15)'
+                    : '1px solid var(--yellow-300)',
                 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setScoreDetailOpenId((prev) =>
+                    prev === result.place.id ? null : result.place.id
+                  );
+                }}
+                title="탭해서 추천 점수 분석 보기"
               >
                 <span>🏆</span>
-                <span>베스트 픽 — {getBestPickReason(result)}</span>
-              </div>
+                <span className="flex-1">베스트 픽 — {getBestPickReason(result)}</span>
+                <span className="text-[10px] opacity-60 shrink-0">
+                  {scoreDetailOpenId === result.place.id ? '▲ 접기' : '📊 분석'}
+                </span>
+              </button>
             )}
             <div className="flex items-start gap-3">
               {/* Rank badge with category icon */}
@@ -1861,6 +1928,48 @@ export default function ResultList({
                       >
                         {isBest ? '⭐최단' : `+${deltaMin}분 더`}
                       </span>
+                    </div>
+                  );
+                })()}
+
+                {/* ⏰ 영업시간 타임라인 — 24시간 기준 영업 구간 + 현재 시각 포인터 */}
+                {result.place.businessHours && (() => {
+                  const range = getBusinessHoursRange(result.place.businessHours);
+                  if (!range || range.is24h) return null;
+                  const TOTAL = 24 * 60;
+                  const now = new Date();
+                  const currentMin = now.getHours() * 60 + now.getMinutes();
+                  const openPct = (range.startMin / TOTAL) * 100;
+                  const closePct = Math.min((range.endMin / TOTAL) * 100, 100);
+                  const nowPct = (currentMin / TOTAL) * 100;
+                  const fmtMin = (m: number) => {
+                    const h = Math.floor((m % (24 * 60)) / 60);
+                    const min = (m % (24 * 60)) % 60;
+                    return `${h}:${String(min).padStart(2, '0')}`;
+                  };
+                  const bizStatus = getBusinessStatus(result.place.businessHours);
+                  return (
+                    <div className="mt-2" title={`영업: ${fmtMin(range.startMin)} ~ ${fmtMin(range.endMin)}`}>
+                      <div className="relative h-2 rounded-full" style={{ background: 'var(--border-soft)' }}>
+                        {/* 영업 시간 구간 */}
+                        <div
+                          className="absolute top-0 bottom-0 rounded-full"
+                          style={{
+                            left: `${openPct}%`,
+                            width: `${Math.max(0, closePct - openPct)}%`,
+                            background: bizStatus.isOpen ? '#22c55e' : '#9ca3af',
+                          }}
+                        />
+                        {/* 현재 시각 포인터 */}
+                        <div
+                          className="absolute top-[-1px] bottom-[-1px] z-10 rounded-sm"
+                          style={{ left: `${nowPct}%`, width: 2, background: '#ef4444' }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-0.5">
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{fmtMin(range.startMin)}</span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{fmtMin(range.endMin)}</span>
+                      </div>
                     </div>
                   );
                 })()}
@@ -2243,36 +2352,31 @@ export default function ResultList({
         </button>
       )}
 
-      {/* Feedback Section */}
+      {/* Feedback Section — 컴팩트 인라인 */}
       {results.length > 0 && (
-        <div className="mt-4 p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
-          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
-            이 검색 결과가 도움됐나요?
+        feedbackSent ? (
+          <p className="text-xs text-center py-1.5" style={{ color: 'var(--green-600)' }}>
+            감사합니다! 소중한 의견 반영할게요 ✨
           </p>
-          <div className="flex gap-3">
+        ) : (
+          <div className="flex items-center justify-center gap-3 py-1.5">
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>결과가 도움됐나요?</span>
             <button
               onClick={() => handleFeedback(true)}
-              disabled={feedbackSent}
-              className="flex-1 py-3 rounded-xl font-medium transition-all active:scale-95 disabled:opacity-50"
-              style={{ background: 'var(--green-100)', color: 'var(--green-600)' }}
+              className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{ background: 'var(--green-100)', color: 'var(--green-700)', border: '1px solid var(--green-200)' }}
             >
               👍 도움됐어요
             </button>
             <button
               onClick={() => handleFeedback(false)}
-              disabled={feedbackSent}
-              className="flex-1 py-3 rounded-xl font-medium transition-all active:scale-95 disabled:opacity-50"
-              style={{ background: 'var(--red-100)', color: 'var(--red-600)' }}
+              className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{ background: 'var(--red-100, #fee2e2)', color: 'var(--red-600, #dc2626)', border: '1px solid var(--red-200, #fecaca)' }}
             >
               👎 별로예요
             </button>
           </div>
-          {feedbackSent && (
-            <p className="text-sm mt-2 text-center" style={{ color: 'var(--green-600)' }}>
-              감사합니다! 소중한 의견 반영할게요 ✨
-            </p>
-          )}
-        </div>
+        )
       )}
 
       {/* 📌 모바일 하단 고정 미니 요약 바 — 헤더가 뷰포트 밖으로 나가면 표시 */}
