@@ -105,6 +105,14 @@ function getVisitDateLabel(ms: number): string {
   return `${Math.floor(diffDay / 30)}달 전`;
 }
 
+/** 검색 시각 상대 표시 (searchedAt ms → "방금 검색", "N분 전" 등) */
+function getRelativeSearchTime(ms: number): string {
+  const diff = Math.floor((Date.now() - ms) / 60000);
+  if (diff < 1) return '방금 검색';
+  if (diff < 60) return `${diff}분 전`;
+  return `${Math.floor(diff / 60)}시간 전`;
+}
+
 /** 베스트 픽 이유 한 줄 (1등 카드용) */
 function getBestPickReason(result: DetourResult): string {
   const detourMin = Math.round(result.detourCost.duration / 60);
@@ -288,6 +296,9 @@ export default function ResultList({
 
   // 실시간 ETA 카운트다운: 지금 출발 시 1분마다 nowMs 갱신
   const [nowMs, setNowMs] = useState(Date.now());
+
+  // 검색 시각 기록 (새 결과 로드 시 자동 업데이트)
+  const [searchedAt, setSearchedAt] = useState<number | null>(null);
   const isNowDeparture = Math.abs(departureMs - nowMs) < 120000;
   useEffect(() => {
     if (!isNowDeparture) return;
@@ -420,6 +431,11 @@ export default function ResultList({
       .catch(() => {
         // 실패해도 UX 차단 안 함
       });
+  }, [results]);
+
+  // 새로운 결과 도착 시 검색 시각 기록
+  useEffect(() => {
+    if (results.length > 0) setSearchedAt(Date.now());
   }, [results]);
 
   // 결과 없을 때 인기 카테고리 데이터 로드 (SearchLog 기반)
@@ -1152,6 +1168,23 @@ export default function ResultList({
                 최단 {bestResult.place.name}
               </span>
             )}
+            {/* 🔄 검색 시각 + 갱신 버튼 */}
+            {searchedAt && (
+              <span className="text-[11px] font-medium shrink-0" style={{ color: 'var(--text-muted)' }}>
+                {getRelativeSearchTime(searchedAt)}
+              </span>
+            )}
+            {searchedAt && onRetry && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onRetry?.(); }}
+                className="shrink-0 flex items-center px-2 py-1 rounded-xl text-[11px] font-bold transition-all active:scale-95"
+                style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}
+                title="동일 경로 재검색"
+                aria-label="재검색"
+              >
+                🔄
+              </button>
+            )}
             {/* 📋 전체 결과 텍스트 내보내기 버튼 */}
             <button
               onClick={async (e) => {
@@ -1644,6 +1677,79 @@ export default function ResultList({
             style={{ color: 'var(--accent)' }}
           >
             필터 초기화
+          </button>
+        </div>
+      )}
+
+      {/* ── 활성 필터 요약 바 ── */}
+      {(openNowOnly || maxDetourMin !== null || maxDetourKm !== null || proxScoreOnly || unvisitedOnly) && filteredResults.length > 0 && (
+        <div
+          className="flex items-center gap-1.5 flex-wrap px-3 py-2 rounded-xl"
+          style={{ background: 'var(--blue-50)', border: '1px solid var(--blue-200)' }}
+        >
+          <span className="text-[11px] font-bold shrink-0" style={{ color: 'var(--blue-600)' }}>🔽 필터</span>
+          {openNowOnly && (
+            <button
+              onClick={() => { setOpenNowOnly(false); setActivePreset(null); }}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold active:scale-95 transition-all"
+              style={{ background: 'var(--green-100)', color: 'var(--green-700)', border: '1px solid var(--green-200)' }}
+            >
+              영업중 ✕
+            </button>
+          )}
+          {maxDetourMin !== null && (
+            <button
+              onClick={() => { setMaxDetourMin(null); setActivePreset(null); }}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold active:scale-95 transition-all"
+              style={{ background: 'var(--blue-100)', color: 'var(--blue-700)', border: '1px solid var(--blue-200)' }}
+            >
+              +{maxDetourMin}분 ✕
+            </button>
+          )}
+          {maxDetourKm !== null && (
+            <button
+              onClick={() => { setMaxDetourKm(null); setActivePreset(null); }}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold active:scale-95 transition-all"
+              style={{ background: 'var(--purple-50, #f5f3ff)', color: 'var(--purple-700, #6d28d9)', border: '1px solid var(--purple-200, #ddd6fe)' }}
+            >
+              +{maxDetourKm}km ✕
+            </button>
+          )}
+          {proxScoreOnly && (
+            <button
+              onClick={() => { setProxScoreOnly(false); setActivePreset(null); }}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold active:scale-95 transition-all"
+              style={{ background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}
+            >
+              경로근접 ✕
+            </button>
+          )}
+          {unvisitedOnly && (
+            <button
+              onClick={() => { setUnvisitedOnly(false); setActivePreset(null); }}
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold active:scale-95 transition-all"
+              style={{ background: 'var(--orange-50, #fff7ed)', color: 'var(--orange-700, #c2410c)', border: '1px solid var(--orange-200, #fed7aa)' }}
+            >
+              미방문 ✕
+            </button>
+          )}
+          <div className="flex-1" />
+          <span className="text-[11px] font-semibold shrink-0" style={{ color: 'var(--blue-600)' }}>
+            {filteredResults.length}/{results.length}개
+          </span>
+          <button
+            onClick={() => {
+              setOpenNowOnly(false);
+              setMaxDetourMin(null);
+              setMaxDetourKm(null);
+              setProxScoreOnly(false);
+              setUnvisitedOnly(false);
+              setActivePreset(null);
+            }}
+            className="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
+            style={{ background: 'var(--accent)', color: 'white' }}
+          >
+            전체 해제
           </button>
         </div>
       )}
