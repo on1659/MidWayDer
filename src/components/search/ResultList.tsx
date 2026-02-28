@@ -215,6 +215,9 @@ export default function ResultList({
   // 결과 내 이름 검색 필터
   const [nameFilter, setNameFilter] = useState('');
 
+  // 상위 N개 비교 패널
+  const [showCompare, setShowCompare] = useState(false);
+
   // 방문 완료 상태 (placeId → visitedAt timestamp)
   const [visitedDates, setVisitedDates] = useState<Map<string, number>>(new Map());
 
@@ -392,6 +395,7 @@ export default function ResultList({
     setNameFilter('');
     setVisibleCount(10);
     setPinnedIds(new Set());
+    setShowCompare(false);
   }, [results]);
 
   // 스와이프 힌트 애니메이션: 첫 결과 로드 1회, 우→복귀→좌→복귀 순으로 카드 흔들기
@@ -1038,6 +1042,51 @@ export default function ResultList({
           </div>
         </div>
 
+        {/* 📊 경로 구간별 분포 미니 차트 */}
+        {results.length >= 3 && (() => {
+          const segs = [
+            { label: '출발직후', key: '출발 직후', color: '#60a5fa' },
+            { label: '초반', key: '경로 초반', color: '#34d399' },
+            { label: '중간', key: '경로 중간', color: '#a78bfa' },
+            { label: '후반', key: '경로 후반', color: '#f59e0b' },
+            { label: '도착직전', key: '도착 직전', color: '#f87171' },
+          ];
+          const counts = segs.map((s) => results.filter((r) => getRoutePositionLabel(r) === s.key).length);
+          const maxCount = Math.max(...counts, 1);
+          if (counts.every((c) => c === 0)) return null;
+          return (
+            <div className="pt-2 border-t" style={{ borderColor: 'var(--blue-200)' }}>
+              <p className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--blue-600)' }}>
+                📊 경로 구간별 분포
+              </p>
+              <div className="flex items-end gap-1" style={{ height: 40 }}>
+                {segs.map((seg, i) => {
+                  const count = counts[i];
+                  const barH = count === 0 ? 3 : Math.max(8, Math.round((count / maxCount) * 32));
+                  return (
+                    <div key={seg.key} className="flex flex-col items-center flex-1">
+                      {count > 0 && (
+                        <span className="text-[10px] font-bold mb-0.5" style={{ color: seg.color }}>{count}</span>
+                      )}
+                      <div
+                        className="w-full rounded-t transition-all duration-500"
+                        style={{ height: barH, background: count > 0 ? seg.color : 'var(--border-soft)', opacity: count > 0 ? 1 : 0.35 }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex gap-1 mt-0.5">
+                {segs.map((seg) => (
+                  <span key={seg.key} className="flex-1 text-center text-[8px] truncate" style={{ color: 'var(--text-muted)' }}>
+                    {seg.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* 출발 예정 시각 설정 */}
         <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--blue-200)' }}>
           <span className="text-[12px] font-semibold shrink-0" style={{ color: 'var(--blue-700)' }}>
@@ -1116,6 +1165,74 @@ export default function ResultList({
               <span>{cat}</span>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* ── 상위 N개 한눈에 비교 ── */}
+      {results.length >= 2 && (
+        <div>
+          <button
+            onClick={() => setShowCompare((v) => !v)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+            style={{
+              background: showCompare ? 'var(--blue-100)' : 'var(--bg-surface)',
+              color: 'var(--blue-700)',
+              border: '1.5px solid var(--blue-200)',
+            }}
+          >
+            <span>⚖️ 상위 {Math.min(3, results.length)}개 한눈에 비교</span>
+            <span style={{ fontSize: 10 }}>{showCompare ? '▲ 접기' : '▼ 펼치기'}</span>
+          </button>
+          {showCompare && (
+            <div
+              className="grid gap-2 mt-2"
+              style={{ gridTemplateColumns: `repeat(${Math.min(3, sortedWithPins.length)}, 1fr)` }}
+            >
+              {sortedWithPins.slice(0, 3).map((r, i) => {
+                const isSelected = selectedId === r.place.id;
+                const dMin = Math.round(r.detourCost.duration / 60);
+                const dKm = (r.detourCost.distance / 1000).toFixed(1);
+                const bizStatus = r.place.businessHours ? getBusinessStatus(r.place.businessHours) : null;
+                return (
+                  <button
+                    key={r.place.id}
+                    onClick={() => handleSelect(r, i + 1)}
+                    className="flex flex-col items-center gap-1 p-2.5 rounded-xl text-center transition-all active:scale-95"
+                    style={{
+                      background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
+                      border: isSelected ? '1.5px solid var(--accent)' : '1.5px solid var(--border-soft)',
+                    }}
+                  >
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{
+                        background: i === 0 ? 'var(--accent)' : 'var(--blue-150)',
+                        color: i === 0 ? 'white' : 'var(--accent)',
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-[11px] font-bold w-full truncate" style={{ color: 'var(--text-primary)' }}>
+                      {r.place.name}
+                    </span>
+                    <span className="text-[11px] font-semibold" style={{ color: 'var(--yellow-600)' }}>+{dMin}분</span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>+{dKm}km</span>
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ background: 'var(--blue-100)', color: 'var(--blue-700)' }}
+                    >
+                      {Math.round(r.finalScore)}점
+                    </span>
+                    {bizStatus && bizStatus.label !== '정보 없음' && (
+                      <span className="text-[9px] font-semibold" style={{ color: bizStatus.isOpen ? '#16a34a' : '#dc2626' }}>
+                        {bizStatus.emoji} {bizStatus.isOpen ? '영업중' : '마감'}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
