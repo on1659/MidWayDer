@@ -109,6 +109,77 @@ export function getBusinessStatus(businessHours: string | undefined): BusinessHo
 }
 
 /**
+ * 영업 종료까지 남은 분 수 반환 (영업 중일 때만)
+ * @returns 양수=남은 분, null=파싱 불가/24시간/이미 마감
+ */
+export function getMinutesUntilClose(businessHours: string | undefined): number | null {
+  if (!businessHours) return null;
+  if (businessHours.includes('24시간') || businessHours.includes('24hours')) return null;
+  const closedKeywords = ['영업종료', '휴무', '휴점', '폐점', '준비중'];
+  if (closedKeywords.some((k) => businessHours.includes(k))) return null;
+
+  const timeRangeRegex = /(\d{1,2}):?(\d{2})?\s*[~-]\s*(\d{1,2}):?(\d{2})?/;
+  const match = businessHours.match(timeRangeRegex);
+  if (!match) return null;
+
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+
+  const startHour = parseInt(match[1], 10);
+  const startMinute = match[2] ? parseInt(match[2], 10) : 0;
+  const startTime = startHour * 60 + startMinute;
+
+  const endHour = parseInt(match[3], 10);
+  const endMinute = match[4] ? parseInt(match[4], 10) : 0;
+  let endTime = endHour * 60 + endMinute;
+
+  if (endTime < startTime) endTime += 24 * 60;
+
+  const adjustedCurrent = currentTime < startTime ? currentTime + 24 * 60 : currentTime;
+  const isOpen = adjustedCurrent >= startTime && adjustedCurrent < endTime;
+  if (!isOpen) return null;
+
+  return endTime - adjustedCurrent;
+}
+
+/**
+ * 영업 시작까지 남은 분 수 반환 (영업 종료 상태일 때만)
+ * @returns 양수=남은 분, null=파싱 불가/24시간/현재 영업 중
+ */
+export function getMinutesUntilOpen(businessHours: string | undefined): number | null {
+  if (!businessHours) return null;
+  if (businessHours.includes('24시간') || businessHours.includes('24hours')) return null;
+  const closedKeywords = ['영업종료', '휴무', '휴점', '폐점', '준비중'];
+  if (closedKeywords.some((k) => businessHours.includes(k))) return null;
+
+  const timeRangeRegex = /(\d{1,2}):?(\d{2})?\s*[~-]\s*(\d{1,2}):?(\d{2})?/;
+  const match = businessHours.match(timeRangeRegex);
+  if (!match) return null;
+
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+
+  const startHour = parseInt(match[1], 10);
+  const startMinute = match[2] ? parseInt(match[2], 10) : 0;
+  const startTime = startHour * 60 + startMinute;
+
+  const endHour = parseInt(match[3], 10);
+  const endMinute = match[4] ? parseInt(match[4], 10) : 0;
+  let endTime = endHour * 60 + endMinute;
+
+  if (endTime < startTime) endTime += 24 * 60;
+
+  const adjustedCurrent = currentTime < startTime ? currentTime + 24 * 60 : currentTime;
+  const isOpen = adjustedCurrent >= startTime && adjustedCurrent < endTime;
+  if (isOpen) return null;
+
+  // 오늘 아직 오픈 전: startTime - currentTime
+  if (currentTime < startTime) return startTime - currentTime;
+  // 오늘 이미 마감: 다음날 오픈까지
+  return startTime + 24 * 60 - currentTime;
+}
+
+/**
  * 영업시간 문자열을 사람이 읽기 쉬운 형식으로 포맷
  * 
  * @param businessHours - "09:00~22:00" 또는 복잡한 형식

@@ -11,7 +11,7 @@ import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { openNavigationApp, getPreferredNavApp, setPreferredNavApp } from '@/lib/navigation-links';
 import type { NavApp } from '@/lib/navigation-links';
-import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
+import { getBusinessStatus, formatBusinessHours, getMinutesUntilClose, getMinutesUntilOpen } from '@/lib/business-hours';
 import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-badges';
 import { getVisitHistory, getVisitCount, recordVisit } from '@/lib/visit-tracking';
 import { hashRoute } from '@/lib/utils/route-hash';
@@ -252,6 +252,15 @@ export default function ResultList({
     if (d.getTime() < Date.now() - 60000) d.setDate(d.getDate() + 1);
     return d.getTime();
   }, [departureTime]);
+
+  // 실시간 ETA 카운트다운: 지금 출발 시 1분마다 nowMs 갱신
+  const [nowMs, setNowMs] = useState(Date.now());
+  const isNowDeparture = Math.abs(departureMs - nowMs) < 120000;
+  useEffect(() => {
+    if (!isNowDeparture) return;
+    const interval = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, [isNowDeparture]);
 
   // 실시간 인기도 (최근 1시간 클릭 수)
   const [popularityMap, setPopularityMap] = useState<Record<string, number>>({});
@@ -1089,8 +1098,9 @@ export default function ResultList({
 
         {/* 출발 예정 시각 설정 */}
         <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: 'var(--blue-200)' }}>
-          <span className="text-[12px] font-semibold shrink-0" style={{ color: 'var(--blue-700)' }}>
-            🕐 출발 시각
+          <span className="text-[12px] font-semibold shrink-0 flex items-center gap-1" style={{ color: 'var(--blue-700)' }}>
+            {isNowDeparture ? <span className="animate-pulse">🟢</span> : '🕐'}
+            {isNowDeparture ? '출발 중' : '출발 시각'}
           </span>
           <input
             type="time"
@@ -1521,6 +1531,22 @@ export default function ResultList({
               >
                 +{detourMin}분
               </span>
+              {/* 컴팩트: 마감 임박 뱃지 (30분 이내) */}
+              {result.place.businessHours && (() => {
+                const status = getBusinessStatus(result.place.businessHours);
+                const minsUntilClose = status.isOpen ? getMinutesUntilClose(result.place.businessHours) : null;
+                if (minsUntilClose !== null && minsUntilClose <= 30) {
+                  return (
+                    <span
+                      className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fbbf24' }}
+                    >
+                      ⚠️{minsUntilClose}분
+                    </span>
+                  );
+                }
+                return null;
+              })()}
               <button
                 onClick={(e) => handleTogglePlaceFav(e, result)}
                 className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
@@ -1666,20 +1692,36 @@ export default function ResultList({
                       🔥 {recentClicks}명 관심
                     </span>
                   )}
-                  {/* 영업 상태 뱃지 */}
+                  {/* 영업 상태 뱃지 + 마감/오픈까지 남은 시간 */}
                   {result.place.businessHours && (() => {
                     const status = getBusinessStatus(result.place.businessHours);
                     if (status.label === '정보 없음') return null;
+                    const minsUntilClose = status.isOpen ? getMinutesUntilClose(result.place.businessHours) : null;
+                    const minsUntilOpen = !status.isOpen ? getMinutesUntilOpen(result.place.businessHours) : null;
+                    const isUrgentClose = minsUntilClose !== null && minsUntilClose <= 30;
+                    const isOpeningSoon = minsUntilOpen !== null && minsUntilOpen <= 30;
                     return (
-                      <span
-                        className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                        style={{
-                          background: status.isOpen ? 'var(--green-100)' : 'var(--red-100)',
-                          color: status.color,
-                        }}
-                      >
-                        {status.emoji} {status.label}
-                      </span>
+                      <>
+                        <span
+                          className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                          style={{
+                            background: isUrgentClose ? '#fef3c7' : status.isOpen ? 'var(--green-100)' : 'var(--red-100)',
+                            color: isUrgentClose ? '#92400e' : status.color,
+                            border: isUrgentClose ? '1.5px solid #fbbf24' : undefined,
+                          }}
+                        >
+                          {isUrgentClose ? '⚠️' : status.emoji}{' '}
+                          {isUrgentClose ? `${minsUntilClose}분 후 마감` : status.label}
+                        </span>
+                        {isOpeningSoon && (
+                          <span
+                            className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                            style={{ background: '#dbeafe', color: '#1d4ed8', border: '1.5px solid #93c5fd' }}
+                          >
+                            🕐 {minsUntilOpen}분 후 오픈
+                          </span>
+                        )}
+                      </>
                     );
                   })()}
                   {/* 현재 위치 기준 거리 뱃지 */}
@@ -1861,23 +1903,27 @@ export default function ResultList({
                   );
                 })()}
 
-                {/* 출발 시각 기준 예상 도착 시간 */}
+                {/* 출발 시각 기준 예상 도착 시간 (지금 출발 시 1분마다 자동 갱신) */}
                 {(() => {
-                  const eta = getETAText(result, departureMs);
+                  const eta = getETAText(result, isNowDeparture ? nowMs : departureMs);
                   if (!eta) return null;
-                  const isNowDeparture = Math.abs(departureMs - Date.now()) < 120000;
                   return (
                     <div
                       className="mt-2 flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-xl"
                       style={{ background: 'var(--bg-muted, #f3f4f6)', color: 'var(--text-muted)' }}
                     >
-                      <span>🕐</span>
+                      {isNowDeparture ? (
+                        <span className="animate-pulse" title="실시간 갱신 중">🟢</span>
+                      ) : (
+                        <span>🕐</span>
+                      )}
                       <span>
-                        {isNowDeparture ? '지금 출발' : `${departureTime} 출발`} → 경유지{' '}
+                        {isNowDeparture ? '지금 출발 중' : `${departureTime} 출발`} → 경유지{' '}
                         <strong style={{ color: 'var(--text-primary)' }}>{eta.waypoint}</strong>
                         {' '}/ 목적지{' '}
                         <strong style={{ color: 'var(--text-primary)' }}>{eta.destination}</strong>
                         {' '}도착 예상
+                        {isNowDeparture && <span className="ml-1 text-[10px]" style={{ color: 'var(--text-muted)' }}>· 1분마다 갱신</span>}
                       </span>
                     </div>
                   );
