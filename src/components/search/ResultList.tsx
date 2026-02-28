@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2, Bookmark, Pencil } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2, Bookmark, Pencil, MoreHorizontal } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -36,7 +36,7 @@ interface ResultListProps {
   onSaveRoute?: () => void;
   onExpandRadius?: () => void;
   onCancel?: () => void;
-  sortBy?: 'score' | 'distance' | 'duration';
+  sortBy?: 'score' | 'distance' | 'duration' | 'closing';
   onHoverResult?: (id: string | null) => void;
 }
 
@@ -232,6 +232,12 @@ export default function ResultList({
   const [proxScoreOnly, setProxScoreOnly] = useState(false);
   const [unvisitedOnly, setUnvisitedOnly] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+
+  // 필터 프리셋 ("빠른 경유" / "지금 당장!")
+  const [activePreset, setActivePreset] = useState<'quick' | 'now' | null>(null);
+
+  // 카드 더보기 메뉴 열림 상태
+  const [overflowMenuId, setOverflowMenuId] = useState<string | null>(null);
 
   // 결과 내 이름 검색 필터
   const [nameFilter, setNameFilter] = useState('');
@@ -455,6 +461,8 @@ export default function ResultList({
     setPinnedIds(new Set());
     setShowCompare(false);
     setShowStickyBar(false);
+    setActivePreset(null);
+    setOverflowMenuId(null);
   }, [results]);
 
   // 결과 요약 헤더 가시성 감지 → 미니 요약 바 표시 제어
@@ -553,6 +561,7 @@ export default function ResultList({
   };
 
   const handleSelect = async (result: DetourResult, rank: number) => {
+    setOverflowMenuId(null);
     // 클릭 로그 저장 (비동기, 실패해도 UX 차단 안 함)
     fetch('/api/log-click', {
       method: 'POST',
@@ -711,6 +720,31 @@ export default function ResultList({
     e.stopPropagation();
     setEditingMemoId(null);
     setEditingMemoText('');
+  }, []);
+
+  /** 필터 프리셋 원탭 적용/해제 */
+  const applyPreset = useCallback((preset: 'quick' | 'now') => {
+    setActivePreset((prev) => {
+      if (prev === preset) {
+        // 같은 프리셋 재클릭 → 모든 필터 해제
+        setOpenNowOnly(false);
+        setMaxDetourMin(null);
+        setMaxDetourKm(null);
+        setProxScoreOnly(false);
+        return null;
+      }
+      // 프리셋 적용
+      setOpenNowOnly(true);
+      setMaxDetourMin(5);
+      if (preset === 'now') {
+        setMaxDetourKm(1);
+        setProxScoreOnly(true);
+      } else {
+        setMaxDetourKm(null);
+        setProxScoreOnly(false);
+      }
+      return preset;
+    });
   }, []);
 
   // 네비게이션 공통 트리거 (e 없이 직접 호출 가능)
@@ -1414,6 +1448,37 @@ export default function ResultList({
         </div>
       )}
 
+      {/* ── 필터 프리셋 원탭 버튼 ── */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => applyPreset('quick')}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+          style={{
+            background: activePreset === 'quick' ? 'var(--accent)' : 'var(--accent-weak)',
+            color: activePreset === 'quick' ? 'white' : 'var(--accent)',
+            border: `1.5px solid ${activePreset === 'quick' ? 'var(--accent)' : 'transparent'}`,
+          }}
+          title="영업중 + 5분 이내 자동 적용"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          빠른 경유
+          <span className="text-[11px] opacity-75">영업중+5분</span>
+        </button>
+        <button
+          onClick={() => applyPreset('now')}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+          style={{
+            background: activePreset === 'now' ? '#dc2626' : '#fee2e2',
+            color: activePreset === 'now' ? 'white' : '#dc2626',
+            border: `1.5px solid ${activePreset === 'now' ? '#dc2626' : 'transparent'}`,
+          }}
+          title="영업중 + 5분이내 + 경로근접 + 1km이내 자동 적용"
+        >
+          🔥 지금 당장!
+          <span className="text-[11px] opacity-75">5분+근접+1km</span>
+        </button>
+      </div>
+
       {/* ── 빠른 필터 칩 ── */}
       <div className="flex items-center justify-between gap-2">
         {/* 왼쪽: 필터 칩들 */}
@@ -1421,7 +1486,7 @@ export default function ResultList({
           {/* 지금 열려있는 곳만 */}
           {hasBusinessHoursData && (
             <button
-              onClick={() => setOpenNowOnly((v) => !v)}
+              onClick={() => { setOpenNowOnly((v) => !v); setActivePreset(null); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
               style={{
                 background: openNowOnly ? 'var(--green-500)' : 'var(--green-50)',
@@ -1441,7 +1506,7 @@ export default function ResultList({
           {([5, 10, 15] as const).map((min) => (
             <button
               key={min}
-              onClick={() => setMaxDetourMin((v) => (v === min ? null : min))}
+              onClick={() => { setMaxDetourMin((v) => (v === min ? null : min)); setActivePreset(null); }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
               style={{
                 background: maxDetourMin === min ? 'var(--accent)' : 'var(--blue-50)',
@@ -1458,7 +1523,7 @@ export default function ResultList({
           {([1, 2] as const).map((km) => (
             <button
               key={km}
-              onClick={() => setMaxDetourKm((v) => (v === km ? null : km))}
+              onClick={() => { setMaxDetourKm((v) => (v === km ? null : km)); setActivePreset(null); }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
               style={{
                 background: maxDetourKm === km ? 'var(--purple-600, #7c3aed)' : 'var(--purple-50, #f5f3ff)',
@@ -1472,7 +1537,7 @@ export default function ResultList({
 
           {/* 경로 근접 필터 (proxScore >= 70) */}
           <button
-            onClick={() => setProxScoreOnly((v) => !v)}
+            onClick={() => { setProxScoreOnly((v) => !v); setActivePreset(null); }}
             className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
             style={{
               background: proxScoreOnly ? '#0f766e' : '#f0fdfa',
@@ -1486,7 +1551,7 @@ export default function ResultList({
           {/* 미방문만 보기 */}
           {visitedDates.size > 0 && (
             <button
-              onClick={() => setUnvisitedOnly((v) => !v)}
+              onClick={() => { setUnvisitedOnly((v) => !v); setActivePreset(null); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
               style={{
                 background: unvisitedOnly ? 'var(--orange-500, #f97316)' : 'var(--orange-50, #fff7ed)',
@@ -2276,7 +2341,7 @@ export default function ResultList({
                 </div>
               </div>
 
-              {/* 즐겨찾기 + 주소 복사 + 전화 버튼 */}
+              {/* 즐겨찾기 + 주소 복사 + 더보기 (⋯) 버튼 */}
               <div className="flex flex-col gap-1 shrink-0 self-start">
                 <button
                   onClick={(e) => handleTogglePlaceFav(e, result)}
@@ -2300,64 +2365,80 @@ export default function ResultList({
                     <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   )}
                 </button>
-                {result.place.phone && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(`tel:${result.place.phone}`);
-                    }}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-                    title={`전화: ${result.place.phone}`}
+                {/* ⋯ 더보기 버튼 → 나머지 액션 인라인 토글 */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOverflowMenuId((prev) => prev === result.place.id ? null : result.place.id);
+                  }}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title="더 보기"
+                >
+                  <MoreHorizontal
+                    className="w-4 h-4"
+                    style={{ color: overflowMenuId === result.place.id ? 'var(--accent)' : 'var(--text-muted)' }}
+                  />
+                </button>
+                {/* 오버플로우 메뉴 — 카드 내 인라인 펼침 */}
+                {overflowMenuId === result.place.id && (
+                  <div
+                    className="flex flex-col gap-0.5 pt-1 border-t"
+                    style={{ borderColor: 'var(--border-soft)' }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Phone className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
-                  </button>
+                    {result.place.phone && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); window.open(`tel:${result.place.phone}`); }}
+                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                        title={`전화: ${result.place.phone}`}
+                      >
+                        <Phone className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => handleShare(e, result)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                      title="공유하기"
+                    >
+                      {sharedId === result.place.id ? (
+                        <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                      ) : (
+                        <Share2 className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => handleVisitToggle(e, result)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                      title={isVisited ? '방문 표시 해제' : '방문했어요'}
+                    >
+                      {isVisited
+                        ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                        : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                      }
+                    </button>
+                    <button
+                      onClick={(e) => handleTogglePin(e, result)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                      title={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '상단에 고정'}
+                    >
+                      <Bookmark
+                        className="w-4 h-4"
+                        fill={pinnedIds.has(result.place.id) ? 'var(--accent)' : 'none'}
+                        style={{ color: pinnedIds.has(result.place.id) ? 'var(--accent)' : 'var(--text-muted)' }}
+                      />
+                    </button>
+                    <button
+                      onClick={(e) => handleEditMemo(e, result.place.id)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                      title={memoMap.has(result.place.id) ? '메모 수정' : '메모 추가'}
+                    >
+                      <Pencil
+                        className="w-4 h-4"
+                        style={{ color: memoMap.has(result.place.id) ? '#d97706' : 'var(--text-muted)' }}
+                      />
+                    </button>
+                  </div>
                 )}
-                {/* 공유 버튼 */}
-                <button
-                  onClick={(e) => handleShare(e, result)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-                  title="공유하기"
-                >
-                  {sharedId === result.place.id ? (
-                    <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
-                  ) : (
-                    <Share2 className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                  )}
-                </button>
-                {/* 방문 완료 토글 */}
-                <button
-                  onClick={(e) => handleVisitToggle(e, result)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-                  title={isVisited ? '방문 표시 해제' : '방문했어요'}
-                >
-                  {isVisited
-                    ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
-                    : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                  }
-                </button>
-                {/* 📌 핀 고정 버튼 (전체) */}
-                <button
-                  onClick={(e) => handleTogglePin(e, result)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-                  title={pinnedIds.has(result.place.id) ? '핀 고정 해제 (상단 고정 중)' : '이 결과 상단에 고정'}
-                >
-                  <Bookmark
-                    className="w-4 h-4"
-                    fill={pinnedIds.has(result.place.id) ? 'var(--accent)' : 'none'}
-                    style={{ color: pinnedIds.has(result.place.id) ? 'var(--accent)' : 'var(--text-muted)' }}
-                  />
-                </button>
-                {/* ✏️ 메모 버튼 (전체) */}
-                <button
-                  onClick={(e) => handleEditMemo(e, result.place.id)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-                  title={memoMap.has(result.place.id) ? '메모 수정' : '메모 추가'}
-                >
-                  <Pencil
-                    className="w-4 h-4"
-                    style={{ color: memoMap.has(result.place.id) ? '#d97706' : 'var(--text-muted)' }}
-                  />
-                </button>
               </div>
             </div>
             </>

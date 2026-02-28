@@ -41,6 +41,8 @@ interface SearchState {
   clearResults: () => void;
   /** 검색 취소 */
   cancelSearch: () => void;
+  /** 세션 캐시에서 결과 복원 */
+  restoreResults: (results: DetourResult[], totalCandidates: number, apiCallsUsed: number) => void;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
@@ -188,6 +190,18 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       apiCallsUsed: 0,
       hasSearched: false,
       isCached: false,
+    }),
+
+  restoreResults: (results, totalCandidates, apiCallsUsed) =>
+    set({
+      results,
+      totalCandidates,
+      apiCallsUsed,
+      hasSearched: true,
+      isCached: true,
+      isLoading: false,
+      error: null,
+      abortController: null,
     }),
 
   cancelSearch: () => {

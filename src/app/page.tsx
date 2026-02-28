@@ -40,12 +40,14 @@ import { recordLocationVisit } from '@/lib/smart-location';
 import type { Route } from '@/types/location';
 import { useToast } from '@/hooks/useToast';
 import ToastContainer from '@/components/ui/ToastContainer';
+import { saveSessionResults, loadSessionResults } from '@/lib/cache/session-results';
+import { getMinutesUntilClose, getBusinessStatus } from '@/lib/business-hours';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
 export default function HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
-  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, isCached, setCategory, search, clearResults, cancelSearch } = useSearchStore();
+  const { category, results, isLoading, error, totalCandidates, apiCallsUsed, hasSearched, isCached, setCategory, search, clearResults, cancelSearch, restoreResults } = useSearchStore();
   const { toasts, showToast } = useToast();
 
   const [appReady, setAppReady] = useState(false);
@@ -55,7 +57,7 @@ export default function HomePage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [autoTheme, setAutoTheme] = useState(false);
   const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'shortest' | 'fastest'>('all');
-  const [sortBy, setSortBy] = useState<'score' | 'distance' | 'duration'>('score');
+  const [sortBy, setSortBy] = useState<'score' | 'distance' | 'duration' | 'closing'>('score');
   const [compareMode, setCompareMode] = useState(false);
   const [selectedForCompare, setSelectedForCompare] = useState<typeof results>([]);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -78,6 +80,18 @@ export default function HomePage() {
   useEffect(() => {
     setRecentSearches(getRecentSearches());
   }, []);
+
+  // 세션 캐시 복원 (새로고침 후 마지막 검색 결과 유지)
+  useEffect(() => {
+    const saved = loadSessionResults();
+    if (!saved) return;
+    setStart({ address: saved.startAddress, coordinates: saved.startCoords });
+    setEnd({ address: saved.endAddress, coordinates: saved.endCoords });
+    setCategory(saved.category);
+    restoreResults(saved.results, saved.totalCandidates, saved.apiCallsUsed);
+    setBottomSheetSnap('half');
+    showToast('🕐 이전 검색 결과를 복원했어요', 'info');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 키보드 단축키 (/ 키로 검색창 포커스)
   useEffect(() => {
@@ -164,8 +178,8 @@ export default function HomePage() {
   // sortBy localStorage 복원
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('sort-by') as 'score' | 'distance' | 'duration' | null;
-      if (saved && ['score', 'distance', 'duration'].includes(saved)) setSortBy(saved);
+      const saved = localStorage.getItem('sort-by') as 'score' | 'distance' | 'duration' | 'closing' | null;
+      if (saved && ['score', 'distance', 'duration', 'closing'].includes(saved)) setSortBy(saved);
     } catch { /* ignore */ }
   }, []);
 
@@ -173,6 +187,22 @@ export default function HomePage() {
   useEffect(() => {
     try { localStorage.setItem('sort-by', sortBy); } catch { /* ignore */ }
   }, [sortBy]);
+
+  // 검색 결과 변경 시 sessionStorage에 저장 (새로고침 복원용)
+  useEffect(() => {
+    if (results.length === 0 || !start?.address || !end?.address) return;
+    saveSessionResults({
+      results,
+      startAddress: start.address,
+      startCoords: start.coordinates,
+      endAddress: end.address,
+      endCoords: end.coordinates,
+      category,
+      totalCandidates,
+      apiCallsUsed,
+      savedAt: Date.now(),
+    });
+  }, [results]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 카테고리 전환 재검색 완료 → 토스트 알림
   useEffect(() => {
@@ -506,6 +536,18 @@ export default function HomePage() {
           return a.detourCost.distance - b.detourCost.distance;
         case 'duration':
           return a.detourCost.duration - b.detourCost.duration;
+        case 'closing': {
+          // 마감 임박순: 24시간(-1) → 영업 중(마감까지 분 오름차순) → 영업 종료(8888) → 정보 없음(9999)
+          const getMins = (r: typeof a) => {
+            if (!r.place.businessHours) return 9999;
+            const status = getBusinessStatus(r.place.businessHours);
+            if (status.label === '24시간 영업') return -1;
+            const mins = getMinutesUntilClose(r.place.businessHours);
+            if (mins !== null) return mins;
+            return status.isOpen ? 9999 : 8888;
+          };
+          return getMins(a) - getMins(b);
+        }
         case 'score':
         default:
           return b.finalScore - a.finalScore; // higher score first

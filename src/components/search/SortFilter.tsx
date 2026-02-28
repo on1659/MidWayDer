@@ -5,8 +5,8 @@
 'use client';
 
 interface SortFilterProps {
-  selected: 'score' | 'distance' | 'duration';
-  onChange: (sort: 'score' | 'distance' | 'duration') => void;
+  selected: 'score' | 'distance' | 'duration' | 'closing';
+  onChange: (sort: 'score' | 'distance' | 'duration' | 'closing') => void;
 }
 
 export default function SortFilter({ selected, onChange }: SortFilterProps) {
@@ -14,6 +14,7 @@ export default function SortFilter({ selected, onChange }: SortFilterProps) {
     { value: 'score', label: '추천순', emoji: '⭐' },
     { value: 'distance', label: '거리순', emoji: '📍' },
     { value: 'duration', label: '시간순', emoji: '⏱️' },
+    { value: 'closing', label: '마감임박', emoji: '⏰' },
   ] as const;
 
   return (
