@@ -31,6 +31,10 @@ export default function KakaoWaypointMarker({
   const mapClickHandlerRef = useRef<(() => void) | null>(null);
   // 마커 inner 엘리먼트 ref (호버 동기화용)
   const markerInnersRef = useRef<Map<string, HTMLDivElement>>(new Map());
+  // hover 팝업 닫기 타이머 (mouseleave 300ms 딜레이)
+  const hoverCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 클릭으로 열린 팝업의 placeId (hover close 보호용)
+  const clickedOpenIdRef = useRef<string | null>(null);
 
   // 최신 콜백 유지
   useEffect(() => {
@@ -62,8 +66,11 @@ export default function KakaoWaypointMarker({
 
     if (waypoints.length === 0) return;
 
-    // 지도 클릭 시 정보창 닫기 핸들러
-    const mapClickHandler = () => closeInfoWindow();
+    // 지도 클릭 시 정보창 닫기 + 클릭 상태 초기화
+    const mapClickHandler = () => {
+      clickedOpenIdRef.current = null;
+      closeInfoWindow();
+    };
     mapClickHandlerRef.current = mapClickHandler;
     kakao.maps.event.addListener(map, 'click', mapClickHandler);
 
@@ -118,17 +125,34 @@ export default function KakaoWaypointMarker({
       overlay.setMap(map);
       overlaysRef.current.push(overlay);
 
-      // 호버 효과
+      // 호버 효과 + hover 팝업 표시
       markerContent.addEventListener('mouseenter', () => {
         markerInner.style.transform = 'scale(1.15)';
+        // 진행 중인 hover 닫기 타이머 취소
+        if (hoverCloseTimeoutRef.current) {
+          clearTimeout(hoverCloseTimeoutRef.current);
+          hoverCloseTimeoutRef.current = null;
+        }
+        // 클릭으로 열린 팝업이 없을 때만 hover 팝업 표시
+        if (clickedOpenIdRef.current === null) {
+          showInfoWindow(waypoint);
+        }
       });
       markerContent.addEventListener('mouseleave', () => {
         markerInner.style.transform = 'scale(1)';
+        // 클릭으로 열린 팝업이 아닌 경우 300ms 후 닫기
+        if (clickedOpenIdRef.current !== waypoint.place.id) {
+          hoverCloseTimeoutRef.current = setTimeout(() => {
+            closeInfoWindow();
+            hoverCloseTimeoutRef.current = null;
+          }, 300);
+        }
       });
 
       // 클릭 이벤트 — stopPropagation으로 지도 클릭 전파 방지
       markerContent.addEventListener('click', (e) => {
         e.stopPropagation();
+        clickedOpenIdRef.current = waypoint.place.id;
         onMarkerClickRef.current(waypoint);
         showInfoWindow(waypoint);
       });
@@ -213,6 +237,11 @@ export default function KakaoWaypointMarker({
     }
 
     return () => {
+      if (hoverCloseTimeoutRef.current) {
+        clearTimeout(hoverCloseTimeoutRef.current);
+        hoverCloseTimeoutRef.current = null;
+      }
+      clickedOpenIdRef.current = null;
       overlaysRef.current.forEach((overlay) => overlay.setMap(null));
       overlaysRef.current = [];
       closeInfoWindow();

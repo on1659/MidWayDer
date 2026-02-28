@@ -2253,6 +2253,16 @@ export default function ResultList({
                       {isClosest ? '📍 내 위치 최근접' : '📍'} {currentDistKm < 1 ? `${Math.round(currentDistKm * 1000)}m` : `${currentDistKm.toFixed(1)}km`}
                     </span>
                   )}
+                  {/* 도보 가능 배지 — 현재 위치 300m 이내 */}
+                  {currentDistKm !== null && currentDistKm < 0.3 && (
+                    <span
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold"
+                      style={{ background: '#ecfdf5', color: '#059669', border: '1.5px solid #6ee7b7' }}
+                      title="현재 위치에서 도보로 이동 가능한 거리예요"
+                    >
+                      🚶 도보 {Math.ceil(currentDistKm * 1000 / 80)}분
+                    </span>
+                  )}
                   {/* 점수 분해 토글 버튼 — sortBy=score 시 강조 */}
                   <button
                     onClick={(e) => {
