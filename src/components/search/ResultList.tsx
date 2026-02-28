@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2, Bookmark } from 'lucide-react';
+import { Copy, Check, Navigation, Clock, Zap, Star, Phone, CheckCircle, Circle, Search, X as XIcon, Share2, Bookmark, Pencil } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -21,6 +21,7 @@ import { useRouteStore } from '@/store/route-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
 import { getPlaceFavorites, addPlaceFavorite, removePlaceFavorite } from '@/lib/place-favorites';
+import { getPlaceMemos, setPlaceMemo } from '@/lib/place-memos';
 
 interface ResultListProps {
   results: DetourResult[];
@@ -44,6 +45,17 @@ const LOADING_STAGES = [
   { icon: '📍', text: '장소 탐색 중', sub: '경로 주변 매장을 찾고 있어요' },
   { icon: '⚡', text: '비용 계산 중', sub: '이탈 비용을 정밀하게 계산 중이에요' },
 ];
+
+/** 두 좌표 간 Haversine 직선 거리 (km) */
+function haversineDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 /** 예상 도착 시간 계산 (baseMs: 출발 기준 밀리초, 기본값 지금) */
 function getETAText(result: DetourResult, baseMs?: number): { waypoint: string; destination: string } | null {
@@ -215,6 +227,14 @@ export default function ResultList({
   // 카드 핀 고정 (선택한 결과 항상 상단 유지)
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
 
+  // 현재 위치 (GPS)
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // 경유지 개인 메모 (placeId → memo text)
+  const [memoMap, setMemoMap] = useState<Map<string, string>>(new Map());
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
+  const [editingMemoText, setEditingMemoText] = useState('');
+
   // 출발 예정 시각 (기본: 현재 시각)
   const [departureTime, setDepartureTime] = useState<string>(() => {
     const now = new Date();
@@ -242,6 +262,26 @@ export default function ResultList({
   useEffect(() => {
     setPreferredNavAppState(getPreferredNavApp());
   }, []);
+
+  // GPS 현재 위치 — 결과가 처음 로드될 때 1회 요청 (이미 있으면 재요청 안 함)
+  const hasResults = results.length > 0;
+  useEffect(() => {
+    if (!hasResults || currentLocation || typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => { /* 권한 거부 시 무시 */ },
+      { timeout: 6000, maximumAge: 60000 }
+    );
+  }, [hasResults]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 메모 맵 초기화 (결과 로드 시)
+  useEffect(() => {
+    if (results.length === 0) return;
+    const memos = getPlaceMemos();
+    const map = new Map<string, string>();
+    for (const m of memos) map.set(m.placeId, m.memo);
+    setMemoMap(map);
+  }, [results]);
 
   // 로딩 단계 (0: 경로 분석, 1: 장소 탐색, 2: 비용 계산)
   const [loadingStage, setLoadingStage] = useState(0);
@@ -549,6 +589,47 @@ export default function ResultList({
       else s.add(id);
       return s;
     });
+  }, []);
+
+  // 현재 위치 기준 가장 가까운 경유지 ID
+  const closestPlaceId = useMemo(() => {
+    if (!currentLocation || results.length === 0) return null;
+    let minDist = Infinity;
+    let minId: string | null = null;
+    for (const r of results) {
+      const d = haversineDistanceKm(
+        currentLocation.lat, currentLocation.lng,
+        r.place.coordinates.lat, r.place.coordinates.lng
+      );
+      if (d < minDist) { minDist = d; minId = r.place.id; }
+    }
+    return minId;
+  }, [currentLocation, results]);
+
+  // 메모 핸들러
+  const handleEditMemo = useCallback((e: React.MouseEvent, placeId: string) => {
+    e.stopPropagation();
+    setEditingMemoId(placeId);
+    setEditingMemoText(memoMap.get(placeId) ?? '');
+  }, [memoMap]);
+
+  const handleSaveMemo = useCallback((e: React.MouseEvent, placeId: string) => {
+    e.stopPropagation();
+    setPlaceMemo(placeId, editingMemoText);
+    setMemoMap((prev) => {
+      const m = new Map(prev);
+      if (editingMemoText.trim()) m.set(placeId, editingMemoText.trim());
+      else m.delete(placeId);
+      return m;
+    });
+    setEditingMemoId(null);
+    setEditingMemoText('');
+  }, [editingMemoText]);
+
+  const handleCancelMemo = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMemoId(null);
+    setEditingMemoText('');
   }, []);
 
   // 네비게이션 공통 트리거 (e 없이 직접 호출 가능)
@@ -1188,6 +1269,14 @@ export default function ResultList({
         const routeLabel = (result as any).routeType === 'shortest' ? '최단거리' : (result as any).routeType === 'fastest' ? '최단시간' : null;
         const recentClicks = popularityMap[result.place.id] ?? 0;
 
+        const currentDistKm = currentLocation
+          ? haversineDistanceKm(
+              currentLocation.lat, currentLocation.lng,
+              result.place.coordinates.lat, result.place.coordinates.lng
+            )
+          : null;
+        const isClosest = closestPlaceId === result.place.id;
+
         const isBeingSwiped = swipeVisual?.id === result.place.id;
         const isHinting = swipeHintId === result.place.id;
         const swipeDeltaX = isBeingSwiped ? swipeVisual!.deltaX : (isHinting ? swipeHintDeltaX : 0);
@@ -1300,6 +1389,15 @@ export default function ResultList({
                   </span>
                 ) : null;
               })()}
+              {isClosest && currentDistKm !== null && (
+                <span
+                  className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: '#dcfce7', color: '#15803d' }}
+                  title="현재 내 위치에서 가장 가까운 곳"
+                >
+                  📍근접
+                </span>
+              )}
               <span
                 className="shrink-0 text-[12px] font-bold px-2 py-1 rounded-full"
                 style={{ background: 'var(--yellow-100)', color: 'var(--yellow-700)' }}
@@ -1467,6 +1565,20 @@ export default function ResultList({
                       </span>
                     );
                   })()}
+                  {/* 현재 위치 기준 거리 뱃지 */}
+                  {currentDistKm !== null && (
+                    <span
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
+                      style={
+                        isClosest
+                          ? { background: '#dcfce7', color: '#15803d', border: '1.5px solid #86efac' }
+                          : { background: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }
+                      }
+                      title="현재 내 위치 기준 직선 거리"
+                    >
+                      {isClosest ? '📍 내 위치 최근접' : '📍'} {currentDistKm < 1 ? `${Math.round(currentDistKm * 1000)}m` : `${currentDistKm.toFixed(1)}km`}
+                    </span>
+                  )}
                   {/* 점수 분해 토글 버튼 — sortBy=score 시 강조 */}
                   <button
                     onClick={(e) => {
@@ -1654,6 +1766,51 @@ export default function ResultList({
                   );
                 })()}
 
+                {/* 📝 개인 메모 — 편집 중일 때 textarea, 저장된 메모가 있을 때 yellow note */}
+                {editingMemoId === result.place.id ? (
+                  <div className="mt-2.5 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                    <textarea
+                      value={editingMemoText}
+                      onChange={(e) => setEditingMemoText(e.target.value)}
+                      placeholder="이 장소에 대한 메모를 남겨보세요 (예: 주차 쉬움, 2층에 있음)"
+                      maxLength={200}
+                      rows={2}
+                      className="w-full px-3 py-2 text-sm rounded-xl resize-none outline-none focus:ring-2 transition-all"
+                      style={{
+                        background: '#fef9c3',
+                        border: '1.5px solid #fde047',
+                        color: 'var(--text-primary)',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                      }}
+                      autoFocus
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={handleCancelMemo}
+                        className="px-3 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95"
+                        style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }}
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={(e) => handleSaveMemo(e, result.place.id)}
+                        className="px-3 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95"
+                        style={{ background: '#fbbf24', color: 'white' }}
+                      >
+                        저장
+                      </button>
+                    </div>
+                  </div>
+                ) : memoMap.has(result.place.id) ? (
+                  <div
+                    className="mt-2 flex items-start gap-2 px-2.5 py-2 rounded-xl"
+                    style={{ background: '#fef9c3', border: '1px solid #fde047', color: '#92400e' }}
+                  >
+                    <span className="text-sm shrink-0">📝</span>
+                    <p className="text-[12px] flex-1 leading-snug break-words">{memoMap.get(result.place.id)}</p>
+                  </div>
+                ) : null}
+
                 {/* Navigation Button */}
                 <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border-soft)' }}>
                   {preferredNavApp ? (
@@ -1757,6 +1914,17 @@ export default function ResultList({
                     className="w-4 h-4"
                     fill={pinnedIds.has(result.place.id) ? 'var(--accent)' : 'none'}
                     style={{ color: pinnedIds.has(result.place.id) ? 'var(--accent)' : 'var(--text-muted)' }}
+                  />
+                </button>
+                {/* ✏️ 메모 버튼 (전체) */}
+                <button
+                  onClick={(e) => handleEditMemo(e, result.place.id)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  title={memoMap.has(result.place.id) ? '메모 수정' : '메모 추가'}
+                >
+                  <Pencil
+                    className="w-4 h-4"
+                    style={{ color: memoMap.has(result.place.id) ? '#d97706' : 'var(--text-muted)' }}
                   />
                 </button>
               </div>
