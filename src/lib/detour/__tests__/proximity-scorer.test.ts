@@ -34,11 +34,12 @@ describe('calculateProximityScore', () => {
   });
 
   it('경로에서 500m 떨어진 매장 → 중간 점수', () => {
-    // lng 0.005 ≈ ~450m at lat 37.5
+    // lng 0.005 ≈ 441m at lat 37.5
+    // distanceScore(800m max) ≈ 69.6, positionWeight(중반) 1.05 → ≈73.1
     const place = makePlace(37.53, 127.005);
     const score = calculateProximityScore(place, samplePoints, route);
     expect(score).toBeGreaterThan(40);
-    expect(score).toBeLessThan(70);
+    expect(score).toBeLessThan(80);  // ← 73.1 기준 여유 범위
   });
 
   it('경로에서 1km 이상 → 0점', () => {
@@ -50,6 +51,13 @@ describe('calculateProximityScore', () => {
   it('경로 후반부(80%+) 매장 → 0점', () => {
     // 경로 끝부분 (index 9 = 100%)
     const place = makePlace(37.59, 127.0);
+    const score = calculateProximityScore(place, samplePoints, route);
+    expect(score).toBe(0);
+  });
+
+  it('경로 후반부 85% 매장 → 0점', () => {
+    // samplePoints[8] = lat 37.58 (인덱스 8/9 ≈ 88.9%, 80%+)
+    const place = makePlace(37.58, 127.0); // 인덱스 8, routeProgress = 88.9%
     const score = calculateProximityScore(place, samplePoints, route);
     expect(score).toBe(0);
   });

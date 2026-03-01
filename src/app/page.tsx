@@ -345,11 +345,11 @@ export default function HomePage() {
       setStart(startLoc);
       setEnd(endLoc);
       if (cat) setCategory(cat);
-      // Auto-search after a short delay
+      // Auto-search after a short delay (coordinates 포함하여 hashRoute 오류 방지)
       setTimeout(() => {
         search(
-          { address: startAddr },
-          { address: endAddr },
+          startLoc,
+          endLoc,
           cat || category
         ).then(() => setBottomSheetSnap('half'));
       }, 500);
