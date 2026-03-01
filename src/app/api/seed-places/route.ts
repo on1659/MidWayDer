@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API /seed-places] Unexpected error:', error);
 
     const response: SeedPlacesResponse = {

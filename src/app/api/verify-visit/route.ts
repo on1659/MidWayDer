@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       tier: newTier,
       message: `🎉 방문 인증 완료! +${POINTS}포인트 (누적 ${newTotal}점)`,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[verify-visit]', err);
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }

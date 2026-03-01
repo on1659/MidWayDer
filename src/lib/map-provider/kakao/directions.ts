@@ -18,7 +18,7 @@ export class KakaoDirectionsApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'KakaoDirectionsApiError';
@@ -70,18 +70,17 @@ export class KakaoDirectionsProvider implements IDirectionsProvider {
 
       // Kakao 응답을 Route 타입으로 변환
       return convertKakaoRouteToRoute(routeData, start, end);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof KakaoDirectionsApiError) throw error;
 
-      if (error.isAxiosError) {
-        const axiosError = error as AxiosError;
-        const status = axiosError.response?.status;
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
 
         if (status) {
           throw new KakaoDirectionsApiError(
             `Kakao Directions API 요청 실패 (HTTP ${status})`,
             'HTTP_ERROR',
-            { status, data: axiosError.response?.data }
+            { status, data: error.response?.data } as Record<string, unknown>
           );
         }
 
@@ -95,7 +94,7 @@ export class KakaoDirectionsProvider implements IDirectionsProvider {
       throw new KakaoDirectionsApiError(
         `경로 조회 중 오류 발생: ${extractKakaoErrorMessage(error)}`,
         'UNKNOWN_ERROR',
-        error
+        error instanceof Error ? { message: error.message } : undefined
       );
     }
   }

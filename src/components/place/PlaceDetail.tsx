@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2, CheckCircle, MapPinCheckInside } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { useRouteStore } from '@/store/route-store';
@@ -52,6 +52,11 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   // 방문 여부 확인
   const isVisited = routeHash && hasVisited(place.id, routeHash);
 
+  const handleClose = useCallback(() => {
+    setVisible(false);
+    setTimeout(onClose, 300);
+  }, [onClose]);
+
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
   }, []);
@@ -66,12 +71,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(onClose, 300);
-  };
+  }, [handleClose]);
 
   const handleConfirm = () => {
     onConfirm(waypoint);

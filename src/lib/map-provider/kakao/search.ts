@@ -19,7 +19,7 @@ export class KakaoSearchApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'KakaoSearchApiError';
@@ -51,7 +51,7 @@ export class KakaoSearchProvider implements ISearchProvider {
       const maxPages = Math.min(Math.ceil(maxResults / 15), 3);
 
       for (let page = 1; page <= maxPages; page++) {
-        const params: Record<string, any> = {
+        const params: Record<string, string | number | undefined> = {
           query: query.trim(),
           page,
           size: 15,
@@ -73,7 +73,7 @@ export class KakaoSearchProvider implements ISearchProvider {
         );
 
         if (!response.data || !Array.isArray(response.data.documents)) {
-          throw new KakaoSearchApiError('잘못된 API 응답 형식입니다.', 'INVALID_RESPONSE', response.data);
+          throw new KakaoSearchApiError('잘못된 API 응답 형식입니다.', 'INVALID_RESPONSE', response.data as unknown as Record<string, unknown>);
         }
 
         const places = response.data.documents.map((doc) => convertKakaoDocToPlace(doc, query));
@@ -90,17 +90,16 @@ export class KakaoSearchProvider implements ISearchProvider {
       }
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof KakaoSearchApiError) throw error;
 
-      if (error.isAxiosError) {
-        const axiosError = error as AxiosError;
-        const status = axiosError.response?.status;
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
         if (status) {
           throw new KakaoSearchApiError(
             `Kakao Search API 요청 실패 (HTTP ${status})`,
             'HTTP_ERROR',
-            { status, data: axiosError.response?.data }
+            { status, data: error.response?.data } as Record<string, unknown>
           );
         }
         throw new KakaoSearchApiError(
@@ -113,7 +112,7 @@ export class KakaoSearchProvider implements ISearchProvider {
       throw new KakaoSearchApiError(
         `검색 중 오류 발생: ${extractKakaoErrorMessage(error)}`,
         'UNKNOWN_ERROR',
-        error
+        error instanceof Error ? { message: error.message } : undefined
       );
     }
   }

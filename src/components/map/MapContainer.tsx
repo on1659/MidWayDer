@@ -148,7 +148,7 @@ export default function MapContainer({
     } else if (naverMap && window.naver) {
       naverMap.panTo(new window.naver.maps.LatLng(center.lat, center.lng));
     }
-  }, [center?.lat, center?.lng, kakaoMap, naverMap]);
+  }, [center, kakaoMap, naverMap]);
 
   // Kakao Maps 사용 시 줌 레벨 조정 (Naver: 12 ≈ Kakao: 7)
   const kakaoZoom = zoom ? Math.max(1, 13 - zoom) : 7;

@@ -64,7 +64,7 @@ export default function KakaoMap({
       // 10초 타임아웃
       setTimeout(() => {
         clearInterval(checkLoaded);
-        if (!isLoaded) setLoadError('카카오맵 SDK 로드 타임아웃');
+        if (!window.kakao?.maps?.LatLng) setLoadError('카카오맵 SDK 로드 타임아웃');
       }, 10000);
       return;
     }

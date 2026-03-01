@@ -59,6 +59,8 @@ import { getDirectionsProvider } from '@/lib/map-provider';
 import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
 import { hashRoute } from '@/lib/utils/route-hash';
+import type { DetourResult } from '@/types/detour';
+import type { Route } from '@/types/location';
 
 // ─── 테스트 픽스처 ─────────────────────────────────────────────────────────────
 
@@ -118,11 +120,11 @@ describe('POST /api/search', () => {
     mockDirectionsProvider = {
       getRoute: vi.fn().mockResolvedValue(MOCK_ROUTE),
     };
-    vi.mocked(getDirectionsProvider).mockReturnValue(mockDirectionsProvider as any);
+    vi.mocked(getDirectionsProvider).mockReturnValue(mockDirectionsProvider as unknown as ReturnType<typeof getDirectionsProvider>);
 
     // 기본 detour mock: 1개 결과 반환
     vi.mocked(calculateDetourCosts).mockResolvedValue({
-      results: [MOCK_DETOUR_RESULT as any],
+      results: [MOCK_DETOUR_RESULT as unknown as DetourResult],
       totalCandidates: 5,
       apiCallsUsed: 2,
     });
@@ -183,8 +185,8 @@ describe('POST /api/search', () => {
   // ── TC-4: 캐시 히트 ────────────────────────────────────────────────────────────
   it('TC-4: 캐시 히트 → fromCache: true, directions API 미호출', async () => {
     vi.mocked(loadSearchCache).mockReturnValue({
-      results: [MOCK_DETOUR_RESULT as any],
-      originalRoute: MOCK_ROUTE as any,
+      results: [MOCK_DETOUR_RESULT as unknown as DetourResult],
+      originalRoute: MOCK_ROUTE as unknown as Route,
       totalCandidates: 5,
       apiCallsUsed: 2,
       timestamp: Date.now(),

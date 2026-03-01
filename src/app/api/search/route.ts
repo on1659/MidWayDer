@@ -31,6 +31,7 @@ import { hashRoute } from '@/lib/utils/route-hash';
 import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
 import { loadSearchCache, saveSearchCache } from '@/lib/cache/search-cache';
 import { captureException } from '@/lib/monitoring';
+import { getErrorMessage } from '@/lib/error-utils';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -79,12 +80,12 @@ export async function POST(request: NextRequest) {
         endCoords = await geocodingProvider.geocodeAddress(end.address!);
         endLocation = { coordinates: endCoords, address: end.address ?? '' };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorResponse: SearchWaypointsErrorResponse = {
         success: false,
         error: {
           code: ApiErrorCode.INVALID_COORDINATES,
-          message: `주소를 좌표로 변환할 수 없습니다: ${error.message}`,
+          message: `주소를 좌표로 변환할 수 없습니다: ${getErrorMessage(error)}`,
         },
       };
       return NextResponse.json(errorResponse, { status: 400 });
@@ -256,12 +257,12 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API /search] Unexpected error:', error);
     captureException(error, { endpoint: '/api/search' });
 
     // DB 에러
-    if (error.message === 'DATABASE_ERROR') {
+    if (error instanceof Error && error.message === 'DATABASE_ERROR') {
       const errorResponse: SearchWaypointsErrorResponse = {
         success: false,
         error: {

@@ -90,7 +90,7 @@ export interface SearchWaypointsErrorResponse {
     /** 에러 메시지 */
     message: string;
     /** 상세 정보 (선택사항) */
-    details?: any;
+    details?: Record<string, unknown>;
   };
 }
 

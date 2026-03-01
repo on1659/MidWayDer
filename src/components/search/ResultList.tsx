@@ -101,6 +101,20 @@ export default function ResultList({
   const gps = useGPSProximity(results);
   const { loadingStage } = useLoadingStages(isLoading);
 
+  // ── Destructure 안정 참조 (cardData) ──
+  const {
+    togglePin,
+    toggleFav,
+    toggleVisit,
+    startEditMemo,
+    saveMemo,
+    editingMemoText,
+    cancelMemo,
+  } = cardData;
+
+  // ── Destructure 안정 참조 (eta) ──
+  const { setDepartureTime } = eta;
+
   // ── 기타 상태 ──
   const [popularityMap, setPopularityMap] = useState<Record<string, number>>({});
   const [statsCategories, setStatsCategories] = useState<string[]>([]);
@@ -298,18 +312,18 @@ export default function ResultList({
 
   const handleTogglePin = useCallback((e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
-    cardData.togglePin(result.place.id);
-  }, [cardData.togglePin]);
+    togglePin(result.place.id);
+  }, [togglePin]);
 
   const handleTogglePlaceFav = useCallback((e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
-    cardData.toggleFav(result.place.id, result);
-  }, [cardData.toggleFav]);
+    toggleFav(result.place.id, result);
+  }, [toggleFav]);
 
   const handleVisitToggle = useCallback((e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
-    cardData.toggleVisit(result.place.id, result);
-  }, [cardData.toggleVisit]);
+    toggleVisit(result.place.id, result);
+  }, [toggleVisit]);
 
   const handleCopyAddress = useCallback(async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -342,18 +356,18 @@ export default function ResultList({
 
   const handleEditMemo = useCallback((e: React.MouseEvent, placeId: string) => {
     e.stopPropagation();
-    cardData.startEditMemo(placeId);
-  }, [cardData.startEditMemo]);
+    startEditMemo(placeId);
+  }, [startEditMemo]);
 
   const handleSaveMemo = useCallback((e: React.MouseEvent, placeId: string) => {
     e.stopPropagation();
-    cardData.saveMemo(placeId, cardData.editingMemoText);
-  }, [cardData.saveMemo, cardData.editingMemoText]);
+    saveMemo(placeId, editingMemoText);
+  }, [saveMemo, editingMemoText]);
 
   const handleCancelMemo = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    cardData.cancelMemo();
-  }, [cardData.cancelMemo]);
+    cancelMemo();
+  }, [cancelMemo]);
 
   const triggerNav = useCallback((place: DetourResult['place']) => {
     if (preferredNavApp) {
@@ -380,9 +394,9 @@ export default function ResultList({
     const top = sortedWithPins[0];
     if (!top) return;
     const now = new Date();
-    eta.setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+    setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
     triggerNav(top.place);
-  }, [sortedWithPins, triggerNav, eta.setDepartureTime]);
+  }, [sortedWithPins, triggerNav, setDepartureTime]);
 
   const handleNaviAppSelect = async (app: NavApp) => {
     if (!selectedPlace) return;
@@ -471,7 +485,7 @@ export default function ResultList({
     handleEditMemo, handleSaveMemo, handleCancelMemo,
     setScoreDetailOpenId, setOverflowMenuId,
     setExpandedCompactId, handleOpenNavi, handleOpenNaviSheet, triggerNav,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+  ]);
 
   // ── Render: Loading ──
   if (isLoading) {

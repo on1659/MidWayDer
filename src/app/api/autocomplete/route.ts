@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    const results = (data.documents || []).map((doc: any) => ({
+    const results = (data.documents || []).map((doc: { place_name: string; road_address_name?: string; address_name?: string; y: string; x: string; category_group_name?: string }) => ({
       name: doc.place_name,
       address: doc.road_address_name || doc.address_name,
       lat: parseFloat(doc.y),

@@ -5,6 +5,14 @@
  * 예: "강남역에서 판교역으로 스타벅스"
  */
 
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
+
 export interface VoiceSearchResult {
   start?: string;
   end?: string;
@@ -35,14 +43,14 @@ export const startVoiceSearch = (): Promise<VoiceSearchResult> => {
     recognition.maxAlternatives = 1; // 가장 확실한 결과 1개만
 
     // 음성 인식 성공
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
       const parsed = parseVoiceInput(transcript);
       resolve(parsed);
     };
 
     // 음성 인식 실패
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       let errorMessage = '음성 인식 실패';
       
       switch (event.error) {

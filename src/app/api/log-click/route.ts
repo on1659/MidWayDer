@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API /log-click] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

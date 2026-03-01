@@ -146,8 +146,8 @@ export default function SearchOverlay({
         setVoiceError('✅ 음성 인식 완료!');
         setTimeout(() => setVoiceError(null), 2000);
       }
-    } catch (err: any) {
-      setVoiceError(err.message || '음성 인식 실패');
+    } catch (err: unknown) {
+      setVoiceError(err instanceof Error ? err.message : '음성 인식 실패');
       setTimeout(() => setVoiceError(null), 3000);
     } finally {
       setIsListening(false);

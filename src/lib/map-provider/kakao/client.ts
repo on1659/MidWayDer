@@ -122,8 +122,12 @@ addRetryInterceptor(kakaoNaviClient, 'Kakao Navi');
 /**
  * API 에러 메시지 추출
  */
-export function extractKakaoErrorMessage(error: any): string {
-  if (error.response?.data?.message) return error.response.data.message;
-  if (error.message) return error.message;
-  return 'Unknown error';
+export function extractKakaoErrorMessage(error: unknown): string {
+  if (error instanceof AxiosError) {
+    const msg = (error.response?.data as { message?: string })?.message;
+    if (msg) return msg;
+    return error.message;
+  }
+  if (error instanceof Error) return error.message;
+  return 'Unknown Kakao API error';
 }

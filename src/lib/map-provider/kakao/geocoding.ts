@@ -18,7 +18,7 @@ export class KakaoGeocodingApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'KakaoGeocodingApiError';
@@ -76,17 +76,16 @@ export class KakaoGeocodingProvider implements IGeocodingProvider {
       }
 
       return { lat, lng };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof KakaoGeocodingApiError) throw error;
 
-      if (error.isAxiosError) {
-        const axiosError = error as AxiosError;
-        const status = axiosError.response?.status;
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
         if (status) {
           throw new KakaoGeocodingApiError(
             `Kakao Geocoding API 요청 실패 (HTTP ${status})`,
             'HTTP_ERROR',
-            { status, data: axiosError.response?.data }
+            { status, data: error.response?.data } as Record<string, unknown>
           );
         }
         throw new KakaoGeocodingApiError(
@@ -99,7 +98,7 @@ export class KakaoGeocodingProvider implements IGeocodingProvider {
       throw new KakaoGeocodingApiError(
         `주소 변환 중 오류 발생: ${extractKakaoErrorMessage(error)}`,
         'UNKNOWN_ERROR',
-        error
+        error instanceof Error ? { message: error.message } : undefined
       );
     }
   }
@@ -147,17 +146,16 @@ export class KakaoGeocodingProvider implements IGeocodingProvider {
         '주소 정보를 파싱할 수 없습니다.',
         'PARSE_ERROR'
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof KakaoGeocodingApiError) throw error;
 
-      if (error.isAxiosError) {
-        const axiosError = error as AxiosError;
-        const status = axiosError.response?.status;
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
         if (status) {
           throw new KakaoGeocodingApiError(
             `Kakao Reverse Geocoding API 요청 실패 (HTTP ${status})`,
             'HTTP_ERROR',
-            { status, data: axiosError.response?.data }
+            { status, data: error.response?.data } as Record<string, unknown>
           );
         }
         throw new KakaoGeocodingApiError(
@@ -170,7 +168,7 @@ export class KakaoGeocodingProvider implements IGeocodingProvider {
       throw new KakaoGeocodingApiError(
         `좌표 변환 중 오류 발생: ${extractKakaoErrorMessage(error)}`,
         'UNKNOWN_ERROR',
-        error
+        error instanceof Error ? { message: error.message } : undefined
       );
     }
   }

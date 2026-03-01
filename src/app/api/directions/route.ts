@@ -10,6 +10,7 @@ import { getDirectionsProvider } from '@/lib/map-provider';
 import type { RouteOption } from '@/lib/map-provider';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { DirectionsResponse } from '@/types/api';
+import { getErrorMessage } from '@/lib/error-utils';
 
 /** Naver 경로 옵션 → 공통 RouteOption 매핑 */
 function mapToRouteOption(option?: string): RouteOption | undefined {
@@ -53,17 +54,17 @@ export async function POST(request: NextRequest) {
       };
 
       return NextResponse.json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const response: DirectionsResponse = {
         success: false,
         error: {
           code: ApiErrorCode.NO_ROUTE_FOUND,
-          message: error.message || ApiErrorMessage[ApiErrorCode.NO_ROUTE_FOUND],
+          message: getErrorMessage(error) || ApiErrorMessage[ApiErrorCode.NO_ROUTE_FOUND],
         },
       };
       return NextResponse.json(response, { status: 404 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API /directions] Unexpected error:', error);
 
     const response: DirectionsResponse = {

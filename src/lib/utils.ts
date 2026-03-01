@@ -71,7 +71,7 @@ export function toTitleCase(str: string): string {
  * debouncedSearch('ab');   // 실행 안됨
  * debouncedSearch('abc');  // 300ms 후 실행: 'Searching: abc'
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -95,7 +95,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param wait - 제한 시간 (밀리초)
  * @returns 스로틀링된 함수
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -509,7 +509,7 @@ export function isProduction(): boolean {
  *
  * @param args - 로그 인자
  */
-export function devLog(...args: any[]): void {
+export function devLog(...args: unknown[]): void {
   if (isDevelopment()) {
     console.log('[DEV]', ...args);
   }

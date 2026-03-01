@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useGPSProximity } from '../useGPSProximity';
 import type { DetourResult } from '@/types/detour';
+import type { Route } from '@/types/location';
 
 const mockGeolocation = {
   getCurrentPosition: vi.fn(),
@@ -22,7 +23,7 @@ const makeResult = (id: string, lat: number, lng: number): DetourResult =>
   ({
     place: { id, name: id, category: 'test', address: '', coordinates: { lat, lng } },
     detourCost: { distance: 0, duration: 0, costScore: 0 },
-    routes: { original: {} as any, toWaypoint: {} as any, fromWaypoint: {} as any },
+    routes: { original: {} as unknown as Route, toWaypoint: {} as unknown as Route, fromWaypoint: {} as unknown as Route },
     proximityScore: 50,
     finalScore: 50,
   } as DetourResult);
@@ -35,7 +36,7 @@ describe('useGPSProximity', () => {
   });
 
   it('currentLocation이 null이면 closestPlaceId=null', () => {
-    mockGeolocation.getCurrentPosition.mockImplementation((_success: any, error: any) => {
+    mockGeolocation.getCurrentPosition.mockImplementation((_success: unknown, error: (e: Error) => void) => {
       error(new Error('denied'));
     });
 
@@ -45,7 +46,7 @@ describe('useGPSProximity', () => {
   });
 
   it('가장 가까운 장소의 id를 반환', () => {
-    mockGeolocation.getCurrentPosition.mockImplementation((success: any) => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success: (pos: { coords: { latitude: number; longitude: number } }) => void) => {
       success({ coords: { latitude: 37.5, longitude: 126.9 } });
     });
 

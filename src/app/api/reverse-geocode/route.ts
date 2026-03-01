@@ -45,7 +45,8 @@ export async function GET(req: NextRequest) {
     }
 
     // 가장 가까운 장소 찾기
-    let closest: any = null;
+    type KakaoPlace = { place_name: string; road_address_name?: string; address_name?: string; category_name?: string; phone?: string; place_url?: string; id?: string; distance?: string };
+    let closest: KakaoPlace | null = null;
     let closestDist = Infinity;
 
     for (const res of catResults) {
