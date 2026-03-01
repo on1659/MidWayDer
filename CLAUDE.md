@@ -85,10 +85,12 @@
 - **Railway**: PostgreSQL + PostGIS 호스팅 (월 $5부터)
 
 ### Maps API
-- **Naver Maps Enterprise SDK**:
-  - **Directions 5 API**: 경로 조회 (A→B, A→C, C→B)
+- **Kakao Maps SDK (Primary)**:
+  - **Directions API**: 경로 조회 (A→B, A→C, C→B)
   - **Local Search API**: 매장 검색 (다이소, 스타벅스 등)
-  - **Reverse Geocoding API**: 주소 ↔ 좌표 변환
+  - **Geocoding API**: 주소 ↔ 좌표 변환
+- **Naver Maps Enterprise SDK (Fallback)**:
+  - `src/lib/map-provider/` 추상화 레이어를 통해 전환 가능
 - **무료 쿼터**: Directions 1,000회/일, Local Search 25,000회/일
 
 ---

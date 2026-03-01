@@ -24,7 +24,7 @@ import { haversineDistance } from '@/lib/utils';
 /**
  * 경로 위 가장 가까운 포인트를 찾고, 해당 포인트에서 경유지까지의 이탈 비용 계산
  */
-function findClosestPointOnRoute(
+export function findClosestPointOnRoute(
   place: Coordinates,
   path: RoutePoint[]
 ): { closestPoint: RoutePoint; distance: number; index: number } {
@@ -48,9 +48,17 @@ function findClosestPointOnRoute(
  * 직선거리 기반 detour 시간 추정 (도심 평균 속도 기준)
  * 왕복이므로 ×2, 도심 평균 20km/h = ~5.6m/s
  */
-function estimateDetourDuration(distanceMeters: number): number {
+export function estimateDetourDuration(distanceMeters: number): number {
   const URBAN_SPEED_MS = 5.6; // 약 20km/h
   return Math.round((distanceMeters * 2) / URBAN_SPEED_MS);
+}
+
+/**
+ * 최종 점수 계산 순수 함수 (테스트 용이성을 위해 분리)
+ * 공식: (100 - costScore) * 0.7 + proximityScore * 0.3
+ */
+export function calculateFinalScore(costScore: number, proximityScore: number): number {
+  return (100 - costScore) * 0.7 + proximityScore * 0.3;
 }
 
 export async function calculateDetourCosts(
