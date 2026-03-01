@@ -14,6 +14,7 @@ interface BottomSheetProps {
   snap?: SnapPoint;
   onSnapChange?: (snap: SnapPoint) => void;
   visible?: boolean;
+  contentRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function BottomSheet({
@@ -22,6 +23,7 @@ export default function BottomSheet({
   snap = 'collapsed',
   onSnapChange,
   visible = true,
+  contentRef,
 }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
@@ -121,7 +123,7 @@ export default function BottomSheet({
         <div className="bottom-sheet-handle" />
       </div>
 
-      <div className="overflow-y-auto scrollbar-hide" style={{ height: 'calc(100% - 28px)' }}>
+      <div ref={contentRef} className="overflow-y-auto scrollbar-hide" style={{ height: 'calc(100% - 28px)' }}>
         {children}
       </div>
     </div>

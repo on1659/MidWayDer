@@ -211,6 +211,19 @@ export default function SearchOverlay({
 
       {/* Route inputs */}
       <div className="px-4 pt-3 pb-2 relative z-20">
+        {/* 📍 현재 위치 CTA 버튼 (홈/회사 칩보다 상단) */}
+        {onGPS && (
+          <button
+            onClick={() => { onGPS(); }}
+            disabled={gpsLoading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 mb-3"
+            style={{ background: 'var(--accent-light, #ede9fe)', color: 'var(--accent)' }}
+            aria-label="현재 위치를 출발지로 설정"
+          >
+            <LocateFixed className={`w-4 h-4 ${gpsLoading ? 'animate-spin' : ''}`} />
+            {gpsLoading ? '위치 확인 중...' : '📍 현재 위치에서 출발'}
+          </button>
+        )}
         {/* 스마트 출발지 빠른 선택 */}
         <div className="flex gap-2 mb-3">
           {(() => {

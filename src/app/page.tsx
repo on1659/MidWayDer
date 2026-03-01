@@ -265,6 +265,8 @@ export default function HomePage() {
   const autoSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mapIdleIgnoreRef = useRef(false);
   const pendingCategoryToastRef = useRef<string | null>(null);
+  const bottomSheetContentRef = useRef<HTMLDivElement>(null);
+  const savedScrollRef = useRef<number>(0);
 
   const handleStartChange = useCallback((address: string) => setStart({ address }), [setStart]);
   const handleEndChange = useCallback((address: string) => setEnd({ address }), [setEnd]);
@@ -436,6 +438,7 @@ export default function HomePage() {
     selectWaypoint(null);
     setOriginalRoute(null);
     setPreviewRoute(null);
+    savedScrollRef.current = 0;
     await search(
       { address: start.address },
       { address: end.address },
@@ -485,6 +488,26 @@ export default function HomePage() {
     }, 800);
   }, [hasSearched, start, end, isLoading, setCategory, clearResults, selectWaypoint, setOriginalRoute, search]);
 
+  // BottomSheet snap 변경 핸들러 — 스크롤 save/restore 포함
+  const handleSnapChange = useCallback((snap: BottomSheetSnap) => {
+    if (snap !== 'full') {
+      savedScrollRef.current = bottomSheetContentRef.current?.scrollTop ?? 0;
+    }
+    setBottomSheetSnap(snap);
+  }, []);
+
+  // snap이 'full'이 될 때 스크롤 복원 (scrollIntoView 350ms 이후 보장)
+  useEffect(() => {
+    if (bottomSheetSnap === 'full' && bottomSheetContentRef.current) {
+      const t = setTimeout(() => {
+        if (bottomSheetContentRef.current) {
+          bottomSheetContentRef.current.scrollTop = savedScrollRef.current;
+        }
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [bottomSheetSnap]);
+
   // 최근 검색 즉시 실행 (주소 채우기 + 바로 검색)
   const handleInstantSearch = useCallback(async (item: RecentSearch) => {
     setStart({ address: item.startAddress, coordinates: item.startCoords });
@@ -513,6 +536,7 @@ export default function HomePage() {
   const handleWaypointSelect = useCallback((waypoint: typeof results[0]) => {
     selectWaypoint(waypoint);
     if (waypoint.routes.original) setOriginalRoute(waypoint.routes.original);
+    savedScrollRef.current = bottomSheetContentRef.current?.scrollTop ?? 0;
     setBottomSheetSnap('collapsed');
   }, [selectWaypoint, setOriginalRoute]);
 
@@ -1073,8 +1097,9 @@ export default function HomePage() {
           <BottomSheet
             visible={hasResults || favorites.length > 0 || recentSearches.length > 0}
             snap={hasResults ? bottomSheetSnap : 'collapsed'}
-            onSnapChange={setBottomSheetSnap}
+            onSnapChange={handleSnapChange}
             peekHeight={160}
+            contentRef={bottomSheetContentRef}
           >
             <div className="px-4 pb-4">
               {/* 검색 전 상태: 즐겨찾기 경로 + 최근 검색 */}
