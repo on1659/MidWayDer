@@ -198,18 +198,21 @@ async function fetchFromKakao(
 // ========================
 
 export function deduplicatePlaces(places: Place[]): Place[] {
-  const CELL_DEG = DEDUP_DISTANCE_M / 111000; // 위경도 셀 크기
+  const LAT_CELL_DEG = DEDUP_DISTANCE_M / 111000;
+  // 서비스 지역(한국, 평균 위도 37°) 기준 경도 cos 보정
+  // cos(37° × π/180) ≈ 0.7986 → 경도 1° ≈ 88.7km
+  const LNG_CELL_DEG = DEDUP_DISTANCE_M / (111000 * Math.cos(37 * Math.PI / 180));
   // key: "latCell,lngCell" → Place[]
   const grid = new Map<string, Place[]>();
 
   const cellKey = (lat: number, lng: number) =>
-    `${Math.floor(lat / CELL_DEG)},${Math.floor(lng / CELL_DEG)}`;
+    `${Math.floor(lat / LAT_CELL_DEG)},${Math.floor(lng / LNG_CELL_DEG)}`;
 
   const isDuplicate = (candidate: Place): boolean => {
     const lat = candidate.coordinates.lat;
     const lng = candidate.coordinates.lng;
-    const latCell = Math.floor(lat / CELL_DEG);
-    const lngCell = Math.floor(lng / CELL_DEG);
+    const latCell = Math.floor(lat / LAT_CELL_DEG);
+    const lngCell = Math.floor(lng / LNG_CELL_DEG);
 
     // 주변 3×3 셀 확인
     for (let dLat = -1; dLat <= 1; dLat++) {

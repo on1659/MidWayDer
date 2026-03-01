@@ -87,6 +87,12 @@ export async function calculateDetourCosts(
 }> {
   const startTime = Date.now();
 
+  // ★ path 빈 배열 가드
+  if (!originalRoute.path || originalRoute.path.length === 0) {
+    logger.warn('[Detour] calculateDetourCosts: empty path, returning empty results');
+    return { results: [], totalCandidates: 0, apiCallsUsed: 0 };
+  }
+
   const {
     bufferDistance = 500,
     maxDetourDistance = 3000,

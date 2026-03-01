@@ -55,9 +55,16 @@ describe('calculateProximityScore', () => {
     expect(score).toBe(0);
   });
 
-  it('경로 후반부 85% 매장 → 0점', () => {
-    // samplePoints[8] = lat 37.58 (인덱스 8/9 ≈ 88.9%, 80%+)
+  it('경로 후반부 88% 매장 → 양수 점수 (0.95 미만이라 제외 안 됨)', () => {
+    // samplePoints[8] = lat 37.58 (인덱스 8/9 ≈ 88.9%, 0.95 미만)
     const place = makePlace(37.58, 127.0); // 인덱스 8, routeProgress = 88.9%
+    const score = calculateProximityScore(place, samplePoints, route);
+    expect(score).toBeGreaterThan(0); // 제외되지 않음
+  });
+
+  it('경로 후반부 96%+ 매장 → 0점 (0.95 임계값)', () => {
+    // samplePoints[9] = lat 37.59, routeProgress = 9/9 = 100% → 0점
+    const place = makePlace(37.59, 127.0);
     const score = calculateProximityScore(place, samplePoints, route);
     expect(score).toBe(0);
   });

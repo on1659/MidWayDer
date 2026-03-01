@@ -61,8 +61,8 @@ export function calculateProximityScore(
   // 경로 진행률 계산 (0-1)
   const routeProgress = closestPointIndex / (sampledPoints.length - 1);
 
-  // 경로 후반부(80% 이후) 매장 제외 (목적지 근처는 의미 없음)
-  if (routeProgress >= 0.8) return 0;
+  // 경로 후반부(95% 이후) 매장 제외 (목적지 근처는 의미 없음)
+  if (routeProgress >= 0.95) return 0;
 
   // 거리 기반 점수 변환 (비선형 — 가까울수록 훨씬 높은 점수)
   // 0m → 100점, 100m → 85점, 300m → 50점, 500m → 20점, 800m+ → ~0점
