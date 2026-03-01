@@ -16,7 +16,9 @@
  * ```
  */
 
-import { getRoute, searchPlaces, reverseGeocode } from './src/lib/naver-maps';
+import { getRoute } from './src/lib/map-provider/naver/directions';
+import { searchPlaces } from './src/lib/map-provider/naver/search';
+import { reverseGeocode } from './src/lib/map-provider/naver/geocoding';
 
 // ========================
 // 테스트 좌표

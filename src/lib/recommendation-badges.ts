@@ -87,7 +87,7 @@ export function getRecommendationBadges(
       type: 'personalized',
       priority: 0 // 최우선
     });
-  } else if ((result as any).personalizationBoost && (result as any).personalizationBoost > 0) {
+  } else if (result.personalizationBoost && result.personalizationBoost > 0) {
     badges.push({
       icon: '💡',
       label: '맞춤 추천',

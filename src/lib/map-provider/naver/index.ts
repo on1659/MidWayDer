@@ -5,9 +5,9 @@
  * 기존 파일을 수정하지 않고 어댑터 패턴으로 연결합니다.
  */
 
-import { getRoute as naverGetRoute } from '@/lib/naver-maps/directions';
-import { searchPlaces as naverSearchPlaces, searchPlacesByRegion as naverSearchPlacesByRegion } from '@/lib/naver-maps/search';
-import { geocodeAddress as naverGeocodeAddress, reverseGeocode as naverReverseGeocode } from '@/lib/naver-maps/geocoding';
+import { getRoute as naverGetRoute } from './directions';
+import { searchPlaces as naverSearchPlaces, searchPlacesByRegion as naverSearchPlacesByRegion } from './search';
+import { geocodeAddress as naverGeocodeAddress, reverseGeocode as naverReverseGeocode } from './geocoding';
 import { Route, Coordinates, Place } from '@/types/location';
 import { IDirectionsProvider, ISearchProvider, IGeocodingProvider, RouteOption, SearchOptions } from '../types';
 

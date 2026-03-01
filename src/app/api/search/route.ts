@@ -23,6 +23,7 @@ import { prisma } from '@/lib/db/prisma';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
 import { loadSearchCache, saveSearchCache } from '@/lib/cache/search-cache';
+import { captureException } from '@/lib/monitoring';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -249,6 +250,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response);
   } catch (error: any) {
     console.error('[API /search] Unexpected error:', error);
+    captureException(error, { endpoint: '/api/search' });
 
     // DB 에러
     if (error.message === 'DATABASE_ERROR') {

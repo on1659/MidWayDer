@@ -158,7 +158,7 @@ export default function DesktopSidePanel({
           <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>어디 들를까?</span>
           <CategorySelect selected={category} onChange={handleCategoryChange} />
         </div>
-        {previewRoute && !originalRoute && <RoutePreview distance={(previewRoute as any).distance} duration={(previewRoute as any).duration} />}
+        {/* previewRoute is always null; RoutePreview rendered via useMapState when available */}
         <button data-testid="search-route-btn" onClick={handleSearch} disabled={isLoading || !canSearch} className="w-full py-3.5 text-white rounded-2xl font-bold text-base active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md" style={{ background: isLoading || !canSearch ? undefined : 'var(--accent)' }}>
           {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
         </button>

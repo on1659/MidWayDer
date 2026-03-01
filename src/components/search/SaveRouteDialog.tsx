@@ -108,7 +108,7 @@ export default function SaveRouteDialog({
             <select
               id="routine-type-select"
               value={routineType}
-              onChange={(e) => setRoutineType(e.target.value as any)}
+              onChange={(e) => setRoutineType(e.target.value as '' | 'morning-commute' | 'evening-commute' | 'weekend-trip')}
               className="w-full px-4 py-3 rounded-xl text-base border-2 transition-colors outline-none"
               style={{
                 borderColor: 'var(--border-soft)',

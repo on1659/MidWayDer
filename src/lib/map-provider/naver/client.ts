@@ -132,30 +132,25 @@ naverMapsClient.interceptors.response.use(
 );
 
 // ========================
-// Request 인터셉터 (디버깅용)
-// ========================
-
-
-// ========================
 // 유틸리티 함수
 // ========================
 
 /**
  * API 에러 메시지 추출
  */
-export function extractErrorMessage(error: any): string {
-  if (error.response?.data?.errorMessage) {
-    return error.response.data.errorMessage;
+export function extractErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null) {
+    const e = error as Record<string, unknown>;
+    if (typeof (e as { response?: { data?: { errorMessage?: string } } }).response?.data?.errorMessage === 'string') {
+      return (e as { response: { data: { errorMessage: string } } }).response.data.errorMessage;
+    }
+    if (typeof (e as { response?: { data?: { message?: string } } }).response?.data?.message === 'string') {
+      return (e as { response: { data: { message: string } } }).response.data.message;
+    }
+    if (typeof (e as { message?: string }).message === 'string') {
+      return (e as { message: string }).message;
+    }
   }
-
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  }
-
-  if (error.message) {
-    return error.message;
-  }
-
   return 'Unknown error';
 }
 

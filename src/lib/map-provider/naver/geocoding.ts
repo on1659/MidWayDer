@@ -26,7 +26,7 @@ export class GeocodingApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'GeocodingApiError';
@@ -99,14 +99,14 @@ export async function reverseGeocode(
     const address = formatAddress(result);
 
     return address;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 이미 GeocodingApiError인 경우 그대로 전달
     if (error instanceof GeocodingApiError) {
       throw error;
     }
 
     // Axios 에러 처리
-    if (error.isAxiosError) {
+    if (typeof error === 'object' && error !== null && (error as { isAxiosError?: boolean }).isAxiosError) {
       const axiosError = error as AxiosError;
       const status = axiosError.response?.status;
 
@@ -122,7 +122,7 @@ export async function reverseGeocode(
       throw new GeocodingApiError(
         '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.',
         'NETWORK_ERROR',
-        { message: error.message }
+        { message: (error as Error).message }
       );
     }
 
@@ -183,7 +183,7 @@ export async function reverseGeocodeDetailed(coords: Coordinates): Promise<Addre
     const addressInfo = convertResultToAddressInfo(result);
 
     return addressInfo;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 이미 GeocodingApiError인 경우 그대로 전달
     if (error instanceof GeocodingApiError) {
       throw error;
@@ -360,12 +360,12 @@ export async function geocodeAddress(address: string): Promise<Coordinates> {
     }
 
     return { lat, lng };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof GeocodingApiError) {
       throw error;
     }
 
-    if (error.isAxiosError) {
+    if (typeof error === 'object' && error !== null && (error as { isAxiosError?: boolean }).isAxiosError) {
       const axiosError = error as AxiosError;
       const status = axiosError.response?.status;
 
@@ -380,7 +380,7 @@ export async function geocodeAddress(address: string): Promise<Coordinates> {
       throw new GeocodingApiError(
         '네트워크 오류가 발생했습니다.',
         'NETWORK_ERROR',
-        { message: error.message }
+        { message: (error as Error).message }
       );
     }
 

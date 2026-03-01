@@ -42,8 +42,8 @@ describe('getBusinessStatus', () => {
   });
 
   it('null 입력 시 에러 없음', () => {
-    expect(() => getBusinessStatus(null as any)).not.toThrow();
-    expect(getBusinessStatus(null as any).isOpen).toBe(false);
+    expect(() => getBusinessStatus(null as unknown as string)).not.toThrow();
+    expect(getBusinessStatus(null as unknown as string).isOpen).toBe(false);
   });
 
   it('자정 넘는 영업 (22:00~02:00), 01:00 기준 영업중', () => {

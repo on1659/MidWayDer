@@ -50,6 +50,13 @@ export interface DetourResult {
 
   /** 경로 타입 (최단거리/최단시간) */
   routeType?: 'shortest' | 'fastest';
+
+  /**
+   * 개인화 알고리즘 점수 부스트
+   * - ClickLog / 방문 이력 기반으로 search API가 설정
+   * - 범위: 0.0 ~ 1.0 (0이면 부스트 없음)
+   */
+  personalizationBoost?: number;
 }
 
 /**

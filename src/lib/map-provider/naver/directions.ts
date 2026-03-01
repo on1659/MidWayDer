@@ -21,7 +21,7 @@ export class DirectionsApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'DirectionsApiError';
@@ -96,14 +96,14 @@ export async function getRoute(
     const route = convertNaverRouteToRoute(routeData, start, end);
 
     return route;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 이미 DirectionsApiError인 경우 그대로 전달
     if (error instanceof DirectionsApiError) {
       throw error;
     }
 
     // Axios 에러 처리
-    if (error.isAxiosError) {
+    if (typeof error === 'object' && error !== null && (error as { isAxiosError?: boolean }).isAxiosError) {
       const axiosError = error as AxiosError;
       const status = axiosError.response?.status;
 
@@ -119,7 +119,7 @@ export async function getRoute(
       throw new DirectionsApiError(
         '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.',
         'NETWORK_ERROR',
-        { message: error.message }
+        { message: (error as Error).message }
       );
     }
 
@@ -199,7 +199,7 @@ function validateCoordinates(coords: Coordinates, name: string): void {
  * Naver Route를 우리 Route 타입으로 변환
  */
 function convertNaverRouteToRoute(
-  naverRoute: any,
+  naverRoute: { summary: { distance: number; duration: number }; path: Array<[number, number]> },
   start: Coordinates,
   end: Coordinates
 ): Route {

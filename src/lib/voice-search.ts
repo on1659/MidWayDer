@@ -25,7 +25,7 @@ export const startVoiceSearch = (): Promise<VoiceSearchResult> => {
       return;
     }
 
-    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     const recognition = new SpeechRecognition();
 
     // 설정

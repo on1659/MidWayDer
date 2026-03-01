@@ -6,7 +6,7 @@
  */
 
 import { calculateDetourCosts } from '@/lib/detour';
-import { getRoute } from '@/lib/naver-maps/directions';
+import { getRoute } from '@/lib/map-provider/naver/directions';
 
 // ========================
 // 예시 1: 서울시청 → 강남역 경로에서 다이소 찾기

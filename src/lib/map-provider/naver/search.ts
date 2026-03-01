@@ -47,7 +47,7 @@ export class SearchApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'SearchApiError';
@@ -90,7 +90,6 @@ export async function searchPlaces(
 
     // 옵션 기본값
     const maxResults = Math.min(options.maxResults || 100, 100);
-    const sort = options.sort || 'random';
 
     // API 호출 (Naver 검색 API - developers.naver.com)
     const encodedQuery = encodeURIComponent(query.trim());
@@ -111,14 +110,14 @@ export async function searchPlaces(
     }
 
     return places;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 이미 SearchApiError인 경우 그대로 전달
     if (error instanceof SearchApiError) {
       throw error;
     }
 
     // Axios 에러 처리
-    if (error.isAxiosError) {
+    if (typeof error === 'object' && error !== null && (error as { isAxiosError?: boolean }).isAxiosError) {
       const axiosError = error as AxiosError;
       const status = axiosError.response?.status;
 
@@ -134,7 +133,7 @@ export async function searchPlaces(
       throw new SearchApiError(
         '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.',
         'NETWORK_ERROR',
-        { message: error.message }
+        { message: (error as Error).message }
       );
     }
 

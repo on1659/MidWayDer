@@ -11,6 +11,8 @@ declare namespace naver {
       setCenter(latlng: LatLng): void;
       setZoom(zoom: number): void;
       fitBounds(bounds: LatLngBounds, margin?: Margin): void;
+      /** 지도 중심을 지정한 위치로 부드럽게 이동 */
+      panTo(position: LatLng, options?: { duration?: number }): void;
     }
 
     class LatLng {

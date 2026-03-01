@@ -15,6 +15,10 @@ declare namespace kakao {
       getLevel(): number;
       addControl(control: ZoomControl | MapTypeControl, position: ControlPosition): void;
       removeControl(control: ZoomControl | MapTypeControl): void;
+      /** CustomOverlay 임시 클릭 마커 (내부 사용) */
+      __clickMarker?: CustomOverlay | null;
+      /** 지도 중심을 지정한 위치로 부드럽게 이동 */
+      panTo(position: LatLng): void;
     }
 
     class LatLng {
@@ -65,14 +69,14 @@ declare namespace kakao {
 
     namespace event {
       function addListener(
-        target: unknown,
+        target: Map | Marker | CustomOverlay,
         type: string,
-        handler: () => void
+        handler: (e: unknown) => void
       ): void;
       function removeListener(
-        target: unknown,
+        target: Map | Marker | CustomOverlay,
         type: string,
-        handler: () => void
+        handler: (e: unknown) => void
       ): void;
     }
 

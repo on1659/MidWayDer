@@ -79,13 +79,14 @@ export default function MapContainer({
   // 카카오맵 클릭 이벤트 (지도 클릭으로 장소 선택)
   useEffect(() => {
     if (!kakaoMap || !onMapClick) return;
-    const handler = (mouseEvent: any) => {
+    const handler = (ev: unknown) => {
+      const mouseEvent = ev as { latLng: kakao.maps.LatLng };
       const latlng = mouseEvent.latLng;
       onMapClick({ lat: latlng.getLat(), lng: latlng.getLng() });
     };
-    kakao.maps.event.addListener(kakaoMap, 'click', handler as any);
+    kakao.maps.event.addListener(kakaoMap, 'click', handler);
     return () => {
-      kakao.maps.event.removeListener(kakaoMap, 'click', handler as any);
+      kakao.maps.event.removeListener(kakaoMap, 'click', handler);
     };
   }, [kakaoMap, onMapClick]);
 
@@ -96,9 +97,9 @@ export default function MapContainer({
       const c = kakaoMap.getCenter();
       onMapIdle({ lat: c.getLat(), lng: c.getLng() });
     };
-    kakao.maps.event.addListener(kakaoMap, 'idle', handler as any);
+    kakao.maps.event.addListener(kakaoMap, 'idle', handler);
     return () => {
-      kakao.maps.event.removeListener(kakaoMap, 'idle', handler as any);
+      kakao.maps.event.removeListener(kakaoMap, 'idle', handler);
     };
   }, [kakaoMap, onMapIdle]);
 
@@ -107,9 +108,9 @@ export default function MapContainer({
     if (!kakaoMap || !window.kakao) return;
 
     // 이전 마커 제거
-    if ((kakaoMap as any).__clickMarker) {
-      (kakaoMap as any).__clickMarker.setMap(null);
-      (kakaoMap as any).__clickMarker = null;
+    if (kakaoMap.__clickMarker) {
+      kakaoMap.__clickMarker.setMap(null);
+      kakaoMap.__clickMarker = null;
     }
 
     if (!clickedCoords) return;
@@ -131,7 +132,7 @@ export default function MapContainer({
     });
 
     overlay.setMap(kakaoMap);
-    (kakaoMap as any).__clickMarker = overlay;
+    kakaoMap.__clickMarker = overlay;
 
     return () => {
       overlay.setMap(null);
@@ -142,9 +143,9 @@ export default function MapContainer({
   useEffect(() => {
     if (!center) return;
     if (kakaoMap && window.kakao) {
-      (kakaoMap as any).panTo(new window.kakao.maps.LatLng(center.lat, center.lng));
+      kakaoMap.panTo(new window.kakao.maps.LatLng(center.lat, center.lng));
     } else if (naverMap && window.naver) {
-      (naverMap as any).panTo(new window.naver.maps.LatLng(center.lat, center.lng));
+      naverMap.panTo(new window.naver.maps.LatLng(center.lat, center.lng));
     }
   }, [center?.lat, center?.lng, kakaoMap, naverMap]);
 
