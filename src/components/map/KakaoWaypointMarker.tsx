@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import type { DetourResult } from '@/types/detour';
+import { escapeHtml } from '@/lib/utils/escape-html';
 
 interface KakaoWaypointMarkerProps {
   map: kakao.maps.Map | null;
@@ -179,6 +180,9 @@ export default function KakaoWaypointMarker({
         cursor: default;
       `;
 
+      const safeName = escapeHtml(waypoint.place.name);
+      const safeAddress = escapeHtml(waypoint.place.roadAddress || waypoint.place.address);
+
       infoContent.innerHTML = `
         <div style="position: relative;">
           <h4 style="
@@ -186,13 +190,13 @@ export default function KakaoWaypointMarker({
             font-size: 15px;
             font-weight: 700;
             color: var(--text-primary);
-          ">${waypoint.place.name}</h4>
+          ">${safeName}</h4>
           <p style="
             margin: 0 0 10px 0;
             font-size: 12px;
             color: var(--text-secondary);
             line-height: 1.4;
-          ">${waypoint.place.roadAddress || waypoint.place.address}</p>
+          ">${safeAddress}</p>
           <div style="
             display: flex;
             gap: 8px;

@@ -3,17 +3,28 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 const KAKAO_REST_KEY = process.env.KAKAO_REST_API_KEY;
 
+const QuerySchema = z.object({
+  query: z.string().min(2).max(100),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+});
+
 export async function GET(req: NextRequest) {
-  const query = req.nextUrl.searchParams.get('query')?.trim();
-  if (!query || query.length < 2) {
+  const parsed = QuerySchema.safeParse({
+    query: req.nextUrl.searchParams.get('query')?.trim(),
+    lat: req.nextUrl.searchParams.get('lat') ?? undefined,
+    lng: req.nextUrl.searchParams.get('lng') ?? undefined,
+  });
+
+  if (!parsed.success) {
     return NextResponse.json({ results: [] });
   }
 
-  const lat = req.nextUrl.searchParams.get('lat');
-  const lng = req.nextUrl.searchParams.get('lng');
+  const { query, lat, lng } = parsed.data;
 
   try {
     let url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=7`;

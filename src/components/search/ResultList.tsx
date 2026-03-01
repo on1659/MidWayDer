@@ -115,6 +115,7 @@ export default function ResultList({
   const listRef = useRef<HTMLDivElement>(null);
   const summaryHeaderRef = useRef<HTMLDivElement>(null);
   const lastPopularityIdsRef = useRef<string>('');
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── 훅 ──
   const filters = useFilters(results, cardData.visitedDates);
@@ -131,6 +132,9 @@ export default function ResultList({
   // ── 초기화 (1회) ──
   useEffect(() => {
     setPreferredNavAppState(getPreferredNavApp());
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
   }, []);
 
   // ── 인기도 데이터 ──
@@ -139,12 +143,18 @@ export default function ResultList({
     const placeIds = results.map((r) => r.place.id).join(',');
     if (placeIds === lastPopularityIdsRef.current) return;  // 동일 결과 → 스킵
     lastPopularityIdsRef.current = placeIds;
-    fetch(`/api/popularity?placeIds=${encodeURIComponent(placeIds)}`)
+
+    const controller = new AbortController();
+    fetch(`/api/popularity?placeIds=${encodeURIComponent(placeIds)}`, {
+      signal: controller.signal,
+    })
       .then((res) => res.json())
       .then((json) => { if (json.success) setPopularityMap(json.data || {}); })
       .catch((err) => {
-        console.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
+        if (err.name !== 'AbortError') console.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
       });
+
+    return () => controller.abort();
   }, [results]);
 
   // ── 검색 시각 기록 ──
@@ -155,7 +165,9 @@ export default function ResultList({
   // ── 결과 없을 때 인기 카테고리 ──
   useEffect(() => {
     if (!hasSearched || results.length > 0) return;
-    fetch('/api/stats?period=week')
+
+    const controller = new AbortController();
+    fetch('/api/stats?period=week', { signal: controller.signal })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data?.categoryBreakdown)) {
@@ -167,8 +179,10 @@ export default function ResultList({
         }
       })
       .catch((err) => {
-        console.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
+        if (err.name !== 'AbortError') console.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
       });
+
+    return () => controller.abort();
   }, [hasSearched, results.length, currentCategory]);
 
   // ── isHeaderExpanded localStorage ──
@@ -304,7 +318,8 @@ export default function ResultList({
     const success = await copyToClipboard(address);
     if (success) {
       setCopiedId(result.place.id);
-      setTimeout(() => setCopiedId(null), 2000);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopiedId(null), 2000);
     }
   }, [setCopiedId]);
 

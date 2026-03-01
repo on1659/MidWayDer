@@ -12,7 +12,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
+
+const BodySchema = z.object({
+  placeId: z.string().min(1).max(100),
+  userLat: z.number().min(-90).max(90),
+  userLng: z.number().min(-180).max(180),
+});
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
@@ -36,15 +43,13 @@ function calcTier(points: number): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { placeId, userLat, userLng } = body as {
-      placeId: string;
-      userLat: number;
-      userLng: number;
-    };
+    const parsed = BodySchema.safeParse(body);
 
-    if (!placeId || userLat == null || userLng == null) {
-      return NextResponse.json({ error: '필수 파라미터 누락' }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: '필수 파라미터 누락 또는 형식 오류' }, { status: 400 });
     }
+
+    const { placeId, userLat, userLng } = parsed.data;
 
     const sessionId = request.cookies.get('sessionId')?.value || 'anonymous';
 
