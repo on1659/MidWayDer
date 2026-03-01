@@ -1,11 +1,12 @@
 'use client';
 
+import React from 'react';
 import { CheckCircle, Circle, Star, Navigation, Bookmark } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { getBusinessStatus, getMinutesUntilClose } from '@/lib/business-hours';
 import { useResultList } from './ResultListContext';
-import { getRoutePositionLabel, getETAText, highlightText } from './utils';
+import { getRoutePositionLabel, getETAText, highlightText, haversineDistanceKm } from './utils';
 
 interface CompactCardProps {
   result: DetourResult;
@@ -19,7 +20,7 @@ interface CompactCardProps {
   swipeVisual: { id: string; deltaX: number } | null;
 }
 
-export function CompactCard({ result, index, isSelected, swipeHandlers, swipeVisual }: CompactCardProps) {
+export const CompactCard = React.memo(function CompactCard({ result, index, isSelected, swipeHandlers, swipeVisual }: CompactCardProps) {
   const ctx = useResultList();
   const {
     favPlaces, visitedDates, pinnedIds,
@@ -42,10 +43,10 @@ export function CompactCard({ result, index, isSelected, swipeHandlers, swipeVis
   const animDelay = index < 10 ? index * 30 : 0;
 
   const currentDistKm = currentLocation
-    ? Math.sqrt(
-        (currentLocation.lat - result.place.coordinates.lat) ** 2 +
-        (currentLocation.lng - result.place.coordinates.lng) ** 2
-      ) * 111
+    ? haversineDistanceKm(
+        currentLocation.lat, currentLocation.lng,
+        result.place.coordinates.lat, result.place.coordinates.lng
+      )
     : null;
 
   return (
@@ -221,4 +222,4 @@ export function CompactCard({ result, index, isSelected, swipeHandlers, swipeVis
       </button>
     </div>
   );
-}
+});

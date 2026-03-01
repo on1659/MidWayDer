@@ -332,6 +332,11 @@ export function haversineDistance(p1: Coordinates, p2: Coordinates): number {
   return R * c;
 }
 
+/** Haversine 거리 계산 (km) — haversineDistance()의 km 단위 래퍼 */
+export function haversineDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  return haversineDistance({ lat: lat1, lng: lng1 }, { lat: lat2, lng: lng2 }) / 1000;
+}
+
 // ========================
 // 날짜 & 시간
 // ========================

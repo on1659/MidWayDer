@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Copy, Check, Navigation, Star, Phone, CheckCircle, Circle, Share2, Bookmark, Pencil, MoreHorizontal } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { getCategoryIcon } from '@/lib/category-icons';
@@ -32,7 +33,7 @@ interface ResultCardProps {
   onHoverResult?: (id: string | null) => void;
 }
 
-export function ResultCard({
+export const ResultCard = React.memo(function ResultCard({
   result,
   index,
   isSelected,
@@ -704,4 +705,4 @@ export function ResultCard({
       </button>
     </div>
   );
-}
+});

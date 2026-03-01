@@ -114,6 +114,7 @@ export default function ResultList({
   // ── Refs ──
   const listRef = useRef<HTMLDivElement>(null);
   const summaryHeaderRef = useRef<HTMLDivElement>(null);
+  const lastPopularityIdsRef = useRef<string>('');
 
   // ── 훅 ──
   const filters = useFilters(results, cardData.visitedDates);
@@ -136,6 +137,8 @@ export default function ResultList({
   useEffect(() => {
     if (results.length === 0) return;
     const placeIds = results.map((r) => r.place.id).join(',');
+    if (placeIds === lastPopularityIdsRef.current) return;  // 동일 결과 → 스킵
+    lastPopularityIdsRef.current = placeIds;
     fetch(`/api/popularity?placeIds=${encodeURIComponent(placeIds)}`)
       .then((res) => res.json())
       .then((json) => { if (json.success) setPopularityMap(json.data || {}); })
