@@ -124,6 +124,28 @@ describe('calculateDetourCosts — 엣지케이스', () => {
   });
 });
 
+describe('computePathDistance — endIdx clamp 방어 코드', () => {
+  const path = [
+    { lat: 37.5, lng: 126.9 },
+    { lat: 37.51, lng: 126.91 },
+    { lat: 37.52, lng: 126.92 },
+  ];
+
+  it('endIdx가 path.length를 초과해도 크래시 없이 전체 거리 반환', () => {
+    const result = computePathDistance(path, 999);
+    const expected = computePathDistance(path, 2); // path.length - 1 = 2
+    expect(result).toBe(expected);
+  });
+
+  it('빈 path이면 0 반환', () => {
+    expect(computePathDistance([], 5)).toBe(0);
+  });
+
+  it('endIdx=0이면 0 반환', () => {
+    expect(computePathDistance(path, 0)).toBe(0);
+  });
+});
+
 describe('estimateDetourDuration — 엣지케이스', () => {
   it('매우 큰 거리(100km)도 양의 정수 반환', () => {
     const duration = estimateDetourDuration(100000);

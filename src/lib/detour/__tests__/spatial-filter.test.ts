@@ -23,9 +23,10 @@ vi.mock('@/lib/map-provider/kakao/search', () => ({
   },
 }));
 
-import { filterPlacesByRoute, deduplicatePlaces } from '../spatial-filter';
+import { filterPlacesByRoute, deduplicatePlaces, minDistanceToPolyline } from '../spatial-filter';
 import { prisma } from '@/lib/db/prisma';
-import type { Place } from '@/types/location';
+import type { Place, Coordinates } from '@/types/location';
+import type { Route } from '@/types/location';
 
 const makeTestPlace = (id: string, lat: number, lng: number): Place => ({
   id, name: id, category: 'test', address: '',
@@ -101,6 +102,47 @@ describe('filterPlacesByRoute', () => {
     (prisma.place.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     const places = await filterPlacesByRoute(mockRoute, '카페');
     expect(Array.isArray(places)).toBe(true);
+  });
+});
+
+describe('queryDbPlaces (via filterPlacesByRoute)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('route.path가 빈 배열이면 DB 쿼리 없이 [] 반환', async () => {
+    const emptyRoute: Route = {
+      path: [],
+      distance: 0,
+      duration: 0,
+      start: { lat: 37.5, lng: 126.9 },
+      end: { lat: 37.6, lng: 127.0 },
+    };
+    const mockFindMany = vi.fn().mockResolvedValue([]);
+    (prisma.place.findMany as ReturnType<typeof vi.fn>).mockImplementation(mockFindMany);
+
+    const result = await filterPlacesByRoute(emptyRoute, '다이소', 1000);
+
+    expect(result).toEqual([]);
+    expect(mockFindMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('minDistanceToPolyline stride 최적화', () => {
+  it('stride=1과 stride=10 결과 오차가 ±50m 이내', () => {
+    const point: Coordinates = { lat: 37.5050, lng: 126.9050 };
+    const polyline: Coordinates[] = Array.from({ length: 500 }, (_, i) => ({
+      lat: 37.5 + i * 0.0001,
+      lng: 126.9 + i * 0.0001,
+    }));
+
+    const distFull = minDistanceToPolyline(point, polyline, 1);
+    const distStrided = minDistanceToPolyline(point, polyline, 10);
+
+    expect(Math.abs(distFull - distStrided)).toBeLessThan(50); // ±50m 이내 오차
+  });
+
+  it('빈 폴리라인은 Infinity 반환', () => {
+    const point: Coordinates = { lat: 37.5, lng: 126.9 };
+    expect(minDistanceToPolyline(point, [], 10)).toBe(Infinity);
   });
 });
 

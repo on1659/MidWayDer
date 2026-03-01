@@ -137,9 +137,9 @@ export const POPULAR_CATEGORIES = [
 
 /** 로딩 단계 */
 export const LOADING_STAGES = [
-  { icon: '🔍', text: '경로 분석 중', sub: '최적 경로를 계산하고 있어요' },
-  { icon: '📍', text: '장소 탐색 중', sub: '경로 주변 매장을 찾고 있어요' },
-  { icon: '⚡', text: '비용 계산 중', sub: '이탈 비용을 정밀하게 계산 중이에요' },
+  { icon: '🔍', text: '경로 분석 중', sub: '최적 경로를 계산하고 있어요', delay: 0 },
+  { icon: '📍', text: '장소 탐색 중', sub: '경로 주변 매장을 찾고 있어요', delay: 2500 },
+  { icon: '⚡', text: '비용 계산 중', sub: '이탈 비용을 정밀하게 계산 중이에요', delay: 6000 },
 ];
 
 /** 현재 카테고리와 연관된 인접 카테고리 목록 */

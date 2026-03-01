@@ -19,6 +19,13 @@ import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { Coordinates, Location } from '@/types/location';
 import type { SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
+import type { DetourResult } from '@/types/detour';
+
+type TaggedDetourResult = DetourResult & {
+  routeType: 'shortest' | 'fastest';
+  personalScore?: number;
+  popularityScore?: number;
+};
 import { prisma } from '@/lib/db/prisma';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
@@ -149,13 +156,12 @@ export async function POST(request: NextRequest) {
     );
 
     // 결과 합치기 + 중복 제거 (place.id 기준, 더 높은 점수 유지)
-    const seenPlaces = new Map<string, typeof allResults[0]>();
+    const seenPlaces = new Map<string, TaggedDetourResult>();
     let totalCandidates = 0;
     let apiCallsUsed = 0;
     const fastestEntry = routeEntries.find((r) => r.type === 'fastest');
-    let primaryOriginalRoute = (fastestEntry || routeEntries[0]).route;
+    const primaryOriginalRoute = (fastestEntry || routeEntries[0]).route;
 
-    const allResults: Array<any> = [];
     for (const dr of detourResults) {
       if (dr.status !== 'fulfilled') continue;
       totalCandidates += dr.value.totalCandidates;
@@ -169,7 +175,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let finalResults = Array.from(seenPlaces.values());
+    let finalResults: TaggedDetourResult[] = Array.from(seenPlaces.values());
 
     // 6. 개인화 점수 적용 (ClickLog 기반)
     const sessionId = request.cookies.get('sessionId')?.value || 'anonymous';

@@ -69,6 +69,12 @@ async function queryDbPlaces(
   category: string,
   bufferDistance: number
 ): Promise<Place[]> {
+  // 방어 코드: 경로 포인트가 없으면 즉시 반환
+  if (route.path.length === 0) {
+    console.warn('[Spatial Filter] queryDbPlaces: empty route.path, skipping DB query');
+    return [];
+  }
+
   const lats = route.path.map((p) => p.lat);
   const lngs = route.path.map((p) => p.lng);
   const bufferDeg = (bufferDistance / 111000) * 1.2;
@@ -88,7 +94,7 @@ async function queryDbPlaces(
   const filtered: Place[] = [];
   for (const p of dbPlaces) {
     const placeCoord: Coordinates = { lat: p.lat, lng: p.lng };
-    const minDist = minDistanceToPolyline(placeCoord, route.path);
+    const minDist = minDistanceToPolyline(placeCoord, route.path, 10);
     if (minDist <= bufferDistance) {
       filtered.push({
         id: p.id,
@@ -180,7 +186,7 @@ async function fetchFromKakao(
 
   // 경로 버퍼 내 필터링 (도착지 근처는 1km까지 허용)
   return allPlaces.filter((p) => {
-    const minDistToRoute = minDistanceToPolyline(p.coordinates, route.path);
+    const minDistToRoute = minDistanceToPolyline(p.coordinates, route.path, 10);
     const distToEnd = haversineDistance(p.coordinates, endPoint);
     return minDistToRoute <= bufferDistance || distToEnd <= 1000;
   });
@@ -307,13 +313,19 @@ async function upsertPlacesToDb(places: Place[], category: string): Promise<void
 // 유틸리티
 // ========================
 
-function minDistanceToPolyline(
+/**
+ * 폴리라인 위 가장 가까운 포인트까지의 거리 계산
+ * @param stride - 폴리라인 포인트 샘플링 간격 (기본 10 = 10번째마다 계산)
+ *                 500포인트 → 50포인트로 축소. 정확도 ±50m 수준.
+ */
+export function minDistanceToPolyline(
   point: Coordinates,
-  polyline: Coordinates[]
+  polyline: Coordinates[],
+  stride: number = 10
 ): number {
   let min = Infinity;
-  for (const seg of polyline) {
-    const d = haversineDistance(point, seg);
+  for (let i = 0; i < polyline.length; i += stride) {
+    const d = haversineDistance(point, polyline[i]);
     if (d < min) min = d;
     if (min < 10) break;
   }

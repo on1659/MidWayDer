@@ -49,8 +49,10 @@ export function findClosestPointOnRoute(
  * Haversine 거리를 연속 세그먼트 합산으로 구함
  */
 export function computePathDistance(path: RoutePoint[], endIdx: number): number {
+  if (path.length === 0) return 0;
+  const safeEnd = Math.min(endIdx, path.length - 1); // clamp: OOB 방어
   let total = 0;
-  for (let i = 0; i < endIdx; i++) {
+  for (let i = 0; i < safeEnd; i++) {
     total += haversineDistance(path[i], path[i + 1]);
   }
   return Math.round(total);
