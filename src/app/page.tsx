@@ -42,6 +42,7 @@ import { useSortFilter } from './hooks/useSortFilter';
 import { useMapState } from './hooks/useMapState';
 import { useSearch } from './hooks/useSearch';
 import type { DetourResult } from '@/types/detour';
+import { logger } from '@/lib/logger';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
@@ -310,7 +311,7 @@ export default function HomePage() {
               )}
               {results.length >= 2 && start?.coordinates && end?.coordinates && (
                 <div className="mb-3">
-                  <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost.distance, detourDuration: r.detourCost.duration }))} onOptimize={(ids) => { console.log('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
+                  <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost.distance, detourDuration: r.detourCost.duration }))} onOptimize={(ids) => { logger.debug('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
                 </div>
               )}
               <ResultList results={filteredResults} selectedId={selectedWaypoint?.place.id || null} isLoading={isLoading} error={error} hasSearched={hasSearched} currentCategory={category}

@@ -8,6 +8,7 @@ import { naverMapsClient, extractErrorMessage, getErrorMessageByStatus } from '.
 import { NaverReverseGeocodeResponse, NaverReverseGeocodeResult } from './types';
 import { Coordinates, AddressInfo } from '@/types/location';
 import { AxiosError } from 'axios';
+import { logger } from '@/lib/logger';
 
 // ========================
 // 타입 정의
@@ -410,9 +411,9 @@ export function getShortAddress(fullAddress: string): string {
  * 주소 요약 출력 (디버깅용)
  */
 export function printAddressInfo(addressInfo: AddressInfo): void {
-  console.log('=== Address Info ===');
-  console.log(`Full: ${addressInfo.fullAddress}`);
-  console.log(`Road: ${addressInfo.roadAddress || 'N/A'}`);
-  console.log(`Jibun: ${addressInfo.jibunAddress || 'N/A'}`);
-  console.log(`Region: ${addressInfo.sido} > ${addressInfo.sigungu} > ${addressInfo.dong}`);
+  logger.debug('=== Address Info ===');
+  logger.debug(`Full: ${addressInfo.fullAddress}`);
+  logger.debug(`Road: ${addressInfo.roadAddress || 'N/A'}`);
+  logger.debug(`Jibun: ${addressInfo.jibunAddress || 'N/A'}`);
+  logger.debug(`Region: ${addressInfo.sido} > ${addressInfo.sigungu} > ${addressInfo.dong}`);
 }

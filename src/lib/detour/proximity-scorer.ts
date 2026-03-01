@@ -32,7 +32,7 @@ import { haversineDistance } from '@/lib/utils';
 export function calculateProximityScore(
   place: Place,
   sampledPoints: RoutePoint[],
-  route: Route
+  _route: Route
 ): number {
   let minDistance = Infinity;
   let closestPointIndex = -1;

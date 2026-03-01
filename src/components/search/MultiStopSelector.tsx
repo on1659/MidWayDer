@@ -5,7 +5,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Loader2, MapPin, Clock } from 'lucide-react';
+import { ArrowRight, Loader2, MapPin } from 'lucide-react';
 import type { Coordinates } from '@/types/location';
 
 interface Waypoint {

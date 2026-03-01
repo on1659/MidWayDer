@@ -3,6 +3,8 @@
  * 사용자가 실제로 방문한 경유지 기록 → 개인화 점수 향상
  */
 
+import { logger } from '@/lib/logger';
+
 export interface VisitRecord {
   placeId: string;
   placeName: string;
@@ -52,14 +54,14 @@ export function recordVisit(
          Date.now() - v.visitedAt < 60 * 60 * 1000
   );
   if (recentDuplicate) {
-    console.log('[VisitTracking] Skip duplicate visit (within 1 hour)');
+    logger.debug('[VisitTracking] Skip duplicate visit (within 1 hour)');
     return;
   }
 
   const updated = [newVisit, ...visits].slice(0, MAX_VISITS);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    console.log('[VisitTracking] Recorded visit:', newVisit);
+    logger.debug('[VisitTracking] Recorded visit:', newVisit);
   } catch (e) {
     console.error('[VisitTracking] Failed to record visit:', e);
   }
@@ -103,7 +105,7 @@ export function clearVisitHistory(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(STORAGE_KEY);
-    console.log('[VisitTracking] Cleared all visit history');
+    logger.debug('[VisitTracking] Cleared all visit history');
   } catch (e) {
     console.error('[VisitTracking] Failed to clear visit history:', e);
   }

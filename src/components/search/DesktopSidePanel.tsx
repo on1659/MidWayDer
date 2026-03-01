@@ -6,8 +6,8 @@
  */
 
 import { useCallback } from 'react';
-import dynamic from 'next/dynamic';
 import { Share2, X, Sun, Moon, Star, ArrowUpDown } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
 import ResultList from '@/components/search/ResultList';
@@ -23,8 +23,6 @@ import { recordLocationVisit } from '@/lib/smart-location';
 import { useToast } from '@/hooks/useToast';
 import { useSortFilter } from '@/app/hooks/useSortFilter';
 import type { DetourResult } from '@/types/detour';
-
-const RoutePreview = dynamic(() => import('@/components/search/RoutePreview'));
 
 interface DesktopSidePanelProps {
   theme: 'light' | 'dark';
@@ -47,8 +45,6 @@ export default function DesktopSidePanel({
   const { category, results, isLoading, error, totalCandidates, hasSearched, isCached, setCategory, search, clearResults, cancelSearch } = useSearchStore();
   const { showToast } = useToast();
   const { routeTypeFilter, setRouteTypeFilter, sortBy, setSortBy, filteredResults, routeTypeCounts } = useSortFilter(results);
-
-  const previewRoute = null; // TODO: integrate with useMapState if needed
 
   const mapCenter = start?.coordinates || { lat: 37.5665, lng: 126.978 };
   const canSearch = !!(start?.address && end?.address);
@@ -224,7 +220,7 @@ export default function DesktopSidePanel({
           </>
         )}
         {results.length >= 2 && start?.coordinates && end?.coordinates && (
-          <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost.distance, detourDuration: r.detourCost.duration }))} onOptimize={(ids) => { console.log('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
+          <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost.distance, detourDuration: r.detourCost.duration }))} onOptimize={(ids) => { logger.debug('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
         )}
         <ResultList
           results={filteredResults} selectedId={selectedWaypoint?.place.id || null}

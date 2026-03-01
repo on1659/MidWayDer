@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db/prisma';
 import { Route, Place, Coordinates } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
 import { KakaoSearchProvider } from '@/lib/map-provider/kakao/search';
+import { logger } from '@/lib/logger';
 
 const MIN_DB_RESULTS = 10;
 const MAX_RESULTS = 100;
@@ -33,20 +34,20 @@ export async function filterPlacesByRoute(
   try {
     // === Phase 1: DB 조회 ===
     const dbPlaces = await queryDbPlaces(route, category, bufferDistance);
-    console.log(`[Spatial Filter] DB hit: ${dbPlaces.length}개 (category=${category})`);
+    logger.debug(`[Spatial Filter] DB hit: ${dbPlaces.length}개 (category=${category})`);
 
     if (dbPlaces.length >= MIN_DB_RESULTS) {
       return dbPlaces.slice(0, MAX_RESULTS);
     }
 
     // === Phase 2: 카카오 API 보충 ===
-    console.log(`[Spatial Filter] DB 결과 부족 (${dbPlaces.length}/${MIN_DB_RESULTS}), 카카오 API 호출`);
+    logger.debug(`[Spatial Filter] DB 결과 부족 (${dbPlaces.length}/${MIN_DB_RESULTS}), 카카오 API 호출`);
     const kakaoPlaces = await fetchFromKakao(route, category, bufferDistance);
-    console.log(`[Spatial Filter] 카카오 API 결과: ${kakaoPlaces.length}개`);
+    logger.debug(`[Spatial Filter] 카카오 API 결과: ${kakaoPlaces.length}개`);
 
     // === Phase 3: 중복 제거 & 병합 ===
     const merged = deduplicatePlaces([...dbPlaces, ...kakaoPlaces]);
-    console.log(`[Spatial Filter] 중복 제거 후: ${merged.length}개`);
+    logger.debug(`[Spatial Filter] 중복 제거 후: ${merged.length}개`);
 
     // === Phase 4: 카카오 결과 DB 캐싱 (비동기, 실패해도 결과 반환) ===
     upsertPlacesToDb(kakaoPlaces, category).catch((err) =>
@@ -153,7 +154,7 @@ async function fetchFromKakao(
   // 도착지 주변도 추가 검색 (도착지 1km 반경)
   const endPoint = route.end;
 
-  console.log(`[Spatial Filter] 카카오 검색: ${sampleCount}개 포인트 + 도착지 주변, radius=${radius}m`);
+  logger.debug(`[Spatial Filter] 카카오 검색: ${sampleCount}개 포인트 + 도착지 주변, radius=${radius}m`);
 
   const allPlaces: Place[] = [];
 
@@ -179,7 +180,7 @@ async function fetchFromKakao(
       maxResults: 10,
     });
     allPlaces.push(...endPlaces);
-    console.log(`[Spatial Filter] 도착지 주변: ${endPlaces.length}개`);
+    logger.debug(`[Spatial Filter] 도착지 주변: ${endPlaces.length}개`);
   } catch (err) {
     console.warn(`[Spatial Filter] 도착지 주변 검색 실패:`, err);
   }
@@ -306,7 +307,7 @@ async function upsertPlacesToDb(places: Place[], category: string): Promise<void
       console.warn(`[Spatial Filter] upsert 실패 (${place.name}):`, err);
     }
   }
-  console.log(`[Spatial Filter] DB 캐싱 완료: ${upserted}/${places.length}개 upsert`);
+  logger.debug(`[Spatial Filter] DB 캐싱 완료: ${upserted}/${places.length}개 upsert`);
 }
 
 // ========================

@@ -11,6 +11,7 @@ import { prisma } from '@/lib/db/prisma';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
 import type { SeedPlacesResponse } from '@/types/api';
 import type { Place } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     // 3. 기존 데이터 삭제 (요청 시)
     if (clearExisting) {
       await prisma.$executeRaw`DELETE FROM "Place" WHERE category = ANY(${categories}::text[])`;
-      console.log(`[Seed] Cleared existing places for categories: ${categories.join(', ')}`);
+      logger.debug(`[Seed] Cleared existing places for categories: ${categories.join(', ')}`);
     }
 
     // 4. 카테고리 x 도시 조합으로 검색 및 DB 저장
@@ -49,12 +50,12 @@ export async function POST(request: NextRequest) {
 
       for (const city of cities) {
         try {
-          console.log(`[Seed] Searching: ${category} in ${city}...`);
+          logger.debug(`[Seed] Searching: ${category} in ${city}...`);
           const searchProvider = await getSearchProvider();
           const places = await searchProvider.searchPlacesByRegion(category, city, 100);
 
           if (places.length === 0) {
-            console.log(`[Seed] No results for ${category} in ${city}`);
+            logger.debug(`[Seed] No results for ${category} in ${city}`);
             continue;
           }
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
           const inserted = await insertPlaces(places, category);
           categoryCount += inserted;
 
-          console.log(`[Seed] Inserted ${inserted} places for ${category} in ${city}`);
+          logger.debug(`[Seed] Inserted ${inserted} places for ${category} in ${city}`);
         } catch (error) {
           console.error(`[Seed] Error searching ${category} in ${city}:`, error);
           // 개별 실패는 무시하고 계속 진행

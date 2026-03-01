@@ -4,7 +4,7 @@
  * Next.js API Routes의 요청/응답 구조를 정의합니다.
  */
 
-import { Coordinates, Route, Place } from './location';
+import { Coordinates, Route } from './location';
 import { DetourResult } from './detour';
 
 // ========================

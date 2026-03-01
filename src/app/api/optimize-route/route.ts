@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { haversineDistance } from '@/lib/utils';
 import type { Coordinates } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 interface OptimizeRequest {
   start: Coordinates;
@@ -159,9 +160,9 @@ export async function POST(req: NextRequest) {
       optimizedOrder
     );
 
-    console.log(`[OptimizeRoute] Optimized ${body.waypoints.length} waypoints`);
-    console.log(`[OptimizeRoute] Order: ${optimizedOrder.join(' → ')}`);
-    console.log(`[OptimizeRoute] Total: +${distance}m, +${duration}s`);
+    logger.debug(`[OptimizeRoute] Optimized ${body.waypoints.length} waypoints`);
+    logger.debug(`[OptimizeRoute] Order: ${optimizedOrder.join(' → ')}`);
+    logger.debug(`[OptimizeRoute] Total: +${distance}m, +${duration}s`);
 
     return NextResponse.json<OptimizeResponse>({
       success: true,

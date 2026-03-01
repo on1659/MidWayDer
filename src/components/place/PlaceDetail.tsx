@@ -5,13 +5,13 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { X, Phone, MapPin, Clock, Star, Navigation, ExternalLink, Copy, Check, Share2, CheckCircle, MapPinCheckInside } from 'lucide-react';
+import { X, Phone, MapPin, Clock, Star, Navigation, Copy, Check, Share2, CheckCircle, MapPinCheckInside } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import { useRouteStore } from '@/store/route-store';
 import { openNavigationApp, getKakaoNaviLinkWithWaypoint } from '@/lib/navigation-links';
 import { copyToClipboard } from '@/lib/clipboard';
 import { generateShareUrl, shareUrl } from '@/lib/share';
-import { recordVisit, hasVisited } from '@/lib/visit-tracking';
+import { recordVisit } from '@/lib/visit-tracking';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { getBusinessStatus, formatBusinessHours } from '@/lib/business-hours';
 
@@ -36,7 +36,6 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
-  const [visitMarked, setVisitMarked] = useState(false);
   const [gpsVerifying, setGpsVerifying] = useState(false);
   const [gpsResult, setGpsResult] = useState<{ verified: boolean; message: string; points?: number; totalPoints?: number; tier?: string } | null>(null);
   const start = useRouteStore((s) => s.start);
@@ -48,9 +47,6 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const routeHash = start?.coordinates && end?.coordinates 
     ? hashRoute(start.coordinates, end.coordinates)
     : '';
-
-  // 방문 여부 확인
-  const isVisited = routeHash && hasVisited(place.id, routeHash);
 
   const handleClose = useCallback(() => {
     setVisible(false);
@@ -120,13 +116,6 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
       setShareSuccess(true);
       setTimeout(() => setShareSuccess(false), 2000);
     }
-  };
-
-  const handleMarkVisit = () => {
-    if (!routeHash) return;
-    recordVisit(place.id, place.name, place.category, routeHash);
-    setVisitMarked(true);
-    setTimeout(() => setVisitMarked(false), 3000);
   };
 
   const handleGpsVerify = async () => {

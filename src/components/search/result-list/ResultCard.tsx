@@ -49,12 +49,12 @@ export const ResultCard = React.memo(function ResultCard({
     copiedId, sharedId, scoreDetailOpenId, overflowMenuId, editingMemoId, editingMemoText,
     isNowDeparture, nowMs, departureMs, dwellMinutes, departureTime,
     sortBy, currentLocation, closestPlaceId,
-    detourRange, maxDetourDuration: _maxDetourDuration, minDetourDuration,
+    detourRange, minDetourDuration,
     preferredNavApp, routeHash, nameFilter,
     onTogglePin, onToggleFav, onVisitToggle, onSelect, onCopyAddress, onShare,
     onEditMemo, onSaveMemo, onCancelMemo, setEditingMemoText,
     onSetScoreDetail, onSetOverflowMenu,
-    onOpenNavi, onOpenNaviSheet, triggerNav,
+    onOpenNavi, onOpenNaviSheet,
   } = ctx;
 
   const isVisited = visitedDates.has(result.place.id);

@@ -35,7 +35,7 @@ export default function AddressInput({
   onChange,
   onSelect,
   placeholder = '장소나 주소를 검색하세요',
-  icon,
+  icon: _icon,
   mapCenter,
   dotColor,
   testId,

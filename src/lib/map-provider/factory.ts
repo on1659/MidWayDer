@@ -12,6 +12,7 @@
  */
 
 import { IDirectionsProvider, ISearchProvider, IGeocodingProvider } from './types';
+import { logger } from '@/lib/logger';
 
 // ========================
 // 싱글톤 인스턴스
@@ -56,7 +57,7 @@ export async function getDirectionsProvider(): Promise<IDirectionsProvider> {
 
   if (!directionsProvider) {
     const provider = getProviderType();
-    console.log(`[MapProvider] Creating Directions provider: ${provider}`);
+    logger.debug(`[MapProvider] Creating Directions provider: ${provider}`);
 
     if (provider === 'naver') {
       const { NaverDirectionsProvider } = await import('./naver');
@@ -78,7 +79,7 @@ export async function getSearchProvider(): Promise<ISearchProvider> {
 
   if (!searchProvider) {
     const provider = getProviderType();
-    console.log(`[MapProvider] Creating Search provider: ${provider}`);
+    logger.debug(`[MapProvider] Creating Search provider: ${provider}`);
 
     if (provider === 'naver') {
       const { NaverSearchProvider } = await import('./naver');
@@ -100,7 +101,7 @@ export async function getGeocodingProvider(): Promise<IGeocodingProvider> {
 
   if (!geocodingProvider) {
     const provider = getProviderType();
-    console.log(`[MapProvider] Creating Geocoding provider: ${provider}`);
+    logger.debug(`[MapProvider] Creating Geocoding provider: ${provider}`);
 
     if (provider === 'naver') {
       const { NaverGeocodingProvider } = await import('./naver');

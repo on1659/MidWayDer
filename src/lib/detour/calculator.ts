@@ -14,12 +14,13 @@
  * API 호출 최소화: 원본 경로 1회만 호출, 경유지별 추가 호출 없음!
  */
 
-import { Route, Place, Coordinates, RoutePoint } from '@/types/location';
+import { Route, Coordinates, RoutePoint } from '@/types/location';
 import { DetourResult, SpatialFilterOptions } from '@/types/detour';
 import { filterPlacesByRoute } from './spatial-filter';
 import { samplePolyline, getOptimalSampleInterval } from './polyline-sampler';
 import { filterByProximity } from './proximity-scorer';
 import { haversineDistance } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 /**
  * 경로 위 가장 가까운 포인트를 찾고, 해당 포인트에서 경유지까지의 이탈 비용 계산
@@ -92,13 +93,13 @@ export async function calculateDetourCosts(
     sampleInterval = getOptimalSampleInterval(originalRoute.distance),
   } = options;
 
-  console.log('[Detour] Starting calculation (v2 - fixed route)...');
-  console.log(`[Detour] Route: ${originalRoute.distance}m, ${originalRoute.duration}s`);
-  console.log(`[Detour] Category: ${category}`);
+  logger.debug('[Detour] Starting calculation (v2 - fixed route)...');
+  logger.debug(`[Detour] Route: ${originalRoute.distance}m, ${originalRoute.duration}s`);
+  logger.debug(`[Detour] Category: ${category}`);
 
   // Step 1: Polyline 샘플링
   const sampledPoints = samplePolyline(originalRoute.path, sampleInterval);
-  console.log(`[Detour] Sampled ${sampledPoints.length} points (interval: ${sampleInterval}m)`);
+  logger.debug(`[Detour] Sampled ${sampledPoints.length} points (interval: ${sampleInterval}m)`);
 
   // Step 2: PostGIS 공간 필터링 (1차)
   const spatialCandidates = await filterPlacesByRoute(
@@ -106,7 +107,7 @@ export async function calculateDetourCosts(
     category,
     bufferDistance
   );
-  console.log(`[Detour] Spatial filter: ${spatialCandidates.length} candidates`);
+  logger.debug(`[Detour] Spatial filter: ${spatialCandidates.length} candidates`);
 
   if (spatialCandidates.length === 0) {
     return { results: [], totalCandidates: 0, apiCallsUsed: 1 };
@@ -119,7 +120,7 @@ export async function calculateDetourCosts(
     originalRoute,
     20
   );
-  console.log(`[Detour] Proximity filter: ${proximityFiltered.length} candidates`);
+  logger.debug(`[Detour] Proximity filter: ${proximityFiltered.length} candidates`);
 
   if (proximityFiltered.length === 0) {
     return { results: [], totalCandidates: spatialCandidates.length, apiCallsUsed: 1 };
@@ -127,7 +128,7 @@ export async function calculateDetourCosts(
 
   // Step 4: Detour Cost 계산 (API 호출 없이 직선거리 기반)
   // 원본 경로는 변하지 않음! 경로 위 가장 가까운 포인트 ↔ 경유지 왕복만 계산.
-  console.log('[Detour] Calculating detour costs (route-fixed mode)...');
+  logger.debug('[Detour] Calculating detour costs (route-fixed mode)...');
 
   const detourResults: DetourResult[] = [];
 
@@ -201,12 +202,12 @@ export async function calculateDetourCosts(
   const apiCallsUsed = 1; // 원본 경로 조회 1회만!
   const duration = Date.now() - startTime;
 
-  console.log(`[Detour] Completed in ${duration}ms`);
-  console.log(`[Detour] API calls: ${apiCallsUsed} (no per-waypoint calls!)`);
-  console.log(`[Detour] Final results: ${validResults.length} places`);
+  logger.debug(`[Detour] Completed in ${duration}ms`);
+  logger.debug(`[Detour] API calls: ${apiCallsUsed} (no per-waypoint calls!)`);
+  logger.debug(`[Detour] Final results: ${validResults.length} places`);
 
   validResults.slice(0, 3).forEach((r, i) => {
-    console.log(
+    logger.debug(
       `[Detour] ${i + 1}. ${r.place.name} - ` +
         `Detour: +${r.detourCost.distance}m / +${r.detourCost.duration}s, ` +
         `Score: ${r.finalScore.toFixed(1)}`

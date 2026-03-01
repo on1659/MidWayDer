@@ -9,6 +9,7 @@ import { extractErrorMessage, getErrorMessageByStatus } from './client';
 import { NaverLocalSearchResponse, NaverLocalSearchItem } from './types';
 import { Place, Coordinates } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 /**
  * Naver 검색 API 클라이언트 (developers.naver.com)
@@ -326,10 +327,10 @@ export function sortPlacesByDistance(places: Place[], from: Coordinates): Place[
  * 검색 결과 요약 출력 (디버깅용)
  */
 export function printSearchSummary(query: string, places: Place[]): void {
-  console.log('=== Search Summary ===');
-  console.log(`Query: ${query}`);
-  console.log(`Results: ${places.length}`);
+  logger.debug('=== Search Summary ===');
+  logger.debug(`Query: ${query}`);
+  logger.debug(`Results: ${places.length}`);
   if (places.length > 0) {
-    console.log(`First: ${places[0].name} (${places[0].address})`);
+    logger.debug(`First: ${places[0].name} (${places[0].address})`);
   }
 }

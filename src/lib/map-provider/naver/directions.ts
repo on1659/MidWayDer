@@ -8,6 +8,7 @@ import { naverMapsClient, extractErrorMessage, getErrorMessageByStatus } from '.
 import { NaverDirectionsResponse } from './types';
 import { Route, Coordinates, RoutePoint } from '@/types/location';
 import { AxiosError } from 'axios';
+import { logger } from '@/lib/logger';
 
 // ========================
 // 타입 정의
@@ -253,10 +254,10 @@ export function calculateDistance(from: Coordinates, to: Coordinates): number {
  * 경로 요약 정보 출력 (디버깅용)
  */
 export function printRouteSummary(route: Route): void {
-  console.log('=== Route Summary ===');
-  console.log(`Start: (${route.start.lat}, ${route.start.lng})`);
-  console.log(`End: (${route.end.lat}, ${route.end.lng})`);
-  console.log(`Distance: ${(route.distance / 1000).toFixed(2)} km`);
-  console.log(`Duration: ${Math.round(route.duration / 60)} min`);
-  console.log(`Path points: ${route.path.length}`);
+  logger.debug('=== Route Summary ===');
+  logger.debug(`Start: (${route.start.lat}, ${route.start.lng})`);
+  logger.debug(`End: (${route.end.lat}, ${route.end.lng})`);
+  logger.debug(`Distance: ${(route.distance / 1000).toFixed(2)} km`);
+  logger.debug(`Duration: ${Math.round(route.duration / 60)} min`);
+  logger.debug(`Path points: ${route.path.length}`);
 }

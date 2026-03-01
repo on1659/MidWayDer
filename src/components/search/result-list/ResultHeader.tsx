@@ -34,11 +34,9 @@ interface ResultHeaderProps {
 
 export const ResultHeader = forwardRef<HTMLDivElement, ResultHeaderProps>(({
   results,
-  filteredResults: _filteredResults,
   sortedWithPins,
   searchedAt,
   onRetry,
-  sortBy,
   departureTime,
   onDepartureTimeChange,
   dwellMinutes,

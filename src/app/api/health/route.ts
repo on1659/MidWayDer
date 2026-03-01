@@ -16,7 +16,7 @@ export async function GET() {
     try {
       await prisma.$queryRaw`SELECT 1`;
       checks.database = 'ok';
-    } catch (dbError) {
+    } catch (_dbError) {
       checks.database = 'error';
       healthy = false;
     }
@@ -48,7 +48,7 @@ export async function GET() {
           healthy = false;
         }
       }
-    } catch (apiError) {
+    } catch (_apiError) {
       checks.kakaoApi = 'timeout_or_network_error';
       healthy = false;
     }

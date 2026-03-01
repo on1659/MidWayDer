@@ -11,6 +11,7 @@ import { getAPIErrorMessage } from '@/lib/error-messages';
 import { getCachedSearch, setCachedSearch } from '@/lib/cache/search-cache';
 import { hashRoute } from '@/lib/utils/route-hash';
 import type { Coordinates } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 interface SearchState {
   /** 선택된 카테고리 */
@@ -87,7 +88,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     const cached = getCachedSearch(routeHash, category);
 
     if (cached) {
-      console.log('✅ Cache HIT:', routeHash, category);
+      logger.debug('✅ Cache HIT:', routeHash, category);
       set({
         results: cached.data.results,
         totalCandidates: cached.data.totalCandidates,
@@ -100,7 +101,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       return;
     }
 
-    console.log('❌ Cache MISS:', routeHash, category);
+    logger.debug('❌ Cache MISS:', routeHash, category);
 
     try {
       const requestBody: SearchWaypointsRequest = {

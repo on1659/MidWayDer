@@ -13,7 +13,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, ArrowRight, Home, Briefcase, Search, Check, ChevronRight } from 'lucide-react';
+import { X, ArrowRight, Home, Briefcase, Search, ChevronRight } from 'lucide-react';
 import {
   detectRoutine,
   shouldShowRoutinePrompt,

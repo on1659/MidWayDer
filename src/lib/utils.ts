@@ -5,6 +5,7 @@
  */
 
 import { Coordinates } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 // ========================
 // 문자열 처리
@@ -510,7 +511,5 @@ export function isProduction(): boolean {
  * @param args - 로그 인자
  */
 export function devLog(...args: unknown[]): void {
-  if (isDevelopment()) {
-    console.log('[DEV]', ...args);
-  }
+  logger.debug('[DEV]', ...args);
 }

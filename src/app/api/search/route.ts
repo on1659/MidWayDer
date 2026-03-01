@@ -32,6 +32,7 @@ import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
 import { loadSearchCache, saveSearchCache } from '@/lib/cache/search-cache';
 import { captureException } from '@/lib/monitoring';
 import { getErrorMessage } from '@/lib/error-utils';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     // 4. 캐시 체크
     const cached = loadSearchCache({ start: startLocation, end: endLocation, category });
     if (cached) {
-      console.log('[API /search] Cache hit! ✅');
+      logger.debug('[API /search] Cache hit! ✅');
       const response: SearchWaypointsResponse = {
         success: true,
         fromCache: true,
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response);
     }
 
-    console.log('[API /search] Cache miss, fetching...');
+    logger.debug('[API /search] Cache miss, fetching...');
 
     // 4. A→B 경로 조회 (최단거리 + 최단시간 병렬)
     const directionsProvider = await getDirectionsProvider();
@@ -205,7 +206,7 @@ export async function POST(request: NextRequest) {
         };
       });
 
-      console.log('[Personalization] Applied to', finalResults.length, 'results');
+      logger.debug('[Personalization] Applied to', finalResults.length, 'results');
     } catch (error) {
       console.error('[Personalization] Failed:', error);
       // 개인화 실패해도 원본 결과 반환
