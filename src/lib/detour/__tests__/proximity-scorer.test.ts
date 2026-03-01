@@ -63,6 +63,31 @@ describe('calculateProximityScore', () => {
   });
 });
 
+describe('edge cases — Division by Zero 방지', () => {
+  it('sampledPoints가 빈 배열이면 0 반환', () => {
+    const place = makePlace(37.53, 127.0);
+    const score = calculateProximityScore(place, [], makeRoute(samplePoints));
+    expect(score).toBe(0);
+    expect(Number.isNaN(score)).toBe(false);
+  });
+
+  it('sampledPoints가 단일 포인트이면 NaN 없이 점수 반환', () => {
+    const singlePoint: RoutePoint[] = [{ lat: 37.53, lng: 127.0 }];
+    const place = makePlace(37.53, 127.0); // 정확히 같은 위치
+    const score = calculateProximityScore(place, singlePoint, makeRoute(singlePoint));
+    expect(Number.isNaN(score)).toBe(false);
+    expect(score).toBeGreaterThanOrEqual(0);
+    expect(score).toBeLessThanOrEqual(100);
+  });
+
+  it('sampledPoints 1개, 멀리 있는 매장 → 0점', () => {
+    const singlePoint: RoutePoint[] = [{ lat: 37.5, lng: 127.0 }];
+    const place = makePlace(37.6, 127.1); // ~14km 이상
+    const score = calculateProximityScore(place, singlePoint, makeRoute(singlePoint));
+    expect(score).toBe(0);
+  });
+});
+
 describe('filterByProximity', () => {
   it('점수 높은 순으로 상위 N개 반환', () => {
     const places = [

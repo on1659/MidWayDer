@@ -48,6 +48,16 @@ export function calculateProximityScore(
     }
   }
 
+  // sampledPoints가 1개 이하면 진행률 계산 불가 → 0 반환
+  if (sampledPoints.length <= 1) {
+    if (sampledPoints.length === 0) return 0;
+    // 단일 포인트: 해당 포인트와의 거리만 계산, 진행률은 0으로 처리
+    const singleDist = haversineDistance(place.coordinates, sampledPoints[0]);
+    const MAX_DISTANCE = 800;
+    const normalizedDist = Math.min(singleDist / MAX_DISTANCE, 1);
+    return Math.max(0, 100 * (1 - normalizedDist * normalizedDist));
+  }
+
   // 경로 진행률 계산 (0-1)
   const routeProgress = closestPointIndex / (sampledPoints.length - 1);
 

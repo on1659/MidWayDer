@@ -202,7 +202,9 @@ export default function ResultList({
     fetch(`/api/popularity?placeIds=${encodeURIComponent(placeIds)}`)
       .then((res) => res.json())
       .then((json) => { if (json.success) setPopularityMap(json.data || {}); })
-      .catch(() => {});
+      .catch((err) => {
+        console.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
+      });
   }, [results]);
 
   // ── 검색 시각 기록 ──
@@ -224,7 +226,9 @@ export default function ResultList({
           if (cats.length > 0) setStatsCategories(cats);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
+      });
   }, [hasSearched, results.length, currentCategory]);
 
   // ── isHeaderExpanded localStorage ──
@@ -240,11 +244,17 @@ export default function ResultList({
   // ── GPS 현재 위치 ──
   useEffect(() => {
     if (!results.length || currentLocation || typeof navigator === 'undefined' || !navigator.geolocation) return;
+    let cancelled = false;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => {
+        if (!cancelled) {
+          setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        }
+      },
       () => {},
       { timeout: 6000, maximumAge: 60000 }
     );
+    return () => { cancelled = true; };
   }, [results.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 새 결과 시 상태 초기화 ──
@@ -511,7 +521,7 @@ export default function ResultList({
   };
 
   // ── Context Value ──
-  const contextValue: ResultListContextValue = {
+  const contextValue: ResultListContextValue = useMemo(() => ({
     results,
     filteredResults: filters.filteredResults,
     currentCategory,
@@ -559,7 +569,21 @@ export default function ResultList({
     onOpenNavi: handleOpenNavi,
     onOpenNaviSheet: handleOpenNaviSheet,
     triggerNav,
-  };
+  }), [
+    results, filters.filteredResults, filters.nameFilter,
+    currentCategory, sortBy, pinnedIds, favPlaces, visitedDates,
+    memoMap, popularityMap, copiedId, sharedId, scoreDetailOpenId,
+    overflowMenuId, expandedCompactId, editingMemoId, editingMemoText,
+    departureTime, departureMs, dwellMinutes, nowMs, isNowDeparture,
+    isCompact, isGrouped, currentLocation, closestPlaceId,
+    detourRange, maxDetourDuration, minDetourDuration,
+    preferredNavApp, routeHash,
+    handleTogglePin, handleTogglePlaceFav, handleVisitToggle,
+    handleSelect, handleCopyAddress, handleShare,
+    handleEditMemo, handleSaveMemo, handleCancelMemo,
+    setEditingMemoText, setScoreDetailOpenId, setOverflowMenuId,
+    setExpandedCompactId, handleOpenNavi, handleOpenNaviSheet, triggerNav,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Render: Loading ──
   if (isLoading) {

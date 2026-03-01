@@ -190,15 +190,44 @@ async function fetchFromKakao(
 // Phase 3: 중복 제거
 // ========================
 
-function deduplicatePlaces(places: Place[]): Place[] {
+export function deduplicatePlaces(places: Place[]): Place[] {
+  const CELL_DEG = DEDUP_DISTANCE_M / 111000; // 위경도 셀 크기
+  // key: "latCell,lngCell" → Place[]
+  const grid = new Map<string, Place[]>();
+
+  const cellKey = (lat: number, lng: number) =>
+    `${Math.floor(lat / CELL_DEG)},${Math.floor(lng / CELL_DEG)}`;
+
+  const isDuplicate = (candidate: Place): boolean => {
+    const lat = candidate.coordinates.lat;
+    const lng = candidate.coordinates.lng;
+    const latCell = Math.floor(lat / CELL_DEG);
+    const lngCell = Math.floor(lng / CELL_DEG);
+
+    // 주변 3×3 셀 확인
+    for (let dLat = -1; dLat <= 1; dLat++) {
+      for (let dLng = -1; dLng <= 1; dLng++) {
+        const key = `${latCell + dLat},${lngCell + dLng}`;
+        const cell = grid.get(key);
+        if (!cell) continue;
+        for (const existing of cell) {
+          if (haversineDistance(existing.coordinates, candidate.coordinates) < DEDUP_DISTANCE_M) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+
   const result: Place[] = [];
   for (const place of places) {
-    const isDup = result.some(
-      (existing) =>
-        haversineDistance(existing.coordinates, place.coordinates) < DEDUP_DISTANCE_M
-    );
-    if (!isDup) {
+    if (!isDuplicate(place)) {
       result.push(place);
+      const key = cellKey(place.coordinates.lat, place.coordinates.lng);
+      const cell = grid.get(key) ?? [];
+      cell.push(place);
+      grid.set(key, cell);
     }
   }
   return result;

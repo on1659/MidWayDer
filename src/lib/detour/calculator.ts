@@ -45,6 +45,18 @@ export function findClosestPointOnRoute(
 }
 
 /**
+ * 경로 포인트 배열의 0번 인덱스부터 endIdx까지 누적 거리 계산
+ * Haversine 거리를 연속 세그먼트 합산으로 구함
+ */
+export function computePathDistance(path: RoutePoint[], endIdx: number): number {
+  let total = 0;
+  for (let i = 0; i < endIdx; i++) {
+    total += haversineDistance(path[i], path[i + 1]);
+  }
+  return Math.round(total);
+}
+
+/**
  * 직선거리 기반 detour 시간 추정 (도심 평균 속도 기준)
  * 왕복이므로 ×2, 도심 평균 20km/h = ~5.6m/s
  */
@@ -141,6 +153,11 @@ export async function calculateDetourCosts(
     // 최종 점수 = (100 - costScore) * 0.7 + proximityScore * 0.3
     const finalScore = (100 - costScore) * 0.7 + proximityScore * 0.3;
 
+    const toWaypointDistance = computePathDistance(originalRoute.path, closestIdx);
+    const toWaypointDuration = originalRoute.duration > 0 && originalRoute.distance > 0
+      ? Math.round((toWaypointDistance / originalRoute.distance) * originalRoute.duration)
+      : 0;
+
     const result: DetourResult = {
       place,
       detourCost: {
@@ -155,15 +172,15 @@ export async function calculateDetourCosts(
           ...originalRoute,
           // 출발지 → 경유지 가장 가까운 경로 포인트까지만 표시
           path: originalRoute.path.slice(0, closestIdx + 1),
-          distance: closestPoint.distance || 0,
-          duration: closestPoint.duration || 0,
+          distance: toWaypointDistance,
+          duration: toWaypointDuration,
         },
         fromWaypoint: {
           ...originalRoute,
           // 경유지 가장 가까운 경로 포인트 → 도착지까지
           path: originalRoute.path.slice(closestIdx),
-          distance: originalRoute.distance - (closestPoint.distance || 0),
-          duration: originalRoute.duration - (closestPoint.duration || 0),
+          distance: originalRoute.distance - toWaypointDistance,
+          duration: originalRoute.duration - toWaypointDuration,
           start: closestPoint,
           end: originalRoute.end,
         },

@@ -4,6 +4,7 @@ import {
   estimateDetourDuration,
   calculateFinalScore,
   calculateDetourCosts,
+  computePathDistance,
 } from '../calculator';
 
 // PostGIS 공간 필터링 모킹 (DB 의존성 제거)
@@ -128,5 +129,38 @@ describe('estimateDetourDuration — 엣지케이스', () => {
     const duration = estimateDetourDuration(100000);
     expect(Number.isInteger(duration)).toBe(true);
     expect(duration).toBeGreaterThan(0);
+  });
+});
+
+describe('computePathDistance', () => {
+  it('단일 세그먼트 경로의 누적 거리 계산', () => {
+    // 서울시청(126.9779, 37.5663) → 강남역(127.0276, 37.4979) ≈ 8.8km (Haversine)
+    const path = [
+      { lat: 37.5663, lng: 126.9779 },
+      { lat: 37.4979, lng: 127.0276 },
+    ];
+    const dist = computePathDistance(path, 1);
+    expect(dist).toBeGreaterThan(8000);   // 최소 8km
+    expect(dist).toBeLessThan(12000);     // 최대 12km
+  });
+
+  it('endIdx=0이면 거리 0 반환', () => {
+    const path = [{ lat: 37.5663, lng: 126.9779 }, { lat: 37.4979, lng: 127.0276 }];
+    expect(computePathDistance(path, 0)).toBe(0);
+  });
+
+  it('toWaypoint + fromWaypoint 합산 = 전체 거리 (Haversine 가산성 검증)', () => {
+    // 3개 포인트 경로: 서울시청 → 중간점 → 강남역
+    const path = [
+      { lat: 37.5663, lng: 126.9779 },
+      { lat: 37.532, lng: 127.003 },  // 중간 경유지 근처
+      { lat: 37.4979, lng: 127.0276 },
+    ];
+    const total = computePathDistance(path, 2);
+    const toWpt = computePathDistance(path, 1);
+    // fromWpt: 중간점부터 끝까지 독립 계산 (뺄셈이 아닌 별도 haversine 합산)
+    const fromWpt = computePathDistance([path[1], path[2]], 1);
+    // haversine은 가산적이어야 한다: 두 구간 합 ≈ 전체 구간
+    expect(toWpt + fromWpt).toBeCloseTo(total, -2); // ±100m 허용
   });
 });

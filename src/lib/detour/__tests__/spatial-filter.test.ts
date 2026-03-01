@@ -23,8 +23,14 @@ vi.mock('@/lib/map-provider/kakao/search', () => ({
   },
 }));
 
-import { filterPlacesByRoute } from '../spatial-filter';
+import { filterPlacesByRoute, deduplicatePlaces } from '../spatial-filter';
 import { prisma } from '@/lib/db/prisma';
+import type { Place } from '@/types/location';
+
+const makeTestPlace = (id: string, lat: number, lng: number): Place => ({
+  id, name: id, category: 'test', address: '',
+  coordinates: { lat, lng },
+});
 
 const mockRoute = {
   distance: 5000,
@@ -95,5 +101,36 @@ describe('filterPlacesByRoute', () => {
     (prisma.place.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     const places = await filterPlacesByRoute(mockRoute, '카페');
     expect(Array.isArray(places)).toBe(true);
+  });
+});
+
+describe('deduplicatePlaces — 격자 인덱싱 정확도', () => {
+  it('50m 이내 두 장소 → 하나만 반환', () => {
+    const places: Place[] = [
+      makeTestPlace('a', 37.5000, 127.0000),
+      makeTestPlace('b', 37.5001, 127.0001), // ~13m 차이 (DEDUP_DISTANCE_M 이내)
+    ];
+    const result = deduplicatePlaces(places);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('a'); // 먼저 들어온 A가 남음
+  });
+
+  it('200m 이상 떨어진 두 장소 → 모두 반환', () => {
+    const places: Place[] = [
+      makeTestPlace('a', 37.5000, 127.0000),
+      makeTestPlace('b', 37.5020, 127.0020), // ~260m 차이
+    ];
+    const result = deduplicatePlaces(places);
+    expect(result).toHaveLength(2);
+  });
+
+  it('100개 장소 처리 시간 < 50ms', () => {
+    const places: Place[] = Array.from({ length: 100 }, (_, i) =>
+      makeTestPlace(`p${i}`, 37.5 + (i % 10) * 0.001, 127.0 + Math.floor(i / 10) * 0.001)
+    );
+    const start = performance.now();
+    deduplicatePlaces(places);
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(50);
   });
 });
