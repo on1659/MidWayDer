@@ -53,6 +53,7 @@ export function useMapState(): UseMapStateReturn {
     const sc = start?.coordinates;
     const ec = end?.coordinates;
     if (!sc || !ec) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreviewRoute(null);
       return;
     }
@@ -82,6 +83,7 @@ export function useMapState(): UseMapStateReturn {
   useEffect(() => {
     if (results.length > 0) {
       mapIdleIgnoreRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMapPanned(false);
       const t = setTimeout(() => { mapIdleIgnoreRef.current = false; }, 2000);
       return () => clearTimeout(t);

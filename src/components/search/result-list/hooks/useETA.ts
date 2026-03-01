@@ -21,7 +21,12 @@ export function useETA(currentCategory: string): UseETAReturn {
   const [dwellMinutes, setDwellMinutes] = useState(() =>
     getDefaultDwellMinutes(currentCategory)
   );
-  const [nowMs, setNowMs] = useState(Date.now());
+  const [nowMs, setNowMs] = useState(0); // 순수 초기값
+
+  // 마운트 시 클라이언트에서만 초기화
+  useEffect(() => {
+    setNowMs(Date.now());
+  }, []);
 
   // 카테고리 변경 시 체류 시간 기본값 갱신
   useEffect(() => {
@@ -38,9 +43,9 @@ export function useETA(currentCategory: string): UseETAReturn {
     const [h, m] = departureTime.split(':').map(Number);
     const d = new Date();
     d.setHours(h, m, 0, 0);
-    if (d.getTime() < Date.now() - 60000) d.setDate(d.getDate() + 1);
+    if (nowMs > 0 && d.getTime() < nowMs - 60000) d.setDate(d.getDate() + 1); // nowMs 참조
     return d.getTime();
-  }, [departureTime]);
+  }, [departureTime, nowMs]); // deps에 nowMs 추가
 
   const isNowDeparture = useMemo(() => {
     return Math.abs(departureMs - nowMs) < 120_000; // ±2분 이내 → "지금 출발"

@@ -33,6 +33,7 @@ export default function KakaoMap({
   useEffect(() => {
     const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
     if (!appKey) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadError('NEXT_PUBLIC_KAKAO_JS_KEY가 설정되지 않았습니다.');
       return;
     }

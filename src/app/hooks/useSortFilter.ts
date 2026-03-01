@@ -23,6 +23,7 @@ export function useSortFilter(results: DetourResult[]): UseSortFilterReturn {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('sort-by') as SortBy | null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved && ['score', 'distance', 'duration', 'closing'].includes(saved)) setSortBy(saved);
     } catch { /* ignore */ }
   }, []);

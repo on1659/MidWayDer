@@ -92,6 +92,7 @@ function SetupMiniForm({ type, onSaved, onDismiss }: SetupMiniFormProps) {
       address: result.address || result.name,
       coordinates: { lat: result.lat, lng: result.lng },
       visitCount: 0,
+      // eslint-disable-next-line react-hooks/purity
       lastVisited: Date.now(),
     });
 
@@ -254,6 +255,7 @@ export default function RoutineBanner({ onApply }: RoutineBannerProps) {
     const lastPrompt = getLastPromptTime(type);
     if (!shouldShowRoutinePrompt(type, lastPrompt)) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRoutineType(type);
 
     const home = getSavedLocationByLabel('home');

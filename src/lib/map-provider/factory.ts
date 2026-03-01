@@ -6,7 +6,7 @@
  *
  * @example
  * ```ts
- * const directions = getDirectionsProvider();
+ * const directions = await getDirectionsProvider();
  * const route = await directions.getRoute(start, end);
  * ```
  */
@@ -51,7 +51,7 @@ function checkProviderChange(): void {
 /**
  * Directions 프로바이더 반환 (싱글톤)
  */
-export function getDirectionsProvider(): IDirectionsProvider {
+export async function getDirectionsProvider(): Promise<IDirectionsProvider> {
   checkProviderChange();
 
   if (!directionsProvider) {
@@ -59,10 +59,10 @@ export function getDirectionsProvider(): IDirectionsProvider {
     console.log(`[MapProvider] Creating Directions provider: ${provider}`);
 
     if (provider === 'naver') {
-      const { NaverDirectionsProvider } = require('./naver');
+      const { NaverDirectionsProvider } = await import('./naver');
       directionsProvider = new NaverDirectionsProvider();
     } else {
-      const { KakaoDirectionsProvider } = require('./kakao');
+      const { KakaoDirectionsProvider } = await import('./kakao');
       directionsProvider = new KakaoDirectionsProvider();
     }
   }
@@ -73,7 +73,7 @@ export function getDirectionsProvider(): IDirectionsProvider {
 /**
  * Search 프로바이더 반환 (싱글톤)
  */
-export function getSearchProvider(): ISearchProvider {
+export async function getSearchProvider(): Promise<ISearchProvider> {
   checkProviderChange();
 
   if (!searchProvider) {
@@ -81,10 +81,10 @@ export function getSearchProvider(): ISearchProvider {
     console.log(`[MapProvider] Creating Search provider: ${provider}`);
 
     if (provider === 'naver') {
-      const { NaverSearchProvider } = require('./naver');
+      const { NaverSearchProvider } = await import('./naver');
       searchProvider = new NaverSearchProvider();
     } else {
-      const { KakaoSearchProvider } = require('./kakao');
+      const { KakaoSearchProvider } = await import('./kakao');
       searchProvider = new KakaoSearchProvider();
     }
   }
@@ -95,7 +95,7 @@ export function getSearchProvider(): ISearchProvider {
 /**
  * Geocoding 프로바이더 반환 (싱글톤)
  */
-export function getGeocodingProvider(): IGeocodingProvider {
+export async function getGeocodingProvider(): Promise<IGeocodingProvider> {
   checkProviderChange();
 
   if (!geocodingProvider) {
@@ -103,10 +103,10 @@ export function getGeocodingProvider(): IGeocodingProvider {
     console.log(`[MapProvider] Creating Geocoding provider: ${provider}`);
 
     if (provider === 'naver') {
-      const { NaverGeocodingProvider } = require('./naver');
+      const { NaverGeocodingProvider } = await import('./naver');
       geocodingProvider = new NaverGeocodingProvider();
     } else {
-      const { KakaoGeocodingProvider } = require('./kakao');
+      const { KakaoGeocodingProvider } = await import('./kakao');
       geocodingProvider = new KakaoGeocodingProvider();
     }
   }

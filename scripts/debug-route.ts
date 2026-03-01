@@ -32,8 +32,8 @@ function routePassesNear(routePath: Coordinates[], center: Coordinates, radiusM:
 }
 
 async function main() {
-  const geocoder = getGeocodingProvider();
-  const directions = getDirectionsProvider();
+  const geocoder = await getGeocodingProvider();
+  const directions = await getDirectionsProvider();
 
   console.log('[Debug] Provider:', process.env.MAP_PROVIDER || 'kakao');
 

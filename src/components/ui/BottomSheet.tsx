@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useState } from 'react';
 
 type SnapPoint = 'collapsed' | 'half' | 'full';
 
@@ -29,7 +29,7 @@ export default function BottomSheet({
   const dragStartY = useRef(0);
   const dragStartTranslate = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [currentTranslate, setCurrentTranslate] = useState(0);
+  const [dragTranslate, setDragTranslate] = useState(0);
 
   const getTranslateForSnap = useCallback((s: SnapPoint) => {
     if (typeof window === 'undefined') return 0;
@@ -41,11 +41,8 @@ export default function BottomSheet({
     }
   }, [peekHeight]);
 
-  useEffect(() => {
-    if (!isDragging) {
-      setCurrentTranslate(getTranslateForSnap(snap));
-    }
-  }, [snap, isDragging, getTranslateForSnap]);
+  // 드래그 중이면 dragTranslate, 아니면 snap prop에서 직접 파생
+  const currentTranslate = isDragging ? dragTranslate : getTranslateForSnap(snap);
 
   const handleDragStart = useCallback((clientY: number) => {
     setIsDragging(true);
@@ -57,7 +54,7 @@ export default function BottomSheet({
     if (!isDragging) return;
     const delta = clientY - dragStartY.current;
     const newTranslate = Math.max(0, dragStartTranslate.current + delta);
-    setCurrentTranslate(newTranslate);
+    setDragTranslate(newTranslate);
   }, [isDragging]);
 
   const handleDragEnd = useCallback(() => {
@@ -78,7 +75,6 @@ export default function BottomSheet({
       }
     }
 
-    setCurrentTranslate(closest.value);
     onSnapChange?.(closest.point);
   }, [isDragging, currentTranslate, peekHeight, onSnapChange]);
 

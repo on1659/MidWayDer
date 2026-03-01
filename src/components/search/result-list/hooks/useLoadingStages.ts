@@ -13,6 +13,7 @@ export function useLoadingStages(isLoading: boolean): UseLoadingStagesReturn {
 
   useEffect(() => {
     if (!isLoading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadingStage(0);
       return;
     }

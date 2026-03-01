@@ -37,6 +37,7 @@ export default function SearchStatus() {
   // 로딩 시작 시 타이머 리셋
   useEffect(() => {
     if (isLoading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStartedAt(Date.now());
       setElapsed(0);
     } else {

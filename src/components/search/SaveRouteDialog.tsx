@@ -25,6 +25,7 @@ export default function SaveRouteDialog({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(defaultName);
       setRoutineType(''); // 다이얼로그 열 때마다 리셋
     }

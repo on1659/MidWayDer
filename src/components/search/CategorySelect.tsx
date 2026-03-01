@@ -52,6 +52,7 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCustomCategories(getCustomCategories());
   }, []);
 

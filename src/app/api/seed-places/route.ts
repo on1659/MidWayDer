@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
       for (const city of cities) {
         try {
           console.log(`[Seed] Searching: ${category} in ${city}...`);
-          const places = await getSearchProvider().searchPlacesByRegion(category, city, 100);
+          const searchProvider = await getSearchProvider();
+          const places = await searchProvider.searchPlacesByRegion(category, city, 100);
 
           if (places.length === 0) {
             console.log(`[Seed] No results for ${category} in ${city}`);

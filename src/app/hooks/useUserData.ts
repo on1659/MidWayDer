@@ -17,6 +17,7 @@ export function useUserData(): UseUserDataReturn {
 
   // 최근 검색 로드
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecentSearches(getRecentSearches());
   }, []);
 

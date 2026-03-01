@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
 
     // 3. 경로 조회
     try {
-      const route = await getDirectionsProvider().getRoute(start, end, mapToRouteOption(option));
+      const directionsProvider = await getDirectionsProvider();
+      const route = await directionsProvider.getRoute(start, end, mapToRouteOption(option));
 
       const response: DirectionsResponse = {
         success: true,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { DetourResult } from '@/types/detour';
 import { getBusinessStatus } from '@/lib/business-hours';
 
@@ -49,13 +49,15 @@ export function useFilters(
   const [activePreset, setActivePreset] = useState<'quick' | 'now' | null>(null);
   const [showFilterChips, setShowFilterChips] = useState(false);
 
-  // results 변경 시 필터 초기화
-  useEffect(() => {
+  // results 변경 시 필터 초기화 (React 공식 "Adjusting state based on props or state" 패턴)
+  const [prevResults, setPrevResults] = useState(results);
+  if (prevResults !== results) {
+    setPrevResults(results);
     setOpenNowOnly(false);
     setMaxDetourMin(null);
     setActivePreset(null);
     setNameFilter('');
-  }, [results]);
+  }
 
   const filteredResults = useMemo(() => {
     let r = results;
@@ -120,10 +122,8 @@ export function useFilters(
   const hasActiveFilter = openNowOnly || maxDetourMin !== null ||
     maxDetourKm !== null || proxScoreOnly || unvisitedOnly || nameFilter.trim() !== '';
 
-  // 활성 필터 시 showFilterChips 자동 펼침
-  useEffect(() => {
-    if (hasActiveFilter) setShowFilterChips(true);
-  }, [hasActiveFilter]);
+  // 활성 필터 시 showFilterChips 자동 펼침 (파생 상태로 전환, effect 제거)
+  const effectiveShowFilterChips = showFilterChips || hasActiveFilter;
 
   const filterCounts = useMemo((): FilterCounts => ({
     detour5: results.filter((x) => x.detourCost.duration <= 300).length,
@@ -146,7 +146,7 @@ export function useFilters(
     proxScoreOnly, setProxScoreOnly: handleSetProxScoreOnly,
     unvisitedOnly, setUnvisitedOnly,
     nameFilter, setNameFilter,
-    activePreset, showFilterChips, setShowFilterChips,
+    activePreset, showFilterChips: effectiveShowFilterChips, setShowFilterChips,
     filteredResults, filterCounts, hasActiveFilter,
     applyPreset, resetAllFilters,
   };

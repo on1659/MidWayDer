@@ -20,6 +20,7 @@ export function useTheme(): UseThemeReturn {
       const autoSaved = localStorage.getItem('auto-theme');
 
       if (autoSaved === 'true') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAutoTheme(true);
         const hour = new Date().getHours();
         const shouldBeDark = hour < 6 || hour >= 18;

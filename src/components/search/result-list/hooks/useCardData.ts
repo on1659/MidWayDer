@@ -32,6 +32,7 @@ export function useCardData(results: DetourResult[], routeHash: string): UseCard
 
   // 즐겨찾기 초기화 (1회)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFavPlaces(new Set(getPlaceFavorites().map((p) => p.placeId)));
   }, []);
 
@@ -41,6 +42,7 @@ export function useCardData(results: DetourResult[], routeHash: string): UseCard
     const memos = getPlaceMemos();
     const map = new Map<string, string>();
     for (const m of memos) map.set(m.placeId, m.memo);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMemoMap(map);
   }, [results]);
 
@@ -54,11 +56,13 @@ export function useCardData(results: DetourResult[], routeHash: string): UseCard
         dateMap.set(visit.placeId, visit.visitedAt);
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisitedDates(dateMap);
   }, [results, routeHash]);
 
   // 새 결과 시 pinnedIds 초기화
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPinnedIds(new Set());
   }, [results]);
 

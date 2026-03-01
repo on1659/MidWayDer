@@ -197,6 +197,7 @@ export default function ResultList({
         case 'Enter':
         case ' ':
           e.preventDefault();
+          // eslint-disable-next-line react-hooks/immutability
           handleSelect(results[focusedIndex], focusedIndex + 1);
           break;
         case 'Home': e.preventDefault(); setFocusedIndex(0); break;

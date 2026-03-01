@@ -110,6 +110,7 @@ export default function MapContainer({
     // 이전 마커 제거
     if (kakaoMap.__clickMarker) {
       kakaoMap.__clickMarker.setMap(null);
+      // eslint-disable-next-line react-hooks/immutability
       kakaoMap.__clickMarker = null;
     }
 

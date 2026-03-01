@@ -66,7 +66,8 @@ export async function POST(request: NextRequest) {
         startCoords = start.coordinates;
         startLocation = { coordinates: startCoords, address: start.address ?? '' };
       } else {
-        startCoords = await getGeocodingProvider().geocodeAddress(start.address!);
+        const geocodingProvider = await getGeocodingProvider();
+        startCoords = await geocodingProvider.geocodeAddress(start.address!);
         startLocation = { coordinates: startCoords, address: start.address ?? '' };
       }
 
@@ -74,7 +75,8 @@ export async function POST(request: NextRequest) {
         endCoords = end.coordinates;
         endLocation = { coordinates: endCoords, address: end.address ?? '' };
       } else {
-        endCoords = await getGeocodingProvider().geocodeAddress(end.address!);
+        const geocodingProvider = await getGeocodingProvider();
+        endCoords = await geocodingProvider.geocodeAddress(end.address!);
         endLocation = { coordinates: endCoords, address: end.address ?? '' };
       }
     } catch (error: any) {
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest) {
     console.log('[API /search] Cache miss, fetching...');
 
     // 4. A→B 경로 조회 (최단거리 + 최단시간 병렬)
-    const directionsProvider = getDirectionsProvider();
+    const directionsProvider = await getDirectionsProvider();
     const routeResults = await Promise.allSettled([
       directionsProvider.getRoute(startCoords, endCoords, 'shortest'),
       directionsProvider.getRoute(startCoords, endCoords, 'fastest'),
