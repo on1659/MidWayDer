@@ -80,7 +80,8 @@ export default function HomePage() {
   useEffect(() => {
     if (!document.cookie.includes('sessionId=')) {
       const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-      document.cookie = `sessionId=${sessionId}; path=/; max-age=604800`;
+      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `sessionId=${sessionId}; path=/; max-age=604800; SameSite=Lax${secure}`;
     }
   }, []);
 

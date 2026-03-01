@@ -22,6 +22,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'lat, lng required' }, { status: 400 });
   }
 
+  if (!KAKAO_REST_KEY) {
+    logger.error('[ReverseGeocode] KAKAO_REST_API_KEY is not configured');
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
+  }
+
   try {
     // 1. 좌표→주소 + 카테고리 검색 병렬
     const [addrRes, ...catResults] = await Promise.all([

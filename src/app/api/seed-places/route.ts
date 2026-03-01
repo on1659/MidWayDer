@@ -14,6 +14,13 @@ import type { Place } from '@/types/location';
 import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json(
+      { success: false, error: { code: 'FORBIDDEN', message: 'Development only' } },
+      { status: 403 }
+    );
+  }
+
   const startTime = Date.now();
 
   try {

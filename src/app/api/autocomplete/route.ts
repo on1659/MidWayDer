@@ -15,6 +15,11 @@ const QuerySchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
+  if (!KAKAO_REST_KEY) {
+    logger.error('[Autocomplete] KAKAO_REST_API_KEY is not configured');
+    return NextResponse.json({ results: [] }, { status: 503 });
+  }
+
   const parsed = QuerySchema.safeParse({
     query: req.nextUrl.searchParams.get('query')?.trim(),
     lat: req.nextUrl.searchParams.get('lat') ?? undefined,
