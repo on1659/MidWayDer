@@ -81,3 +81,52 @@ describe('calculateDetourCosts — 통합', () => {
     expect(results).toEqual([]);
   });
 });
+
+// ========== 엣지케이스 보강 ==========
+
+describe('findClosestPointOnRoute — 엣지케이스', () => {
+  it('경로가 단일 포인트일 때 index 0 반환', () => {
+    const path = [{ lat: 37.5663, lng: 126.9779 }];
+    const { index } = findClosestPointOnRoute({ lat: 37.5, lng: 127.0 }, path);
+    expect(index).toBe(0);
+  });
+
+  it('모든 경로 포인트가 같을 때 첫 번째(index 0) 반환', () => {
+    const pt = { lat: 37.5663, lng: 126.9779 };
+    const path = [pt, pt, pt];
+    const { index } = findClosestPointOnRoute({ lat: 37.6, lng: 127.0 }, path);
+    expect(index).toBe(0);
+  });
+});
+
+describe('calculateDetourCosts — 엣지케이스', () => {
+  it('음수 거리가 입력되어도 crash 없이 빈 배열 반환', async () => {
+    const route = {
+      distance: -1, duration: -1,
+      path: [{ lat: 37.5663, lng: 126.9779 }, { lat: 37.4979, lng: 127.0276 }],
+      start: { lat: 37.5663, lng: 126.9779 },
+      end: { lat: 37.4979, lng: 127.0276 },
+    };
+    const { results } = await calculateDetourCosts(route, '편의점');
+    expect(results).toEqual([]);
+  });
+
+  it('카테고리 빈 문자열도 crash 없이 빈 배열 반환', async () => {
+    const route = {
+      distance: 5000, duration: 600,
+      path: [{ lat: 37.5663, lng: 126.9779 }, { lat: 37.4979, lng: 127.0276 }],
+      start: { lat: 37.5663, lng: 126.9779 },
+      end: { lat: 37.4979, lng: 127.0276 },
+    };
+    const { results } = await calculateDetourCosts(route, '');
+    expect(results).toEqual([]);
+  });
+});
+
+describe('estimateDetourDuration — 엣지케이스', () => {
+  it('매우 큰 거리(100km)도 양의 정수 반환', () => {
+    const duration = estimateDetourDuration(100000);
+    expect(Number.isInteger(duration)).toBe(true);
+    expect(duration).toBeGreaterThan(0);
+  });
+});

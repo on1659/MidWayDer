@@ -26,3 +26,8 @@ next-env.d.ts
 # Playwright
 playwright-report/
 test-results/
+
+# Auto Dev PD
+.dev/
+PLAN.md
+IMPL.md
