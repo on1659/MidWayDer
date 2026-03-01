@@ -190,7 +190,7 @@ export async function searchMultipleCategories(
     if (result.status === 'fulfilled') {
       placesByCategory[category] = result.value;
     } else {
-      console.error(`[Search] Failed to search ${category}:`, result.reason);
+      logger.error(`[Search] Failed to search ${category}:`, result.reason);
       placesByCategory[category] = [];
     }
   });
@@ -231,7 +231,7 @@ function katechToWgs84(x: string, y: string): Coordinates {
 
     return { lat, lng };
   } catch (error) {
-    console.error('[Search] KATECH to WGS84 conversion error:', { x, y, error });
+    logger.error('[Search] KATECH to WGS84 conversion error:', { x, y, error });
     // 기본값 반환 (서울시청)
     return { lat: 37.5663, lng: 126.9779 };
   }

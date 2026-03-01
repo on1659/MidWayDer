@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       const fastest = routeEntries.find((r) => r.type === 'fastest')!;
       const durationRatio = shortest.route.duration / fastest.route.duration;
       if (durationRatio >= 1.35) {
-        console.warn(
+        logger.warn(
           `[API /search] Drop shortest route (durationRatio=${durationRatio.toFixed(2)})`
         );
         const idx = routeEntries.indexOf(shortest);
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
 
       logger.debug('[Personalization] Applied to', finalResults.length, 'results');
     } catch (error) {
-      console.error('[Personalization] Failed:', error);
+      logger.error('[Personalization] Failed:', error);
       // 개인화 실패해도 원본 결과 반환
     }
 
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
         sessionId: sessionId === 'anonymous' ? null : sessionId,
         routeHash, // 개인화용 경로 해시 저장
       },
-    }).catch(err => console.error('[SearchLog] Failed to save:', err));
+    }).catch(err => logger.error('[SearchLog] Failed to save:', err));
 
     // 9. 캐시 저장
     saveSearchCache(
@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error: unknown) {
-    console.error('[API /search] Unexpected error:', error);
+    logger.error('[API /search] Unexpected error:', error);
     captureException(error, { endpoint: '/api/search' });
 
     // DB 에러

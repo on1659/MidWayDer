@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
           logger.debug(`[Seed] Inserted ${inserted} places for ${category} in ${city}`);
         } catch (error) {
-          console.error(`[Seed] Error searching ${category} in ${city}:`, error);
+          logger.error(`[Seed] Error searching ${category} in ${city}:`, error);
           // 개별 실패는 무시하고 계속 진행
         }
       }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error: unknown) {
-    console.error('[API /seed-places] Unexpected error:', error);
+    logger.error('[API /seed-places] Unexpected error:', error);
 
     const response: SeedPlacesResponse = {
       success: false,
@@ -139,7 +139,7 @@ async function insertPlaces(places: Place[], category: string): Promise<number> 
         insertedCount++;
       }
     } catch (error) {
-      console.warn(`[Seed] Failed to insert ${place.name}:`, error);
+      logger.warn(`[Seed] Failed to insert ${place.name}:`, error);
     }
   }
 

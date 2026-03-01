@@ -63,7 +63,7 @@ export function recordVisit(
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     logger.debug('[VisitTracking] Recorded visit:', newVisit);
   } catch (e) {
-    console.error('[VisitTracking] Failed to record visit:', e);
+    logger.error('[VisitTracking] Failed to record visit:', e);
   }
 }
 
@@ -107,7 +107,7 @@ export function clearVisitHistory(): void {
     localStorage.removeItem(STORAGE_KEY);
     logger.debug('[VisitTracking] Cleared all visit history');
   } catch (e) {
-    console.error('[VisitTracking] Failed to clear visit history:', e);
+    logger.error('[VisitTracking] Failed to clear visit history:', e);
   }
 }
 

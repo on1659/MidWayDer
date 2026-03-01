@@ -12,6 +12,7 @@ import { openNavigationApp, getPreferredNavApp, setPreferredNavApp } from '@/lib
 import type { NavApp } from '@/lib/navigation-links';
 import { getBusinessStatus } from '@/lib/business-hours';
 import { hashRoute } from '@/lib/utils/route-hash';
+import { logger } from '@/lib/logger';
 import { useRouteStore } from '@/store/route-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
@@ -165,7 +166,7 @@ export default function ResultList({
       .then((res) => res.json())
       .then((json) => { if (json.success) setPopularityMap(json.data || {}); })
       .catch((err) => {
-        if (err.name !== 'AbortError') console.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
+        if (err.name !== 'AbortError') logger.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
       });
 
     return () => controller.abort();
@@ -193,7 +194,7 @@ export default function ResultList({
         }
       })
       .catch((err) => {
-        if (err.name !== 'AbortError') console.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
+        if (err.name !== 'AbortError') logger.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
       });
 
     return () => controller.abort();
@@ -306,7 +307,7 @@ export default function ResultList({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ placeId: result.place.id, rank }),
-    }).catch((err) => console.error('[ClickLog] Failed:', err));
+    }).catch((err) => logger.error('[ClickLog] Failed:', err));
     onSelect(result);
   }, [onSelect]);
 
@@ -372,7 +373,7 @@ export default function ResultList({
   const triggerNav = useCallback((place: DetourResult['place']) => {
     if (preferredNavApp) {
       openNavigationApp(preferredNavApp, place.coordinates.lat, place.coordinates.lng, place.name)
-        .catch((err) => console.error('[Navigation] Failed:', err));
+        .catch((err) => logger.error('[Navigation] Failed:', err));
     } else {
       setSelectedPlace(place);
       setNaviSheetOpen(true);
@@ -406,7 +407,7 @@ export default function ResultList({
       setPreferredNavAppState(app);
       setNaviSheetOpen(false);
     } catch (err) {
-      console.error('[Navigation] Failed:', err);
+      logger.error('[Navigation] Failed:', err);
     }
   };
 

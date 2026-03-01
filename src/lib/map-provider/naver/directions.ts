@@ -159,7 +159,7 @@ export async function getMultipleRoutes(
     if (result.status === 'fulfilled') {
       routes[option] = result.value;
     } else {
-      console.error(`[Directions] Failed to get ${option} route:`, result.reason);
+      logger.error(`[Directions] Failed to get ${option} route:`, result.reason);
     }
   });
 

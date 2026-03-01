@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { ArrowRight, Loader2, MapPin } from 'lucide-react';
 import type { Coordinates } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 interface Waypoint {
   id: string;
@@ -81,7 +82,7 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
         alert(data.error?.message || '최적화 실패');
       }
     } catch (err) {
-      console.error('Optimize error:', err);
+      logger.error('Optimize error:', err);
       alert('경로 최적화 중 오류가 발생했습니다.');
     } finally {
       setIsOptimizing(false);

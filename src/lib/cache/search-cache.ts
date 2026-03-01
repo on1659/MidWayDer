@@ -8,6 +8,7 @@
  */
 
 import type { Coordinates, Route } from '@/types/location';
+import { logger } from '@/lib/logger';
 import type { DetourResult } from '@/types/detour';
 import type { SearchWaypointsResponse } from '@/types/api';
 
@@ -72,7 +73,7 @@ export const saveSearchCache = (key: SearchCacheKey, value: Omit<SearchCacheValu
     // 캐시 키 목록 업데이트 (최대 10개)
     updateCacheKeyList(cacheKey);
   } catch (err) {
-    console.error('[saveSearchCache] Error:', err);
+    logger.error('[saveSearchCache] Error:', err);
   }
 };
 
@@ -99,7 +100,7 @@ export const loadSearchCache = (key: SearchCacheKey): SearchCacheValue | null =>
 
     return cache;
   } catch (err) {
-    console.error('[loadSearchCache] Error:', err);
+    logger.error('[loadSearchCache] Error:', err);
     return null;
   }
 };
@@ -128,7 +129,7 @@ const updateCacheKeyList = (newKey: string) => {
 
     localStorage.setItem(CACHE_KEY_LIST, JSON.stringify(filtered));
   } catch (err) {
-    console.error('[updateCacheKeyList] Error:', err);
+    logger.error('[updateCacheKeyList] Error:', err);
   }
 };
 
@@ -142,7 +143,7 @@ const removeCacheKeyFromList = (key: string) => {
     const filtered = keys.filter(k => k !== key);
     localStorage.setItem(CACHE_KEY_LIST, JSON.stringify(filtered));
   } catch (err) {
-    console.error('[removeCacheKeyFromList] Error:', err);
+    logger.error('[removeCacheKeyFromList] Error:', err);
   }
 };
 
@@ -176,7 +177,7 @@ export const setCachedSearch = (routeHash: string, category: string, data: Searc
     localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
     updateCacheKeyList(key);
   } catch (err) {
-    console.error('[setCachedSearch] Error:', err);
+    logger.error('[setCachedSearch] Error:', err);
   }
 };
 
@@ -193,6 +194,6 @@ export const clearAllSearchCache = () => {
     keys.forEach(key => localStorage.removeItem(key));
     localStorage.removeItem(CACHE_KEY_LIST);
   } catch (err) {
-    console.error('[clearAllSearchCache] Error:', err);
+    logger.error('[clearAllSearchCache] Error:', err);
   }
 };

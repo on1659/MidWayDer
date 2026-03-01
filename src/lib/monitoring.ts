@@ -9,6 +9,8 @@
  *   captureException → Sentry.captureException
  */
 
+import { logger } from '@/lib/logger';
+
 type SentryLike = {
   captureException: (error: unknown, context?: Record<string, unknown>) => void;
 };
@@ -40,7 +42,7 @@ export function captureException(
 
   // Sentry 없음 → 서버 로그에만 기록
   if (process.env.NODE_ENV !== 'test') {
-    console.error('[captureException]', error, context ?? '');
+    logger.error('[captureException]', error, context ?? '');
   }
 }
 
@@ -49,7 +51,5 @@ export function captureException(
  */
 export function setUserContext(userId: string): void {
   // @sentry/nextjs 설치 후: Sentry.setUser({ id: userId });
-  if (process.env.NODE_ENV === 'development') {
-    console.debug('[monitoring] setUserContext:', userId);
-  }
+  logger.debug('[monitoring] setUserContext:', userId);
 }

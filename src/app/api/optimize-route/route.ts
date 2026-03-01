@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[OptimizeRoute] Error:', error);
+    logger.error('[OptimizeRoute] Error:', error);
     return NextResponse.json<OptimizeResponse>(
       {
         success: false,

@@ -465,7 +465,7 @@ export function setLocalStorage<T>(key: string, value: T): void {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
-    console.error('Failed to save to localStorage:', error);
+    logger.error('Failed to save to localStorage:', error);
   }
 }
 
@@ -482,7 +482,7 @@ export function getLocalStorage<T>(key: string, fallback: T): T {
     const item = window.localStorage.getItem(key);
     return item ? (JSON.parse(item) as T) : fallback;
   } catch (error) {
-    console.error('Failed to load from localStorage:', error);
+    logger.error('Failed to load from localStorage:', error);
     return fallback;
   }
 }

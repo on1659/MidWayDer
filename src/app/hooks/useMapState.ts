@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import type { Route } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 interface MapClickInfo {
   name: string;
@@ -44,7 +45,7 @@ export function useMapState(): UseMapStateReturn {
       if (!data.name) return;
       setMapClickInfo({ name: data.name, address: data.address, category: data.category, phone: data.phone, placeUrl: data.placeUrl, coords });
     } catch (err) {
-      console.error('Reverse geocode failed:', err);
+      logger.error('Reverse geocode failed:', err);
     }
   }, []);
 

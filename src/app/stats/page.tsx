@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, MousePointerClick, Clock, BarChart3, MapPin, ArrowLeft, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 interface StatsData {
   period: string;
@@ -64,7 +65,7 @@ export default function StatsPage() {
           setSatisfactionData(feedbackData.data);
         }
       } catch (err) {
-        console.error('Failed to fetch stats:', err);
+        logger.error('Failed to fetch stats:', err);
       } finally {
         setLoading(false);
       }

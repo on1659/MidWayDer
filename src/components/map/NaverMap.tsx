@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Coordinates } from '@/types/location';
+import { logger } from '@/lib/logger';
 
 interface NaverMapProps {
   /** 지도 중심 좌표 (기본: 서울) */
@@ -32,7 +33,7 @@ export default function NaverMap({
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID;
     if (!clientId) {
-      console.error('NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID is not set');
+      logger.error('NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID is not set');
       return;
     }
 
@@ -48,7 +49,7 @@ export default function NaverMap({
     script.async = true;
     script.onload = () => setIsLoaded(true);
     script.onerror = () => {
-      console.error('Failed to load Naver Maps SDK');
+      logger.error('Failed to load Naver Maps SDK');
     };
 
     document.head.appendChild(script);

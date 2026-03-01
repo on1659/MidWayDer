@@ -2,6 +2,8 @@
  * 공유 URL 생성 및 Web Share API 유틸리티
  */
 
+import { logger } from '@/lib/logger';
+
 export interface ShareParams {
   start: string;
   end: string;
@@ -40,7 +42,7 @@ export async function shareUrl(params: {
       if ((err as Error).name === 'AbortError') {
         return false;
       }
-      console.error('Share failed:', err);
+      logger.error('Share failed:', err);
       return false;
     }
   }
@@ -50,7 +52,7 @@ export async function shareUrl(params: {
     await navigator.clipboard.writeText(params.url);
     return true;
   } catch (err) {
-    console.error('Clipboard write failed:', err);
+    logger.error('Clipboard write failed:', err);
     return false;
   }
 }

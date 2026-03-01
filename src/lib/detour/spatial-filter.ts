@@ -51,12 +51,12 @@ export async function filterPlacesByRoute(
 
     // === Phase 4: 카카오 결과 DB 캐싱 (비동기, 실패해도 결과 반환) ===
     upsertPlacesToDb(kakaoPlaces, category).catch((err) =>
-      console.error('[Spatial Filter] DB upsert 실패:', err)
+      logger.error('[Spatial Filter] DB upsert 실패:', err)
     );
 
     return merged.slice(0, MAX_RESULTS);
   } catch (error) {
-    console.error('[Spatial Filter] Query failed:', error);
+    logger.error('[Spatial Filter] Query failed:', error);
     throw new Error('DATABASE_ERROR');
   }
 }
@@ -72,7 +72,7 @@ async function queryDbPlaces(
 ): Promise<Place[]> {
   // 방어 코드: 경로 포인트가 없으면 즉시 반환
   if (route.path.length === 0) {
-    console.warn('[Spatial Filter] queryDbPlaces: empty route.path, skipping DB query');
+    logger.warn('[Spatial Filter] queryDbPlaces: empty route.path, skipping DB query');
     return [];
   }
 
@@ -168,7 +168,7 @@ async function fetchFromKakao(
       });
       allPlaces.push(...places);
     } catch (err) {
-      console.warn(`[Spatial Filter] 카카오 검색 실패 (${center.lat},${center.lng}):`, err);
+      logger.warn(`[Spatial Filter] 카카오 검색 실패 (${center.lat},${center.lng}):`, err);
     }
   }
 
@@ -182,7 +182,7 @@ async function fetchFromKakao(
     allPlaces.push(...endPlaces);
     logger.debug(`[Spatial Filter] 도착지 주변: ${endPlaces.length}개`);
   } catch (err) {
-    console.warn(`[Spatial Filter] 도착지 주변 검색 실패:`, err);
+    logger.warn(`[Spatial Filter] 도착지 주변 검색 실패:`, err);
   }
 
   // 경로 버퍼 내 필터링 (도착지 근처는 1km까지 허용)
@@ -304,7 +304,7 @@ async function upsertPlacesToDb(places: Place[], category: string): Promise<void
       }
       upserted++;
     } catch (err) {
-      console.warn(`[Spatial Filter] upsert 실패 (${place.name}):`, err);
+      logger.warn(`[Spatial Filter] upsert 실패 (${place.name}):`, err);
     }
   }
   logger.debug(`[Spatial Filter] DB 캐싱 완료: ${upserted}/${places.length}개 upsert`);

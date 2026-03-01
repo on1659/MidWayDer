@@ -2,6 +2,8 @@
  * Favorites - 즐겨찾기 경로 관리
  */
 
+import { logger } from '@/lib/logger';
+
 export interface Favorite {
   id: string;
   name: string; // 사용자 지정 이름 (예: "집 → 회사")
@@ -49,7 +51,7 @@ export function addFavorite(favorite: Omit<Favorite, 'id' | 'createdAt'>): void 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
-    console.error('Failed to save favorite:', e);
+    logger.error('Failed to save favorite:', e);
   }
 }
 
@@ -59,7 +61,7 @@ export function removeFavorite(id: string): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
-    console.error('Failed to remove favorite:', e);
+    logger.error('Failed to remove favorite:', e);
   }
 }
 
@@ -69,7 +71,7 @@ export function updateFavorite(id: string, updates: Partial<Omit<Favorite, 'id' 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
-    console.error('Failed to update favorite:', e);
+    logger.error('Failed to update favorite:', e);
   }
 }
 
@@ -77,6 +79,6 @@ export function clearAllFavorites(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (e) {
-    console.error('Failed to clear favorites:', e);
+    logger.error('Failed to clear favorites:', e);
   }
 }

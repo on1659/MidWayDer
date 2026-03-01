@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 
 interface FeedbackRequest {
   searchLogId?: string; // 선택적 (최근 검색 찾기)
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    console.error('[API /feedback] Error:', error);
+    logger.error('[API /feedback] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
@@ -108,7 +109,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('[API /feedback/stats] Error:', error);
+    logger.error('[API /feedback/stats] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

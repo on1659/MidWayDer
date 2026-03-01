@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const KAKAO_REST_KEY = process.env.KAKAO_REST_API_KEY;
 
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      console.error('[Autocomplete] Kakao API error:', res.status);
+      logger.error('[Autocomplete] Kakao API error:', res.status);
       return NextResponse.json({ results: [] });
     }
 
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ results });
   } catch (err) {
-    console.error('[Autocomplete] Error:', err);
+    logger.error('[Autocomplete] Error:', err);
     return NextResponse.json({ results: [] });
   }
 }

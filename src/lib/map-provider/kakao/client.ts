@@ -7,6 +7,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { logger } from '@/lib/logger';
 
 // ========================
 // 상수
@@ -56,12 +57,12 @@ function addRetryInterceptor(client: AxiosInstance, name: string): void {
       if (shouldRetryRequest(error) && config.retryCount < MAX_RETRIES) {
         config.retryCount += 1;
         const delay = RETRY_DELAY * config.retryCount;
-        console.warn(`[${name}] Retry ${config.retryCount}/${MAX_RETRIES} after ${delay}ms - ${error.message}`);
+        logger.warn(`[${name}] Retry ${config.retryCount}/${MAX_RETRIES} after ${delay}ms - ${error.message}`);
         await new Promise((resolve) => setTimeout(resolve, delay));
         return client(config);
       }
 
-      console.error(`[${name}] Request failed after ${config.retryCount} retries:`, {
+      logger.error(`[${name}] Request failed after ${config.retryCount} retries:`, {
         url: config.url,
         method: config.method,
         status: error.response?.status,

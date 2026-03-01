@@ -4,6 +4,7 @@
 
 import type { Location, Route } from '@/types/location';
 import type { DetourResult } from '@/types/detour';
+import { logger } from '@/lib/logger';
 
 export interface RecentSearch {
   id: string;
@@ -75,7 +76,7 @@ export function saveLastSearch(search: Omit<LastSearch, 'timestamp'>): void {
     };
     localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(lastSearch));
   } catch (err) {
-    console.error('[saveLastSearch] Error:', err);
+    logger.error('[saveLastSearch] Error:', err);
   }
 }
 
@@ -99,7 +100,7 @@ export function loadLastSearch(): LastSearch | null {
 
     return search;
   } catch (err) {
-    console.error('[loadLastSearch] Error:', err);
+    logger.error('[loadLastSearch] Error:', err);
     return null;
   }
 }

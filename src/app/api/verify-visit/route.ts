@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 
 const BodySchema = z.object({
   placeId: z.string().min(1).max(100),
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
       message: `🎉 방문 인증 완료! +${POINTS}포인트 (누적 ${newTotal}점)`,
     });
   } catch (err: unknown) {
-    console.error('[verify-visit]', err);
+    logger.error('[verify-visit]', err);
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
 }

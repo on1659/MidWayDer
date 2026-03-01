@@ -5,6 +5,7 @@ import type { DetourResult } from '@/types/detour';
 import { copyToClipboard } from '@/lib/clipboard';
 import { openNavigationApp, getPreferredNavApp } from '@/lib/navigation-links';
 import type { NavApp } from '@/lib/navigation-links';
+import { logger } from '@/lib/logger';
 
 interface SwipeCallbacks {
   onOpenNaviSheet: (place: DetourResult['place']) => void;
@@ -75,7 +76,7 @@ export function useSwipe(callbacks: SwipeCallbacks): UseSwipeReturn {
     if (info.deltaX > 80) {
       if (preferredNavApp) {
         openNavigationApp(preferredNavApp as NavApp, result.place.coordinates.lat, result.place.coordinates.lng, result.place.name)
-          .catch((err) => console.error('[Navigation] Failed:', err));
+          .catch((err) => logger.error('[Navigation] Failed:', err));
       } else {
         callbacks.onOpenNaviSheet(result.place);
       }

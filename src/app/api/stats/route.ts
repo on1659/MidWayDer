@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,7 +153,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('[API /stats] Error:', error);
+    logger.error('[API /stats] Error:', error);
     return NextResponse.json(
       {
         success: false,

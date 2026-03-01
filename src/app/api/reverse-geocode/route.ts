@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 const KAKAO_REST_KEY = process.env.KAKAO_REST_API_KEY;
 
@@ -88,7 +89,7 @@ export async function GET(req: NextRequest) {
       lng: parseFloat(lng),
     });
   } catch (err) {
-    console.error('[ReverseGeocode] Error:', err);
+    logger.error('[ReverseGeocode] Error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

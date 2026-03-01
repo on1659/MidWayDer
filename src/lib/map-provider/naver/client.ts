@@ -5,6 +5,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { logger } from '@/lib/logger';
 
 // ========================
 // 상수
@@ -109,7 +110,7 @@ naverMapsClient.interceptors.response.use(
       // 지수 백오프 (1초, 2초, 3초)
       const delay = RETRY_DELAY * config.retryCount;
 
-      console.warn(
+      logger.warn(
         `[Naver API] Retry ${config.retryCount}/${MAX_RETRIES} after ${delay}ms - ${error.message}`
       );
 
@@ -120,7 +121,7 @@ naverMapsClient.interceptors.response.use(
     }
 
     // 재시도 불가 또는 최대 재시도 횟수 초과
-    console.error(`[Naver API] Request failed after ${config.retryCount} retries:`, {
+    logger.error(`[Naver API] Request failed after ${config.retryCount} retries:`, {
       url: config.url,
       method: config.method,
       status: error.response?.status,

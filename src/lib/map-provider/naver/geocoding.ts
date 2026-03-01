@@ -210,7 +210,7 @@ export async function reverseGeocodeBatch(coordsList: Coordinates[]): Promise<st
     if (result.status === 'fulfilled') {
       return result.value;
     } else {
-      console.error(`[Geocoding] Failed for coords ${index}:`, result.reason);
+      logger.error(`[Geocoding] Failed for coords ${index}:`, result.reason);
       return '주소 없음';
     }
   });

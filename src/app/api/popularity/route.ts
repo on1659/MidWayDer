@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error('[API /popularity] Error:', error);
+    logger.error('[API /popularity] Error:', error);
     // 실패해도 빈 데이터 반환 (UX 차단 안 함)
     return NextResponse.json({ success: true, data: {} });
   }

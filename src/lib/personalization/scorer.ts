@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 
 export interface PersonalizationScore {
   placeId: string;
@@ -78,7 +79,7 @@ export async function calculatePersonalizationScores(
       };
     });
   } catch (error) {
-    console.error('[Personalization] Scoring error:', error);
+    logger.error('[Personalization] Scoring error:', error);
     // 에러 시 빈 배열 반환 (기본 점수 사용)
     return placeIds.map((placeId) => ({
       placeId,
@@ -133,7 +134,7 @@ export async function getUserCategoryPreferences(
 
     return preferences;
   } catch (error) {
-    console.error('[Personalization] Category preferences error:', error);
+    logger.error('[Personalization] Category preferences error:', error);
     return {};
   }
 }
