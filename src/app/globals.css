@@ -111,3 +111,19 @@ body {
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
+
+/* Card stagger animation (ResultList v0.6.0) */
+@keyframes slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-stagger {
+  animation: slide-up-in 0.2s ease-out both;
+}
