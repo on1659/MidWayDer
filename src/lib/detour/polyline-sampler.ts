@@ -8,6 +8,8 @@
 import { RoutePoint } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
 
+const MAX_SAMPLES = 10000;
+
 /**
  * Polyline을 일정 간격으로 샘플링
  *
@@ -42,7 +44,7 @@ export function samplePolyline(
     accumulatedDistance += segmentDistance;
 
     // 샘플링 간격에 도달했는지 확인
-    while (accumulatedDistance >= nextSampleDistance) {
+    while (accumulatedDistance >= nextSampleDistance && sampled.length < MAX_SAMPLES) {
       // 보간(interpolation)으로 정확한 샘플 포인트 계산
       const rawRatio =
         (nextSampleDistance - (accumulatedDistance - segmentDistance)) /

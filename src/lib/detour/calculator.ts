@@ -99,6 +99,18 @@ export async function calculateDetourCosts(
     return { results: [], totalCandidates: 0, apiCallsUsed: 0 };
   }
 
+  // ★ 좌표 유효성 가드 (NaN / Infinity 방어)
+  const hasValidCoords = (p: RoutePoint): boolean =>
+    Number.isFinite(p.lat) && Number.isFinite(p.lng);
+
+  const firstPoint = originalRoute.path[0];
+  const lastPoint = originalRoute.path[originalRoute.path.length - 1];
+
+  if (!hasValidCoords(firstPoint) || !hasValidCoords(lastPoint)) {
+    logger.warn('[Detour] Invalid coordinates in path (NaN/Infinity detected)');
+    return { results: [], totalCandidates: 0, apiCallsUsed: 0 };
+  }
+
   const {
     bufferDistance = 500,
     maxDetourDistance = 3000,

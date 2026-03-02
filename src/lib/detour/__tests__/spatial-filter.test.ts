@@ -14,17 +14,29 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }));
 
-// KakaoSearchProvider mock (class 문법 사용 — arrow function은 constructor 불가)
+// KakaoSearchProvider mock — vi.hoisted로 테스트별 제어 가능
+const mockSearchPlaces = vi.hoisted(() => vi.fn().mockResolvedValue([]));
 vi.mock('@/lib/map-provider/kakao/search', () => ({
   KakaoSearchProvider: class {
-    searchPlaces() {
-      return Promise.resolve([]);
+    searchPlaces(...args: unknown[]) {
+      return mockSearchPlaces(...args);
     }
+  },
+}));
+
+// logger mock
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
   },
 }));
 
 import { filterPlacesByRoute, deduplicatePlaces, minDistanceToPolyline } from '../spatial-filter';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 import type { Place, Coordinates } from '@/types/location';
 import type { Route } from '@/types/location';
 
@@ -61,7 +73,10 @@ const makeDbPlace = (i: number) => ({
 });
 
 describe('filterPlacesByRoute', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSearchPlaces.mockResolvedValue([]);
+  });
 
   it('DB 결과 10개 이상이면 DB 결과만 반환 (카카오 미호출)', async () => {
     (prisma.place.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(
@@ -174,5 +189,65 @@ describe('deduplicatePlaces — 격자 인덱싱 정확도', () => {
     deduplicatePlaces(places);
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(50);
+  });
+});
+
+// ========================
+// T2: fetchFromKakao — 과반 실패 처리
+// ========================
+
+const makeMockRouteForSpatial = (distance = 20000): Route => ({
+  distance,
+  duration: Math.round(distance / 10),
+  path: [
+    { lat: 37.5663, lng: 126.9779 },
+    { lat: 37.4979, lng: 127.0276 },
+  ],
+  start: { lat: 37.5663, lng: 126.9779 },
+  end: { lat: 37.4979, lng: 127.0276 },
+});
+
+const makeMockPlace = (): Place => ({
+  id: 'kakao-test123',
+  name: 'Test Place',
+  category: '다이소',
+  address: '서울특별시 중구 남대문로 1',
+  coordinates: { lat: 37.5663, lng: 126.9779 },
+});
+
+describe('fetchFromKakao — 과반 실패 처리 (filterPlacesByRoute 경유)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSearchPlaces.mockResolvedValue([]);
+    (prisma.place.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+  });
+
+  it('샘플 포인트 과반 실패 시 빈 배열 반환 (logger.error 호출)', async () => {
+    // 모든 searchPlaces 호출이 throw
+    mockSearchPlaces.mockRejectedValue(new Error('API Error'));
+
+    const route = makeMockRouteForSpatial(20000); // sampleCount=4
+    const result = await filterPlacesByRoute(route, '다이소', 1000);
+
+    expect(result).toEqual([]);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('카카오 API 과반 실패')
+    );
+  });
+
+  it('1/4만 실패 시 (과반 미달) 성공한 결과 반환', async () => {
+    let callCount = 0;
+    mockSearchPlaces.mockImplementation(async () => {
+      callCount++;
+      if (callCount === 1) throw new Error('fail');
+      // 경로 위 좌표 반환 → bufferDistance 필터 통과
+      return [makeMockPlace()];
+    });
+
+    const route = makeMockRouteForSpatial(20000); // sampleCount=4
+    const result = await filterPlacesByRoute(route, '다이소', 1000);
+
+    // 3/4 성공 → 과반 실패 아님 → 결과 있음
+    expect(result.length).toBeGreaterThan(0);
   });
 });

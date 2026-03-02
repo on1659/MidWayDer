@@ -8,11 +8,23 @@ import {
   calculateSingleDetourCost,
 } from '../calculator';
 import type { Route, Coordinates } from '@/types/location';
+import { filterPlacesByRoute } from '../spatial-filter';
 
 // PostGIS 공간 필터링 모킹 (DB 의존성 제거)
 vi.mock('../spatial-filter', () => ({
   filterPlacesByRoute: vi.fn().mockResolvedValue([]),
 }));
+
+const makeMockRoute = (distance = 5000): Route => ({
+  distance,
+  duration: Math.round(distance / 10),
+  path: [
+    { lat: 37.5663, lng: 126.9779 },
+    { lat: 37.4979, lng: 127.0276 },
+  ],
+  start: { lat: 37.5663, lng: 126.9779 },
+  end: { lat: 37.4979, lng: 127.0276 },
+});
 
 // ⚠️ 실제 시그니처: findClosestPointOnRoute(place: Coordinates, path: RoutePoint[])
 describe('findClosestPointOnRoute', () => {
@@ -186,6 +198,49 @@ describe('computePathDistance', () => {
     const fromWpt = computePathDistance([path[1], path[2]], 1);
     // haversine은 가산적이어야 한다: 두 구간 합 ≈ 전체 구간
     expect(toWpt + fromWpt).toBeCloseTo(total, -2); // ±100m 허용
+  });
+});
+
+describe('calculateDetourCosts — 좌표 유효성 가드', () => {
+  it('path 첫 포인트에 NaN lat 있으면 즉시 빈 결과 반환', async () => {
+    const route: Route = {
+      start: { lat: NaN, lng: 127.0 },
+      end: { lat: 37.4979, lng: 127.0276 },
+      distance: 12500,
+      duration: 1200,
+      path: [
+        { lat: NaN, lng: 127.0 },
+        { lat: 37.5, lng: 127.0 },
+      ],
+    };
+    const result = await calculateDetourCosts(route, '다이소');
+    expect(result.results).toEqual([]);
+    expect(result.totalCandidates).toBe(0);
+    expect(result.apiCallsUsed).toBe(0);
+  });
+
+  it('path 마지막 포인트에 Infinity lng 있으면 즉시 빈 결과 반환', async () => {
+    const route: Route = {
+      start: { lat: 37.5663, lng: 126.9779 },
+      end: { lat: 37.4979, lng: Infinity },
+      distance: 12500,
+      duration: 1200,
+      path: [
+        { lat: 37.5663, lng: 126.9779 },
+        { lat: 37.4979, lng: Infinity },
+      ],
+    };
+    const result = await calculateDetourCosts(route, '다이소');
+    expect(result.results).toEqual([]);
+  });
+
+  it('정상 좌표는 가드를 통과하여 정상 처리됨', async () => {
+    // spatial-filter를 mock하여 candidates=[] 반환 → 결과 없음이지만 가드는 통과
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([]);
+    const route = makeMockRoute();
+    const result = await calculateDetourCosts(route, '다이소');
+    // apiCallsUsed=1 → 가드 통과 후 정상 처리됨을 확인
+    expect(result.apiCallsUsed).toBe(1);
   });
 });
 

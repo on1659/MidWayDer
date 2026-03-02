@@ -36,23 +36,12 @@ const MAX_CACHE_ITEMS = 10;
  * 좌표는 소수점 4자리까지 (약 11m 정확도)
  */
 export const generateCacheKey = (key: SearchCacheKey): string => {
-  const str = JSON.stringify({
-    startLat: key.start.coordinates.lat.toFixed(4),
-    startLng: key.start.coordinates.lng.toFixed(4),
-    endLat: key.end.coordinates.lat.toFixed(4),
-    endLng: key.end.coordinates.lng.toFixed(4),
-    category: key.category,
-  });
-
-  // 간단한 해시 (crypto.createHash는 Node.js 전용, 브라우저에서는 단순 해시)
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  
-  return `${CACHE_KEY_PREFIX}${Math.abs(hash).toString(36)}`;
+  const startLat = key.start.coordinates.lat.toFixed(4);
+  const startLng = key.start.coordinates.lng.toFixed(4);
+  const endLat = key.end.coordinates.lat.toFixed(4);
+  const endLng = key.end.coordinates.lng.toFixed(4);
+  const cat = key.category.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+  return `${CACHE_KEY_PREFIX}${startLat}_${startLng}_${endLat}_${endLng}_${cat}`;
 };
 
 /**

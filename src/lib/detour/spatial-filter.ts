@@ -159,6 +159,7 @@ async function fetchFromKakao(
   const allPlaces: Place[] = [];
 
   // 경로 샘플 포인트 검색
+  let failCount = 0;
   for (const center of samplePoints) {
     try {
       const places = await kakaoSearch.searchPlaces(category, {
@@ -168,8 +169,16 @@ async function fetchFromKakao(
       });
       allPlaces.push(...places);
     } catch (err) {
+      failCount++;
       logger.warn(`[Spatial Filter] 카카오 검색 실패 (${center.lat},${center.lng}):`, err);
     }
+  }
+
+  if (samplePoints.length > 0 && failCount > samplePoints.length / 2) {
+    logger.error(
+      `[Spatial Filter] 카카오 API 과반 실패 (${failCount}/${samplePoints.length}). DB 결과만 사용.`
+    );
+    return [];
   }
 
   // 도착지 주변 추가 검색 (1km 반경, 도착 직전/직후 매장)

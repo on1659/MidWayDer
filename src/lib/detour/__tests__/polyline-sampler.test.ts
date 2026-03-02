@@ -52,6 +52,32 @@ describe('getOptimalSampleInterval', () => {
   it('80km → 2000m', () => expect(getOptimalSampleInterval(80000)).toBe(2000));
 });
 
+describe('samplePolyline — MAX_SAMPLES 안전 가드', () => {
+  it('intervalMeters=1 의 극단 입력에서 10000개 초과하지 않음', () => {
+    // 약 10km 경로, 1m 간격 → 정상이면 10,000개 샘플 생성 시도
+    const path: RoutePoint[] = [
+      { lat: 37.0, lng: 127.0 },
+      { lat: 37.09, lng: 127.0 }, // ~10km
+    ];
+    const result = samplePolyline(path, 1);
+    // MAX_SAMPLES(10000) + 마지막 포인트 강제 추가 1개 = 최대 10001
+    expect(result.length).toBeLessThanOrEqual(10001);
+    // 마지막 포인트는 항상 포함
+    expect(result[result.length - 1]).toEqual(path[path.length - 1]);
+  });
+
+  it('NaN segmentDistance 입력 시 무한 루프 없이 반환', () => {
+    // NaN 좌표 → haversineDistance가 NaN 반환 → accumulatedDistance NaN
+    // while(NaN >= 500) === false → 루프 실행 안 됨
+    const nanPath: RoutePoint[] = [
+      { lat: NaN, lng: NaN },
+      { lat: 37.5, lng: 127.0 },
+    ];
+    // 타임아웃 없이 즉시 반환됨을 검증
+    expect(() => samplePolyline(nanPath, 500)).not.toThrow();
+  });
+});
+
 describe('samplePolyline — ratio 클램핑', () => {
   it('연속 중복 좌표 입력 시 NaN/Infinity 없이 정상 반환', () => {
     const duplicatePath: RoutePoint[] = [
