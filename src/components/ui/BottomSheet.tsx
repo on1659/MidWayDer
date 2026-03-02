@@ -99,8 +99,9 @@ export default function BottomSheet({
   return (
     <div
       ref={sheetRef}
-      className="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-3xl safe-bottom-full"
+      className="fixed inset-x-0 bottom-0 z-40 rounded-t-3xl safe-bottom-full"
       style={{
+        background: 'var(--bg-surface)',
         transform: `translateY(${currentTranslate}px)`,
         transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
         height: '100dvh',

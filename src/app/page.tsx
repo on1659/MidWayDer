@@ -24,7 +24,15 @@ import DesktopSidePanel from '@/components/search/DesktopSidePanel';
 import BottomQuickBar from '@/components/search/BottomQuickBar';
 
 const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
-  loading: () => <div className="animate-pulse p-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>로딩 중...</div>,
+  loading: () => (
+    <div className="p-4 space-y-3 animate-pulse rounded-2xl" style={{ background: 'var(--bg-surface)' }}>
+      <div className="h-6 rounded-lg w-1/3" style={{ background: 'var(--bg-surface-muted)' }} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-24 rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
+        <div className="h-24 rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
+      </div>
+    </div>
+  ),
 });
 
 import { useRouteStore } from '@/store/route-store';

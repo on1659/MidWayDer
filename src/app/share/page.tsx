@@ -111,10 +111,10 @@ function SharePageContent() {
           </div>
           <div className="px-4 pb-6">
             {isLoading && (
-              <div className="text-center py-8">
-                <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
-                  경유지를 찾고 있어요...
-                </p>
+              <div className="space-y-3 animate-pulse">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-24 rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />
+                ))}
               </div>
             )}
 
@@ -156,10 +156,12 @@ function SharePageContent() {
 export default function SharePage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
-          로딩 중...
-        </p>
+      <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg-app)' }}>
+        <div className="w-full max-w-sm mx-4 space-y-4 animate-pulse">
+          <div className="h-20 rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />
+          <div className="h-64 rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />
+          <div className="h-32 rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />
+        </div>
       </div>
     }>
       <SharePageContent />
