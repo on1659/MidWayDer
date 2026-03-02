@@ -41,6 +41,11 @@ export function samplePolyline(
     const curr = path[i];
     const segmentDistance = haversineDistance(prev, curr);
 
+    // segmentDistance === 0: 동일 좌표 연속 → 보간 스킵, 이전 포인트 재사용
+    if (segmentDistance === 0) {
+      continue;
+    }
+
     accumulatedDistance += segmentDistance;
 
     // 샘플링 간격에 도달했는지 확인

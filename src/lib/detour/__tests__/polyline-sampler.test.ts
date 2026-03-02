@@ -78,6 +78,74 @@ describe('samplePolyline — MAX_SAMPLES 안전 가드', () => {
   });
 });
 
+describe('samplePolyline — 연속 동일 좌표 (segmentDistance === 0 가드)', () => {
+  it('연속 동일 좌표가 있어도 NaN 없이 샘플링', () => {
+    const path: RoutePoint[] = [
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5000, lng: 127.0000 }, // 동일 좌표 (segmentDistance === 0)
+      { lat: 37.5000, lng: 127.0000 }, // 연속 동일
+      { lat: 37.5090, lng: 127.0000 }, // ~1km 이동
+    ];
+    const result = samplePolyline(path, 500);
+
+    // NaN 포함 여부 검사
+    for (const p of result) {
+      expect(Number.isFinite(p.lat)).toBe(true);
+      expect(Number.isFinite(p.lng)).toBe(true);
+    }
+    // 시작/끝 포함
+    expect(result[0]).toEqual(path[0]);
+    expect(result[result.length - 1]).toEqual(path[path.length - 1]);
+  });
+
+  it('연속 동일 좌표 포함 경로 — 시작/끝 포함 검증', () => {
+    const path: RoutePoint[] = [
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5045, lng: 127.0000 }, // ~500m
+      { lat: 37.5090, lng: 127.0000 }, // ~1km
+    ];
+    const result = samplePolyline(path, 500);
+    expect(result.length).toBeGreaterThanOrEqual(2);
+    expect(result[0]).toEqual(path[0]);
+    expect(result[result.length - 1]).toEqual(path[path.length - 1]);
+  });
+
+  it('전체 경로가 동일 좌표 → 빈 배열 또는 단일 포인트 반환 (NaN 없음)', () => {
+    const path: RoutePoint[] = [
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5000, lng: 127.0000 },
+    ];
+    const result = samplePolyline(path, 500);
+    // NaN 없음 보장
+    for (const p of result) {
+      expect(Number.isFinite(p.lat)).toBe(true);
+      expect(Number.isFinite(p.lng)).toBe(true);
+    }
+    // 최소 시작 포인트는 포함
+    expect(result.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('동일 좌표 혼합 경로 → 정상 샘플링 (유효 구간 샘플 포함)', () => {
+    const path: RoutePoint[] = [
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5000, lng: 127.0000 }, // 중복
+      { lat: 37.5045, lng: 127.0000 }, // ~500m
+      { lat: 37.5045, lng: 127.0000 }, // 중복
+      { lat: 37.5090, lng: 127.0000 }, // ~500m
+    ];
+    const result = samplePolyline(path, 500);
+    // 시작/끝 포함, NaN 없음
+    for (const p of result) {
+      expect(Number.isFinite(p.lat)).toBe(true);
+      expect(Number.isFinite(p.lng)).toBe(true);
+    }
+    expect(result[0]).toEqual(path[0]);
+    expect(result[result.length - 1]).toEqual(path[path.length - 1]);
+  });
+});
+
 describe('samplePolyline — ratio 클램핑', () => {
   it('연속 중복 좌표 입력 시 NaN/Infinity 없이 정상 반환', () => {
     const duplicatePath: RoutePoint[] = [

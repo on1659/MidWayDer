@@ -324,6 +324,106 @@ describe('minDistanceToPolyline 적응형 stride 정확도', () => {
   });
 });
 
+// ─── T-1: upsert 타임아웃 ────────────────────────────────────
+
+describe('filterPlacesByRoute — upsert 타임아웃', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSearchPlaces.mockResolvedValue([]);
+  });
+
+  it('upsert가 3초 이상 걸리면 타임아웃 후 결과는 정상 반환', async () => {
+    vi.useFakeTimers();
+    // DB findMany: 결과 없음 → 카카오 API 호출 유도
+    (prisma.place.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    // 카카오: 1개 반환 (경로 위 좌표)
+    mockSearchPlaces.mockResolvedValue([makeTestPlace('kakao-k1', 37.5663, 126.9779)]);
+    // upsert: 5초 후 완료 (타임아웃 초과)
+    (prisma.place.upsert as ReturnType<typeof vi.fn>).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve({} as never), 5000))
+    );
+
+    const resultPromise = filterPlacesByRoute(mockRoute, 'test', 1000);
+    // 3초 타임아웃 트리거
+    await vi.advanceTimersByTimeAsync(3001);
+    const result = await resultPromise;
+
+    // 결과는 정상 반환 (upsert 타임아웃 무시)
+    expect(result.length).toBeGreaterThan(0);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('DB upsert 실패'),
+      expect.any(Error)
+    );
+    vi.useRealTimers();
+  });
+});
+
+// ─── T-2, T-4: Circuit Breaker + consecutiveFails 리셋 ───────
+
+describe('filterPlacesByRoute — circuit breaker & backoff', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSearchPlaces.mockResolvedValue([]);
+    (prisma.place.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (prisma.place.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({});
+  });
+
+  it('카카오 API 연속 3회 실패 시 circuit breaker로 루프 중단', async () => {
+    // distance=20000 → sampleCount=4 → 4번째 iteration 시작 시 circuit breaker 발동
+    const route4 = makeMockRouteForSpatial(20000);
+    // 항상 실패 (circuit breaker가 4번째 iter 시작 시 발동)
+    mockSearchPlaces.mockRejectedValue(new Error('Rate Limit 429'));
+
+    const result = await filterPlacesByRoute(route4, 'test', 1000);
+
+    // circuit breaker 발동 → 결과 없음 (빈 배열 반환, 크래시 없음)
+    expect(result).toEqual([]);
+    // error 로그에 circuit breaker 메시지 포함
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('Circuit breaker')
+    );
+  });
+
+  it('실패 후 성공 시 consecutiveFails 리셋으로 circuit breaker 미발동', async () => {
+    // distance=20000 → sampleCount=4
+    // 순서: fail, success(reset), fail, success → failCount=2, 2 <= 4/2=2 (과반 실패 미발동)
+    // consecutiveFails 최대값 1 → circuit breaker(3) 미발동
+    const route4 = makeMockRouteForSpatial(20000);
+    mockSearchPlaces
+      .mockRejectedValueOnce(new Error('fail 1'))
+      .mockResolvedValueOnce([makeTestPlace('kakao-k1', 37.5663, 126.9779)]) // 성공 → reset
+      .mockRejectedValueOnce(new Error('fail after reset'))
+      .mockResolvedValueOnce([makeTestPlace('kakao-k2', 37.5663, 126.9779)]) // 성공
+      .mockResolvedValueOnce([]); // 도착지 endpoint 검색
+
+    const result = await filterPlacesByRoute(route4, 'test', 1000);
+
+    // circuit breaker 미발동 → 결과 있음
+    expect(result.length).toBeGreaterThan(0);
+    // circuit breaker error 로그 없음
+    const circuitBreakerCalls = (logger.error as ReturnType<typeof vi.fn>).mock.calls.filter(
+      (call: unknown[]) => typeof call[0] === 'string' && call[0].includes('Circuit breaker')
+    );
+    expect(circuitBreakerCalls.length).toBe(0);
+  });
+});
+
+// ─── T-5: _stride 제거 후 호출 ───────────────────────────────
+
+describe('minDistanceToPolyline — _stride 제거 후 2개 인수 호출', () => {
+  it('minDistanceToPolyline는 2개 인수로 정상 동작', () => {
+    const point: Coordinates = { lat: 37.5, lng: 127.0 };
+    const polyline: Coordinates[] = [
+      { lat: 37.5, lng: 126.99 },
+      { lat: 37.5, lng: 127.01 },
+    ];
+    // 3번째 인수 없이 호출 — 타입 에러 없어야 함
+    const dist = minDistanceToPolyline(point, polyline);
+    expect(dist).toBeGreaterThanOrEqual(0);
+    expect(Number.isFinite(dist)).toBe(true);
+  });
+});
+
 describe('fetchFromKakao — 과반 실패 처리 (filterPlacesByRoute 경유)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

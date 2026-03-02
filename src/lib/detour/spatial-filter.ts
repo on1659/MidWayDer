@@ -56,10 +56,18 @@ export async function filterPlacesByRoute(
     const merged = deduplicatePlaces([...dbPlaces, ...kakaoPlaces]);
     logger.debug(`[Spatial Filter] 중복 제거 후: ${merged.length}개`);
 
-    // === Phase 4: 카카오 결과 DB 캐싱 (비동기, 실패해도 결과 반환) ===
-    upsertPlacesToDb(kakaoPlaces, category).catch((err) =>
-      logger.error('[Spatial Filter] DB upsert 실패:', err)
-    );
+    // === Phase 4: 카카오 결과 DB 캐싱 (타임아웃 3초 내 완료 대기) ===
+    const UPSERT_TIMEOUT_MS = 3000;
+    try {
+      await Promise.race([
+        upsertPlacesToDb(kakaoPlaces, category),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('upsert timeout')), UPSERT_TIMEOUT_MS)
+        ),
+      ]);
+    } catch (err) {
+      logger.error('[Spatial Filter] DB upsert 실패 (무시):', err);
+    }
 
     return merged.slice(0, MAX_SPATIAL_RESULTS);
   } catch (error) {
@@ -104,7 +112,7 @@ async function queryDbPlaces(
   const filtered: Place[] = [];
   for (const p of dbPlaces) {
     const placeCoord: Coordinates = { lat: p.lat, lng: p.lng };
-    const minDist = minDistanceToPolyline(placeCoord, route.path, 10);
+    const minDist = minDistanceToPolyline(placeCoord, route.path);
     if (minDist <= bufferDistance) {
       filtered.push({
         id: p.id,
@@ -151,6 +159,11 @@ function sampleRoutePoints(route: Route, count: number): Coordinates[] {
   return points;
 }
 
+// 지수 백오프 헬퍼 (내부 사용)
+async function sleepMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function fetchFromKakao(
   route: Route,
   category: string,
@@ -168,8 +181,22 @@ async function fetchFromKakao(
   const allPlaces: Place[] = [];
 
   // 경로 샘플 포인트 검색
+  const BACKOFF_BASE_MS = 500;
+  const BACKOFF_MAX_MS = 5000;
+  const CIRCUIT_BREAKER_THRESHOLD = 3;
+
   let failCount = 0;
+  let consecutiveFails = 0;
+
   for (const center of samplePoints) {
+    // Circuit breaker: 연속 3회 실패 시 early-exit
+    if (consecutiveFails >= CIRCUIT_BREAKER_THRESHOLD) {
+      logger.error(
+        `[Spatial Filter] Circuit breaker 발동: 연속 ${consecutiveFails}회 실패, 루프 중단`
+      );
+      break;
+    }
+
     try {
       const places = await kakaoSearch.searchPlaces(category, {
         center,
@@ -177,9 +204,17 @@ async function fetchFromKakao(
         maxResults: 15,
       });
       allPlaces.push(...places);
+      consecutiveFails = 0; // 성공 시 리셋
     } catch (err) {
       failCount++;
-      logger.warn(`[Spatial Filter] 카카오 검색 실패 (${center.lat},${center.lng}):`, err);
+      consecutiveFails++;
+      // 지수 백오프: 500ms → 1000ms → 2000ms → 4000ms → 최대 5000ms
+      const backoffMs = Math.min(BACKOFF_BASE_MS * Math.pow(2, consecutiveFails - 1), BACKOFF_MAX_MS);
+      logger.warn(
+        `[Spatial Filter] 카카오 검색 실패 (연속 ${consecutiveFails}회), ${backoffMs}ms 대기:`,
+        err
+      );
+      await sleepMs(backoffMs);
     }
   }
 
@@ -205,7 +240,7 @@ async function fetchFromKakao(
 
   // 경로 버퍼 내 필터링 (도착지 근처는 1km까지 허용)
   return allPlaces.filter((p) => {
-    const minDistToRoute = minDistanceToPolyline(p.coordinates, route.path, 10);
+    const minDistToRoute = minDistanceToPolyline(p.coordinates, route.path);
     const distToEnd = haversineDistance(p.coordinates, endPoint);
     return minDistToRoute <= bufferDistance || distToEnd <= 1000;
   });
@@ -342,8 +377,7 @@ async function upsertPlacesToDb(places: Place[], category: string): Promise<void
  */
 export function minDistanceToPolyline(
   point: Coordinates,
-  polyline: Coordinates[],
-  _stride: number = 10   // 하위 호환 — 더 이상 사용 안 됨
+  polyline: Coordinates[]
 ): number {
   // 폴리라인 길이에 따라 항상 최소 MIN_POLYLINE_CHECK_POINTS개 검사
   const effectiveStride = Math.max(1, Math.ceil(polyline.length / MIN_POLYLINE_CHECK_POINTS));
