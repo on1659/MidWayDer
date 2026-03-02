@@ -155,7 +155,7 @@ export default function SearchOverlay({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col animate-fade-in" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="fixed inset-0 z-50 flex flex-col animate-slide-up" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button
@@ -405,7 +405,8 @@ export default function SearchOverlay({
             {recentSearches.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 transition-colors"
+                className="flex items-center gap-2 p-3 rounded-xl transition-all"
+                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
               >
                 <button
                   className="flex-1 text-left min-w-0"
@@ -426,9 +427,11 @@ export default function SearchOverlay({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
-                  className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                  className="shrink-0 p-2 rounded-full transition-all active:scale-95"
+                  style={{ background: 'var(--red-50)', color: 'var(--red-500)' }}
+                  title="삭제"
                 >
-                  <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             ))}
