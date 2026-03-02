@@ -34,6 +34,14 @@ import { captureException } from '@/lib/monitoring';
 import { getErrorMessage } from '@/lib/error-utils';
 import { logger } from '@/lib/logger';
 
+export function shouldDropShortestRoute(
+  shortest: { route: { duration: number } },
+  fastest: { route: { duration: number } }
+): boolean {
+  if (fastest.route.duration === 0) return false; // 0 나누기 방지
+  return shortest.route.duration / fastest.route.duration >= 1.35;
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
@@ -128,10 +136,9 @@ export async function POST(request: NextRequest) {
     if (routeEntries.length === 2) {
       const shortest = routeEntries.find((r) => r.type === 'shortest')!;
       const fastest = routeEntries.find((r) => r.type === 'fastest')!;
-      const durationRatio = shortest.route.duration / fastest.route.duration;
-      if (durationRatio >= 1.35) {
+      if (shouldDropShortestRoute(shortest, fastest)) {
         logger.warn(
-          `[API /search] Drop shortest route (durationRatio=${durationRatio.toFixed(2)})`
+          `[API /search] Drop shortest route (durationRatio=${(shortest.route.duration / fastest.route.duration).toFixed(2)})`
         );
         const idx = routeEntries.indexOf(shortest);
         if (idx >= 0) routeEntries.splice(idx, 1);

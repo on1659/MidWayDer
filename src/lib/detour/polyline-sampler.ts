@@ -68,7 +68,8 @@ export function samplePolyline(
 
   // 종료점 포함 (정확히 간격에 맞지 않더라도)
   const lastPoint = path[path.length - 1];
-  if (sampled[sampled.length - 1] !== lastPoint) {
+  const last = sampled[sampled.length - 1];
+  if (last.lat !== lastPoint.lat || last.lng !== lastPoint.lng) {
     sampled.push(lastPoint);
   }
 

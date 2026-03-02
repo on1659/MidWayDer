@@ -146,6 +146,36 @@ describe('samplePolyline — 연속 동일 좌표 (segmentDistance === 0 가드)
   });
 });
 
+// ========== 버그 수정 검증 테스트 (v0.7.2) ==========
+
+describe('samplePolyline — 종료점 중복 방지 (v0.7.2)', () => {
+  it('T4: 마지막 샘플이 종료점과 같은 좌표면 중복 추가하지 않음', () => {
+    // 정확히 500m인 경로 (시작→끝이 간격과 맞아 떨어짐)
+    const path: RoutePoint[] = [
+      { lat: 37.5000, lng: 127.0000 },
+      { lat: 37.5045, lng: 127.0000 }, // ~500m
+    ];
+    const result = samplePolyline(path, 500);
+    // 연속된 같은 좌표 없어야 함
+    for (let i = 1; i < result.length; i++) {
+      const isSame = result[i].lat === result[i - 1].lat && result[i].lng === result[i - 1].lng;
+      expect(isSame).toBe(false);
+    }
+  });
+
+  it('T5: 마지막 포인트가 결과 배열에 정확히 1번만 포함됨', () => {
+    const path: RoutePoint[] = [
+      { lat: 37.5, lng: 127.0 },
+      { lat: 37.505, lng: 127.0 },
+      { lat: 37.51, lng: 127.0 },
+    ];
+    const result = samplePolyline(path, 200);
+    const lastPoint = path[path.length - 1];
+    const count = result.filter(p => p.lat === lastPoint.lat && p.lng === lastPoint.lng).length;
+    expect(count).toBe(1);
+  });
+});
+
 describe('samplePolyline — ratio 클램핑', () => {
   it('연속 중복 좌표 입력 시 NaN/Infinity 없이 정상 반환', () => {
     const duplicatePath: RoutePoint[] = [

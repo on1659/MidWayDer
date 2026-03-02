@@ -244,6 +244,39 @@ describe('calculateDetourCosts — 좌표 유효성 가드', () => {
   });
 });
 
+// ========== 버그 수정 검증 테스트 (v0.7.2) ==========
+
+describe('findClosestPointOnRoute — 빈 path 가드', () => {
+  it('T1: 빈 path 입력 시 에러를 던짐', () => {
+    expect(() => findClosestPointOnRoute({ lat: 37.5, lng: 127.0 }, [])).toThrow(
+      'findClosestPointOnRoute: path must not be empty'
+    );
+  });
+});
+
+describe('calculateSingleDetourCost — 빈 path 가드', () => {
+  it('T2: originalRoute.path가 빈 배열이면 distance=0, costScore=0 반환', () => {
+    const emptyRoute: Route = {
+      distance: 0,
+      duration: 0,
+      path: [],
+      start: { lat: 37.5, lng: 127.0 },
+      end: { lat: 37.6, lng: 127.1 },
+    };
+    const result = calculateSingleDetourCost(emptyRoute, { lat: 37.55, lng: 127.05 });
+    expect(result.distance).toBe(0);
+    expect(result.duration).toBe(0);
+    expect(result.costScore).toBe(0);
+  });
+});
+
+describe('calculateFinalScore — 호출 일관성', () => {
+  it('T3: calculateFinalScore(50, 80)은 인라인 공식 결과와 동일', () => {
+    const expected = (100 - 50) * 0.7 + 80 * 0.3;
+    expect(calculateFinalScore(50, 80)).toBeCloseTo(expected, 5);
+  });
+});
+
 describe('calculateSingleDetourCost — 일관성', () => {
   const baseRoute: Route = {
     distance: 10000,

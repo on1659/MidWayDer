@@ -53,7 +53,7 @@ vi.mock('@/lib/monitoring', () => ({
 
 // ─── 실제 모듈 import (mock 이후에 위치) ─────────────────────────────────────
 
-import { POST } from '../route';
+import { POST, shouldDropShortestRoute } from '../route';
 import { loadSearchCache } from '@/lib/cache/search-cache';
 import { getDirectionsProvider } from '@/lib/map-provider';
 import { calculateDetourCosts } from '@/lib/detour/calculator';
@@ -297,5 +297,36 @@ describe('POST /api/search', () => {
     expect(res.status).toBe(500);
     expect(json.success).toBe(false);
     expect(json.error.code).toBe('DATABASE_ERROR');
+  });
+});
+
+// ========== 버그 수정 검증 테스트 (v0.7.2) ==========
+
+describe('shouldDropShortestRoute — duration ratio 0 나누기 방지', () => {
+  it('T6a: fastest.duration이 0이면 shortest를 제거하지 않음 (Infinity 방지)', () => {
+    expect(
+      shouldDropShortestRoute(
+        { route: { duration: 100 } },
+        { route: { duration: 0 } }
+      )
+    ).toBe(false);
+  });
+
+  it('T6b: durationRatio < 1.35이면 shortest를 제거하지 않음', () => {
+    expect(
+      shouldDropShortestRoute(
+        { route: { duration: 130 } },
+        { route: { duration: 100 } }
+      )
+    ).toBe(false);
+  });
+
+  it('T6c: durationRatio >= 1.35이면 shortest를 제거함', () => {
+    expect(
+      shouldDropShortestRoute(
+        { route: { duration: 140 } },
+        { route: { duration: 100 } }
+      )
+    ).toBe(true);
   });
 });

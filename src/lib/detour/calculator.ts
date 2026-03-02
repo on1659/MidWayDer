@@ -36,6 +36,11 @@ export function findClosestPointOnRoute(
   place: Coordinates,
   path: RoutePoint[]
 ): { closestPoint: RoutePoint; distance: number; index: number } {
+  // ★ 빈 path 가드 추가
+  if (path.length === 0) {
+    throw new Error('findClosestPointOnRoute: path must not be empty');
+  }
+
   let minDist = Infinity;
   let closestPoint = path[0];
   let closestIndex = 0;
@@ -179,7 +184,7 @@ export async function calculateDetourCosts(
     );
 
     // 최종 점수 = (100 - costScore) * 0.7 + proximityScore * 0.3
-    const finalScore = (100 - costScore) * 0.7 + proximityScore * 0.3;
+    const finalScore = calculateFinalScore(costScore, proximityScore);
 
     const toWaypointDistance = computePathDistance(originalRoute.path, closestIdx);
     const toWaypointDuration = originalRoute.duration > 0 && originalRoute.distance > 0
@@ -258,6 +263,11 @@ export function calculateSingleDetourCost(
   duration: number;
   costScore: number;
 } {
+  // ★ 빈 path 가드
+  if (!originalRoute.path || originalRoute.path.length === 0) {
+    return { distance: 0, duration: 0, costScore: 0 };
+  }
+
   const { distance: distToRoute } = findClosestPointOnRoute(waypoint, originalRoute.path);
   const detourDistance = Math.round(distToRoute * 2);
   const detourDuration = estimateDetourDuration(distToRoute);
