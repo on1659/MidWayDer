@@ -51,7 +51,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
 
   return (
     <div
-      className="card-stagger relative overflow-hidden rounded-2xl shadow-sm"
+      className="card-stagger result-card-hover relative overflow-hidden rounded-2xl shadow-sm"
       style={{
         animationDelay: `${animDelay}ms`,
         opacity: isVisited ? 0.65 : 1,

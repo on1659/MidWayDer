@@ -117,7 +117,13 @@ export default function DesktopSidePanel({
   }, [setStart, setEnd, setCategory, clearResults, selectWaypoint, setOriginalRoute, search, setRecentSearches]);
 
   return (
-    <aside className="hidden md:flex md:w-[420px] md:shrink-0 flex-col bg-white border-r border-gray-100 z-10">
+    <aside
+      className="hidden md:flex md:w-[420px] md:shrink-0 flex-col z-10"
+      style={{
+        background: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border-soft)'
+      }}
+    >
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>

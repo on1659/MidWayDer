@@ -299,3 +299,20 @@ a:focus-visible,
 .skip-link:focus {
   top: 0;
 }
+
+/* ========== Result Card Hover Effect (데스크톱) ========== */
+@media (min-width: 769px) {
+  .result-card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .result-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 다크모드에서는 그림자를 조금 더 진하게 */
+  :root.dark .result-card-hover:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  }
+}
