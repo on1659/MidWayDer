@@ -234,17 +234,17 @@ export default function HomePage() {
         <div className="md:hidden absolute top-3 inset-x-3 z-30">
           <div className="flex items-start gap-2">
             <button data-testid="open-search-overlay-btn" onClick={() => setSearchOverlayOpen(true)} className="flex-1 bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
-                <div className="w-5 h-5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
+              <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
+                <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
                 <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: start?.address ? 'var(--text-strong)' : 'var(--text-muted)' }}>{start?.address || '출발지'}</span>
               </div>
-              <div className="flex items-center gap-3 px-4 py-3.5">
-                <div className="w-5 h-5 rounded-full shrink-0" style={{ background: 'var(--pink-500)' }} />
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--pink-500)' }} />
                 <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: end?.address ? 'var(--text-strong)' : 'var(--text-muted)' }}>{end?.address || '도착지'}</span>
               </div>
             </button>
-            <button onClick={toggleTheme} aria-label="테마 변경" className="w-11 h-11 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <button onClick={toggleTheme} aria-label="테마 변경" className="w-12 h-12 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
           </div>
         </div>

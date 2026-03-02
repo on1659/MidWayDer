@@ -73,7 +73,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
         onTouchStart={(e) => swipeHandlers.onTouchStart(e, result.place.id)}
         onTouchMove={(e) => swipeHandlers.onTouchMove(e, result.place.id)}
         onTouchEnd={() => swipeHandlers.onTouchEnd(result)}
-        className="w-full px-3 py-2.5 rounded-2xl text-left active:scale-[0.98]"
+        className="w-full px-4 py-3 md:px-3 md:py-2.5 rounded-2xl text-left active:scale-[0.98]"
         style={{
           background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
           border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',

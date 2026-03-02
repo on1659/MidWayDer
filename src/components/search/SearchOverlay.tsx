@@ -160,10 +160,10 @@ export default function SearchOverlay({
       <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
+          className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
           style={{ backgroundColor: 'var(--bg-hover)' }}
         >
-          <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-strong)' }} />
+          <ArrowLeft className="w-6 h-6" style={{ color: 'var(--text-strong)' }} />
         </button>
         <h2 className="text-xl font-bold flex-1" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
         
@@ -171,7 +171,7 @@ export default function SearchOverlay({
         <button
           onClick={handleVoiceSearch}
           disabled={isListening}
-          className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
+          className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
           style={{ 
             backgroundColor: isListening ? 'var(--accent)' : 'var(--bg-hover)',
             color: isListening ? 'white' : 'var(--text-strong)',
@@ -180,23 +180,23 @@ export default function SearchOverlay({
           title="음성으로 경로 입력 🎤"
         >
           {isListening ? (
-            <MicOff className="w-5 h-5 animate-pulse" />
+            <MicOff className="w-6 h-6 animate-pulse" />
           ) : (
-            <Mic className="w-5 h-5" />
+            <Mic className="w-6 h-6" />
           )}
         </button>
 
         {onToggleTheme && (
           <button
             onClick={onToggleTheme}
-            className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
+            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
             style={{ backgroundColor: 'var(--bg-hover)' }}
             aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
           >
             {theme === 'dark' ? (
-              <Sun className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+              <Sun className="w-6 h-6" style={{ color: 'var(--accent)' }} />
             ) : (
-              <Moon className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+              <Moon className="w-6 h-6" style={{ color: 'var(--text-secondary)' }} />
             )}
           </button>
         )}

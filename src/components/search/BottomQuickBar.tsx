@@ -67,11 +67,11 @@ export default function BottomQuickBar({ favorites, setBottomSheetSnap, setSearc
                       }, 100);
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap shrink-0 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-5 py-3 md:px-4 md:py-2.5 rounded-xl whitespace-nowrap shrink-0 transition-all active:scale-95"
                   style={{ background: 'var(--bg-surface)', border: '2px solid var(--accent-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                 >
-                  <Star className="w-4 h-4" style={{ color: 'var(--accent)' }} fill="var(--accent)" />
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{fav.name}</span>
+                  <Star className="w-5 h-5 md:w-4 md:h-4" style={{ color: 'var(--accent)' }} fill="var(--accent)" />
+                  <span className="text-base md:text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>{fav.name}</span>
                 </button>
               ))}
             </div>

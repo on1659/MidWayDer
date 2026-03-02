@@ -166,7 +166,7 @@ export const ResultCard = React.memo(function ResultCard({
         onTouchStart={(e) => swipeHandlers.onTouchStart(e, result.place.id)}
         onTouchMove={(e) => swipeHandlers.onTouchMove(e, result.place.id)}
         onTouchEnd={() => swipeHandlers.onTouchEnd(result)}
-        className="w-full p-4 rounded-2xl text-left active:scale-[0.98]"
+        className="w-full p-5 md:p-4 rounded-2xl text-left active:scale-[0.98]"
         style={{
           background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
           border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
@@ -217,11 +217,11 @@ export const ResultCard = React.memo(function ResultCard({
           </div>
 
           <div className="flex-1 min-w-0 mr-2">
-            <h3 className="text-[17px] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="text-lg md:text-[17px] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
               {highlightText(result.place.name, nameFilter)}
             </h3>
             {(result.place.roadAddress || result.place.address) && (
-              <p className="text-[13px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-sm md:text-[13px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                 {highlightText(result.place.roadAddress || result.place.address || '', nameFilter)}
               </p>
             )}
@@ -605,27 +605,27 @@ export const ResultCard = React.memo(function ResultCard({
           </div>
 
           {/* 우측 액션 버튼들 */}
-          <div className="flex flex-col gap-1 shrink-0 self-start">
+          <div className="flex flex-col gap-1.5 shrink-0 self-start">
             <button
               onClick={(e) => onToggleFav(e, result)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+              className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
               title={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 저장'}
             >
               <Star
-                className="w-4 h-4"
+                className="w-5 h-5 md:w-4 md:h-4"
                 fill={favPlaces.has(result.place.id) ? '#f59e0b' : 'none'}
                 style={{ color: favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
               />
             </button>
             <button
               onClick={(e) => onCopyAddress(e, result)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+              className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
               title="주소 복사"
             >
               {copiedId === result.place.id ? (
-                <Check className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
+                <Check className="w-5 h-5 md:w-4 md:h-4" style={{ color: 'var(--green-600)' }} />
               ) : (
-                <Copy className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                <Copy className="w-5 h-5 md:w-4 md:h-4" style={{ color: 'var(--text-muted)' }} />
               )}
             </button>
             <button
@@ -633,11 +633,11 @@ export const ResultCard = React.memo(function ResultCard({
                 e.stopPropagation();
                 onSetOverflowMenu(overflowMenuId === result.place.id ? null : result.place.id);
               }}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+              className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
               title="더 보기"
             >
               <MoreHorizontal
-                className="w-4 h-4"
+                className="w-5 h-5 md:w-4 md:h-4"
                 style={{ color: overflowMenuId === result.place.id ? 'var(--accent)' : 'var(--text-muted)' }}
               />
             </button>

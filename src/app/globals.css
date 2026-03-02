@@ -66,6 +66,126 @@ body {
   }
 }
 
+/* ========== 모바일 UI/UX 최적화 ========== */
+
+/* P0: 터치 타겟 확대 */
+@media (max-width: 768px) {
+  /* 버튼 최소 크기 48x48px */
+  button:not(.btn-sm),
+  [role="button"]:not(.btn-sm),
+  .btn-touch {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* 작은 아이콘 버튼은 패딩으로 확보 */
+  .btn-icon {
+    padding: 12px;
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* 입력 필드 최소 높이 56px */
+  input[type="text"],
+  input[type="search"],
+  textarea {
+    min-height: 56px;
+    font-size: 16px; /* iOS 줌 방지 */
+    padding: 16px;
+  }
+
+  /* 결과 카드 최소 높이 72px */
+  .result-card,
+  [data-result-index] {
+    min-height: 72px;
+  }
+
+  /* 아이콘 크기 확대 */
+  svg.lucide {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* 폰트 사이즈 증가 */
+  .text-mobile-base {
+    font-size: 16px;
+  }
+  .text-mobile-lg {
+    font-size: 18px;
+  }
+
+  /* 간격 확대 */
+  .gap-mobile {
+    gap: 24px;
+  }
+  .p-mobile {
+    padding: 20px;
+  }
+  .space-y-mobile > * + * {
+    margin-top: 20px;
+  }
+}
+
+/* P0: 버튼 터치 피드백 */
+@media (max-width: 768px) {
+  button:active:not(:disabled),
+  [role="button"]:active:not(:disabled) {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+
+  /* Ripple 효과 (선택적) */
+  .btn-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .btn-ripple:active::after {
+    transform: scale(2);
+    opacity: 1;
+    transition: none;
+  }
+}
+
+/* P1: Safe Area 보강 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom-full {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+  .safe-top-full {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* P3: 레이아웃 & 간격 */
+@media (max-width: 768px) {
+  body {
+    /* 전체 패딩 증가 */
+    --sp-4: 20px;
+    --sp-5: 24px;
+    --sp-6: 28px;
+  }
+
+  /* 카드 그림자/깊이 */
+  .card-elevated {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 스크롤 성능 최적화 */
+  .scroll-optimize {
+    -webkit-overflow-scrolling: touch;
+    will-change: transform;
+  }
+}
+
 /* Slide up animation */
 @keyframes slideUp {
   from { transform: translateY(100%); opacity: 0; }
