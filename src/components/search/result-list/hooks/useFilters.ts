@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { DetourResult } from '@/types/detour';
 import { getBusinessStatus } from '@/lib/business-hours';
 
@@ -49,15 +49,14 @@ export function useFilters(
   const [activePreset, setActivePreset] = useState<'quick' | 'now' | null>(null);
   const [showFilterChips, setShowFilterChips] = useState(false);
 
-  // results 변경 시 필터 초기화 (React 공식 "Adjusting state based on props or state" 패턴)
-  const [prevResults, setPrevResults] = useState(results);
-  if (prevResults !== results) {
-    setPrevResults(results);
+  // results 변경 시 필터 초기화 — React 18 자동 배치로 cascading render 없음
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenNowOnly(false);
     setMaxDetourMin(null);
     setActivePreset(null);
     setNameFilter('');
-  }
+  }, [results]);
 
   const filteredResults = useMemo(() => {
     let r = results;

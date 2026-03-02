@@ -26,7 +26,7 @@ export function useGPSProximity(results: DetourResult[]): UseGPSProximityReturn 
       { timeout: 6000, maximumAge: 60000 }
     );
     return () => { cancelled = true; };
-  }, [results.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [results.length, currentLocation]);
 
   const closestPlaceId = useMemo(() => {
     if (!currentLocation || results.length === 0) return null;

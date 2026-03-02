@@ -194,8 +194,10 @@ export async function POST(request: NextRequest) {
       );
 
       // 최종 점수 재계산
+      const scoreMap = new Map(personalizationScores.map(p => [p.placeId, p]));
+
       finalResults = finalResults.map(result => {
-        const pScore = personalizationScores.find(p => p.placeId === result.place.id);
+        const pScore = scoreMap.get(result.place.id);
         const boostedScore = result.finalScore + (pScore?.finalBoost || 0);
         
         return {

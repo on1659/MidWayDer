@@ -62,11 +62,14 @@ export default function KakaoMap({
         }
       }, 100);
       // 10초 타임아웃
-      setTimeout(() => {
+      const fallbackTimeout = setTimeout(() => {
         clearInterval(checkLoaded);
         if (!window.kakao?.maps?.LatLng) setLoadError('카카오맵 SDK 로드 타임아웃');
       }, 10000);
-      return;
+      return () => {
+        clearInterval(checkLoaded);
+        clearTimeout(fallbackTimeout);
+      };
     }
 
     const script = document.createElement('script');

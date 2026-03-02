@@ -245,8 +245,46 @@ describe('POST /api/search', () => {
     expect(json.data.results[0].place.id).toBe('place-1');
   });
 
-  // ── TC-7: DB 에러 → 500 DATABASE_ERROR ───────────────────────────────────────
-  it('TC-7: DB 에러(DATABASE_ERROR 예외) → 500 DATABASE_ERROR 반환', async () => {
+  // ── TC-7: 개인화 점수 Map 변환 검증 ─────────────────────────────────────────
+  it('TC-7: 개인화 점수 Map 매핑 — 각 result에 올바른 personalScore/popularityScore 반영', async () => {
+    // 2개 결과 mock
+    const result1 = { ...MOCK_DETOUR_RESULT, place: { ...MOCK_DETOUR_RESULT.place, id: 'place-A' } };
+    const result2 = { ...MOCK_DETOUR_RESULT, place: { ...MOCK_DETOUR_RESULT.place, id: 'place-B' } };
+
+    vi.mocked(calculateDetourCosts).mockResolvedValue({
+      results: [result1, result2] as unknown as DetourResult[],
+      totalCandidates: 5,
+      apiCallsUsed: 4,
+    });
+
+    // place-A: 높은 부스트, place-B: 낮은 부스트
+    vi.mocked(calculatePersonalizationScores).mockResolvedValue([
+      { placeId: 'place-B', personalScore: 10, popularityScore: 5, finalBoost: 5 },
+      { placeId: 'place-A', personalScore: 90, popularityScore: 80, finalBoost: 20 },
+    ]);
+
+    const req = makeRequest(VALID_COORDS_BODY);
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    const results = json.data.results as Array<{ place: { id: string }; personalScore: number; popularityScore: number }>;
+
+    // place-A 확인 (personalScore=90, popularityScore=80)
+    const placeA = results.find(r => r.place.id === 'place-A');
+    const placeB = results.find(r => r.place.id === 'place-B');
+    expect(placeA).toBeDefined();
+    expect(placeA!.personalScore).toBe(90);
+    expect(placeA!.popularityScore).toBe(80);
+
+    // place-B 확인 (personalScore=10, popularityScore=5)
+    expect(placeB).toBeDefined();
+    expect(placeB!.personalScore).toBe(10);
+    expect(placeB!.popularityScore).toBe(5);
+  });
+
+  // ── TC-8: DB 에러 → 500 DATABASE_ERROR ───────────────────────────────────────
+  it('TC-8: DB 에러(DATABASE_ERROR 예외) → 500 DATABASE_ERROR 반환', async () => {
     // hashRoute는 allSettled 외부에서 호출되므로 outer catch로 전파됨
     vi.mocked(hashRoute).mockImplementationOnce(() => {
       throw new Error('DATABASE_ERROR');
