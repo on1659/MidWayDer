@@ -95,6 +95,44 @@ describe('edge cases — Division by Zero 방지', () => {
   });
 });
 
+// ─── distance 기반 진행률 ────────────────────────────────────
+
+describe('calculateProximityScore — distance 기반 진행률', () => {
+  // 비균등 세그먼트: 앞 1000m 구간 + 뒤 9000m 구간 → 인덱스 기준으로는 50%이지만
+  // 실제 거리 기준으로는 10% 지점
+  const unevenSampledPoints: RoutePoint[] = [
+    { lat: 37.50, lng: 127.0, distance: 0 },
+    { lat: 37.51, lng: 127.0, distance: 1000 },   // 인덱스 1/2 = 50%, 실제 10%
+    { lat: 37.60, lng: 127.0, distance: 10000 },  // 인덱스 2/2 = 100%, 실제 100%
+  ];
+  const unevenRoute: Route = {
+    start: { lat: 37.50, lng: 127.0 },
+    end: { lat: 37.60, lng: 127.0 },
+    distance: 10000,
+    duration: 600,
+    path: unevenSampledPoints,
+  };
+
+  it('distance 필드 있을 때 인덱스 1 매장 → routeProgress ≈ 10% (0.95 미만 통과)', () => {
+    // 인덱스 1 위치: distance=1000, 총 10000 → 진행률 10%
+    // distance 없었다면 인덱스 기준 50% → 통과
+    // distance 있으면 10% → 여전히 통과 (ROUTE_CUTOFF_RATIO = 0.95)
+    const place = makePlace(37.51, 127.0); // samplePoints[1]과 동일
+    const score = calculateProximityScore(place, unevenSampledPoints, unevenRoute);
+    expect(score).toBeGreaterThan(0); // 경로 10% → 제외 안 됨
+    expect(score).toBeGreaterThan(90); // 경로 바로 위 → 높은 점수
+  });
+
+  it('distance 필드 없을 때 인덱스 기반 폴백 동작 (score > 0 유지)', () => {
+    // distance 필드 제거한 포인트 배열
+    const noDistPoints: RoutePoint[] = unevenSampledPoints.map(({ lat, lng }) => ({ lat, lng }));
+    const place = makePlace(37.51, 127.0);
+    const score = calculateProximityScore(place, noDistPoints, unevenRoute);
+    // 인덱스 기반 폴백: 1/(3-1) = 50% → 통과, 경로 위이므로 높은 점수
+    expect(score).toBeGreaterThan(0);
+  });
+});
+
 describe('filterByProximity', () => {
   it('점수 높은 순으로 상위 N개 반환', () => {
     const places = [

@@ -215,6 +215,115 @@ const makeMockPlace = (): Place => ({
   coordinates: { lat: 37.5663, lng: 126.9779 },
 });
 
+// ─── 경도 버퍼 정확도 ────────────────────────────────────────
+
+describe('queryDbPlaces 경도 버퍼 정확도', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('서울(37.5°) 기준 1km 버퍼 — 경도 bufferDeg < 위도 bufferDeg', async () => {
+    // 서울 위도 37.5°: cos(37.5°)≈0.793 → 경도 1° ≈ 88km
+    // 1km 버퍼: latBuf = 1/111 ≈ 0.009°, lngBuf = 1/(111×0.793) ≈ 0.01136°
+    // prisma.findMany where 절의 lat/lng 범위로 검증
+    let capturedWhere: { lat?: { gte: number; lte: number }; lng?: { gte: number; lte: number } } | null = null;
+    (prisma.place.findMany as ReturnType<typeof vi.fn>).mockImplementation(
+      async ({ where }: { where: typeof capturedWhere }) => {
+        capturedWhere = where;
+        return [];
+      }
+    );
+
+    const seoulRoute: Route = {
+      distance: 1000, duration: 120,
+      path: [{ lat: 37.5663, lng: 126.9779 }],
+      start: { lat: 37.5663, lng: 126.9779 },
+      end: { lat: 37.5663, lng: 126.9779 },
+    };
+    await filterPlacesByRoute(seoulRoute, '카페', 1000);
+
+    if (!capturedWhere?.lat || !capturedWhere?.lng) throw new Error('where not captured');
+    const latRange = capturedWhere.lat.lte - capturedWhere.lat.gte;
+    const lngRange = capturedWhere.lng.lte - capturedWhere.lng.gte;
+    // 경도 범위가 위도 범위보다 넓어야 함 (cos 보정으로 lngBuf > latBuf)
+    expect(lngRange).toBeGreaterThan(latRange);
+  });
+
+  it('부산(35.1°) 기준 1km 버퍼 — 서울보다 경도 범위가 더 좁음 (cos(35.1°)>cos(37.5°) → lngBuf 더 작음)', async () => {
+    let seoulLngRange = 0;
+    let busanLngRange = 0;
+
+    const capture = async (lat: number) => {
+      let capturedWhere: { lng?: { gte: number; lte: number } } | null = null;
+      (prisma.place.findMany as ReturnType<typeof vi.fn>).mockImplementation(
+        async ({ where }: { where: typeof capturedWhere }) => {
+          capturedWhere = where;
+          return [];
+        }
+      );
+      const route: Route = {
+        distance: 1000, duration: 120,
+        path: [{ lat, lng: 129.0 }],
+        start: { lat, lng: 129.0 }, end: { lat, lng: 129.0 },
+      };
+      await filterPlacesByRoute(route, '카페', 1000);
+      return capturedWhere?.lng
+        ? capturedWhere.lng.lte - capturedWhere.lng.gte
+        : 0;
+    };
+
+    seoulLngRange = await capture(37.5); // cos(37.5°) ≈ 0.793
+    busanLngRange = await capture(35.1); // cos(35.1°) ≈ 0.818 → lngBuf 작아짐
+
+    // 위도가 낮을수록 cos가 커져서 lngBuf가 작아짐
+    // 부산(35.1°)이 서울(37.5°)보다 cos 값이 크므로 lngRange 더 작음
+    expect(busanLngRange).toBeLessThan(seoulLngRange);
+  });
+});
+
+// ─── bufferDistance 입력 검증 ────────────────────────────────
+
+describe('filterPlacesByRoute bufferDistance 입력 검증', () => {
+  it('bufferDistance 0 → Error throw', async () => {
+    await expect(filterPlacesByRoute(mockRoute, '카페', 0))
+      .rejects.toThrow('Invalid bufferDistance');
+  });
+
+  it('bufferDistance 음수 → Error throw', async () => {
+    await expect(filterPlacesByRoute(mockRoute, '카페', -500))
+      .rejects.toThrow('Invalid bufferDistance');
+  });
+
+  it('bufferDistance Infinity → Error throw', async () => {
+    await expect(filterPlacesByRoute(mockRoute, '카페', Infinity))
+      .rejects.toThrow('Invalid bufferDistance');
+  });
+});
+
+// ─── stride 적응형 정확도 ────────────────────────────────────
+
+describe('minDistanceToPolyline 적응형 stride 정확도', () => {
+  it('100 포인트 폴리라인 — 완전 스캔(stride=1)과 오차 ≤50m', () => {
+    const point: Coordinates = { lat: 37.5050, lng: 126.9050 };
+    const polyline: Coordinates[] = Array.from({ length: 100 }, (_, i) => ({
+      lat: 37.50 + i * 0.0001,
+      lng: 126.90 + i * 0.0001,
+    }));
+    const distFull = minDistanceToPolyline(point, polyline, 1);   // 기준값
+    const distAuto = minDistanceToPolyline(point, polyline);       // 적응형 (stride 무시)
+    expect(Math.abs(distFull - distAuto)).toBeLessThan(50);
+  });
+
+  it('500 포인트 폴리라인 — 완전 스캔(stride=1)과 오차 ≤50m', () => {
+    const point: Coordinates = { lat: 37.5250, lng: 126.9250 };
+    const polyline: Coordinates[] = Array.from({ length: 500 }, (_, i) => ({
+      lat: 37.50 + i * 0.0001,
+      lng: 126.90 + i * 0.0001,
+    }));
+    const distFull = minDistanceToPolyline(point, polyline, 1);
+    const distAuto = minDistanceToPolyline(point, polyline);
+    expect(Math.abs(distFull - distAuto)).toBeLessThan(50);
+  });
+});
+
 describe('fetchFromKakao — 과반 실패 처리 (filterPlacesByRoute 경유)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

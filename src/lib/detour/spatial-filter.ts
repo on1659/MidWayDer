@@ -11,10 +11,12 @@ import { Route, Place, Coordinates } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
 import { KakaoSearchProvider } from '@/lib/map-provider/kakao/search';
 import { logger } from '@/lib/logger';
-
-const MIN_DB_RESULTS = 10;
-const MAX_RESULTS = 100;
-const DEDUP_DISTANCE_M = 50;
+import {
+  MIN_DB_RESULTS,
+  MAX_SPATIAL_RESULTS,
+  DEDUP_DISTANCE_M,
+  MIN_POLYLINE_CHECK_POINTS,
+} from './constants';
 
 const kakaoSearch = new KakaoSearchProvider();
 
@@ -31,13 +33,18 @@ export async function filterPlacesByRoute(
   category: string,
   bufferDistance: number = 1000
 ): Promise<Place[]> {
+  // ▼ 신규: 입력 검증
+  if (bufferDistance <= 0 || !Number.isFinite(bufferDistance)) {
+    throw new Error(`Invalid bufferDistance: ${bufferDistance}`);
+  }
+  // ▲ 이후 기존 try 블록 그대로 유지
   try {
     // === Phase 1: DB 조회 ===
     const dbPlaces = await queryDbPlaces(route, category, bufferDistance);
     logger.debug(`[Spatial Filter] DB hit: ${dbPlaces.length}개 (category=${category})`);
 
     if (dbPlaces.length >= MIN_DB_RESULTS) {
-      return dbPlaces.slice(0, MAX_RESULTS);
+      return dbPlaces.slice(0, MAX_SPATIAL_RESULTS);
     }
 
     // === Phase 2: 카카오 API 보충 ===
@@ -54,7 +61,7 @@ export async function filterPlacesByRoute(
       logger.error('[Spatial Filter] DB upsert 실패:', err)
     );
 
-    return merged.slice(0, MAX_RESULTS);
+    return merged.slice(0, MAX_SPATIAL_RESULTS);
   } catch (error) {
     logger.error('[Spatial Filter] Query failed:', error);
     throw new Error('DATABASE_ERROR');
@@ -78,11 +85,13 @@ async function queryDbPlaces(
 
   const lats = route.path.map((p) => p.lat);
   const lngs = route.path.map((p) => p.lng);
-  const bufferDeg = (bufferDistance / 111000) * 1.2;
-  const minLat = Math.min(...lats) - bufferDeg;
-  const maxLat = Math.max(...lats) + bufferDeg;
-  const minLng = Math.min(...lngs) - bufferDeg;
-  const maxLng = Math.max(...lngs) + bufferDeg;
+  const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const latBufferDeg = bufferDistance / 111000;
+  const lngBufferDeg = bufferDistance / (111000 * Math.cos(centerLat * Math.PI / 180));
+  const minLat = Math.min(...lats) - latBufferDeg;
+  const maxLat = Math.max(...lats) + latBufferDeg;
+  const minLng = Math.min(...lngs) - lngBufferDeg;
+  const maxLng = Math.max(...lngs) + lngBufferDeg;
 
   const dbPlaces = await prisma.place.findMany({
     where: {
@@ -107,7 +116,7 @@ async function queryDbPlaces(
         coordinates: placeCoord,
       });
     }
-    if (filtered.length >= MAX_RESULTS) break;
+    if (filtered.length >= MAX_SPATIAL_RESULTS) break;
   }
 
   return filtered;
@@ -334,10 +343,12 @@ async function upsertPlacesToDb(places: Place[], category: string): Promise<void
 export function minDistanceToPolyline(
   point: Coordinates,
   polyline: Coordinates[],
-  stride: number = 10
+  _stride: number = 10   // 하위 호환 — 더 이상 사용 안 됨
 ): number {
+  // 폴리라인 길이에 따라 항상 최소 MIN_POLYLINE_CHECK_POINTS개 검사
+  const effectiveStride = Math.max(1, Math.ceil(polyline.length / MIN_POLYLINE_CHECK_POINTS));
   let min = Infinity;
-  for (let i = 0; i < polyline.length; i += stride) {
+  for (let i = 0; i < polyline.length; i += effectiveStride) {
     const d = haversineDistance(point, polyline[i]);
     if (d < min) min = d;
     if (min < 10) break;

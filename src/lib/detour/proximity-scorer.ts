@@ -8,7 +8,15 @@
 
 import { Place, RoutePoint, Route } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
-import { MAX_PROXIMITY_DISTANCE, ROUTE_CUTOFF_RATIO } from './constants';
+import {
+  MAX_PROXIMITY_DISTANCE,
+  ROUTE_CUTOFF_RATIO,
+  POSITION_WEIGHT_MID_BONUS,
+  POSITION_WEIGHT_LATE_PENALTY,
+  POSITION_MID_START,
+  POSITION_MID_END,
+  POSITION_LATE_START,
+} from './constants';
 
 /**
  * 경로 근접도 점수 계산 (0-100)
@@ -59,7 +67,11 @@ export function calculateProximityScore(
   }
 
   // 경로 진행률 계산 (0-1)
-  const routeProgress = closestPointIndex / (sampledPoints.length - 1);
+  const closestPoint = sampledPoints[closestPointIndex];
+  const routeProgress =
+    closestPoint?.distance != null && _route.distance > 0
+      ? closestPoint.distance / _route.distance          // distance 필드 있으면 우선
+      : closestPointIndex / (sampledPoints.length - 1);  // 폴백
 
   // 경로 후반부(95% 이후) 매장 제외 (목적지 근처는 의미 없음)
   if (routeProgress >= ROUTE_CUTOFF_RATIO) return 0;
@@ -71,10 +83,10 @@ export function calculateProximityScore(
 
   // 도착지 근처(80-95%)는 약간 보너스 (도착 직전에 들르기 편함)
   let positionWeight = 1.0;
-  if (routeProgress >= 0.3 && routeProgress <= 0.7) {
-    positionWeight = 1.05; // 경로 중반 약간 선호
-  } else if (routeProgress >= 0.8 && routeProgress <= 0.95) {
-    positionWeight = 0.95; // 도착 근처는 약간 감점
+  if (routeProgress >= POSITION_MID_START && routeProgress <= POSITION_MID_END) {
+    positionWeight = POSITION_WEIGHT_MID_BONUS; // 경로 중반 약간 선호
+  } else if (routeProgress >= POSITION_LATE_START && routeProgress < ROUTE_CUTOFF_RATIO) {
+    positionWeight = POSITION_WEIGHT_LATE_PENALTY; // 도착 근처는 약간 감점
   }
 
   return Math.min(100, distanceScore * positionWeight);
