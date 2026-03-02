@@ -39,7 +39,9 @@ export function useTheme(): UseThemeReturn {
           setTheme('dark');
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+    }
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
@@ -50,7 +52,9 @@ export function useTheme(): UseThemeReturn {
         const prefersDark = e.matches;
         document.documentElement.classList.toggle('theme-dark', prefersDark);
         setTheme(prefersDark ? 'dark' : 'light');
-      } catch { /* ignore */ }
+      } catch {
+        // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+      }
     };
 
     mediaQuery.addEventListener('change', handleChange);
@@ -89,12 +93,16 @@ export function useTheme(): UseThemeReturn {
 
   const toggleTheme = () => {
     setAutoTheme(false);
-    try { localStorage.removeItem('auto-theme'); } catch { /* ignore */ }
+    try { localStorage.removeItem('auto-theme'); } catch {
+      // localStorage 접근 불가 시 무시
+    }
 
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     document.documentElement.classList.toggle('theme-dark', next === 'dark');
-    try { localStorage.setItem('theme', next); } catch { /* ignore */ }
+    try { localStorage.setItem('theme', next); } catch {
+      // localStorage 접근 불가 시 무시
+    }
   };
 
   const toggleAutoTheme = () => {
@@ -114,7 +122,9 @@ export function useTheme(): UseThemeReturn {
         localStorage.removeItem('auto-theme');
         localStorage.setItem('theme', theme);
       }
-    } catch { /* ignore */ }
+    } catch {
+      // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+    }
   };
 
   return { theme, autoTheme, toggleTheme, toggleAutoTheme };

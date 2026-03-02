@@ -28,7 +28,7 @@ type TaggedDetourResult = DetourResult & {
 };
 import { prisma } from '@/lib/db/prisma';
 import { hashRoute } from '@/lib/utils/route-hash';
-import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
+import { calculatePersonalizationScores, type PersonalizationScore } from '@/lib/personalization/scorer';
 import { loadSearchCache, saveSearchCache } from '@/lib/cache/search-cache';
 import { captureException } from '@/lib/monitoring';
 import { getErrorMessage } from '@/lib/error-utils';
@@ -192,34 +192,41 @@ export async function POST(request: NextRequest) {
     const sessionId = request.cookies.get('sessionId')?.value || 'anonymous';
     const routeHash = hashRoute(startCoords, endCoords);
 
-    try {
-      const placeIds = finalResults.map(r => r.place.id);
-      const personalizationScores = await calculatePersonalizationScores(
-        sessionId,
-        routeHash,
-        placeIds
-      );
+    const PERSONALIZATION_TIMEOUT_MS = 2000;
+    const placeIds = finalResults.map(r => r.place.id);
+    const personalizationScores = await Promise.race([
+      calculatePersonalizationScores(sessionId, routeHash, placeIds),
+      new Promise<PersonalizationScore[]>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('PERSONALIZATION_TIMEOUT')),
+          PERSONALIZATION_TIMEOUT_MS
+        )
+      ),
+    ]).catch((error: Error) => {
+      if (error.message === 'PERSONALIZATION_TIMEOUT') {
+        logger.warn('[Personalization] Timeout after 2s — using default scores');
+      } else {
+        logger.error('[Personalization] Failed:', error);
+      }
+      return [] as PersonalizationScore[];
+    });
 
-      // 최종 점수 재계산
-      const scoreMap = new Map(personalizationScores.map(p => [p.placeId, p]));
+    // 최종 점수 재계산
+    const scoreMap = new Map(personalizationScores.map(p => [p.placeId, p]));
 
-      finalResults = finalResults.map(result => {
-        const pScore = scoreMap.get(result.place.id);
-        const boostedScore = result.finalScore + (pScore?.finalBoost || 0);
-        
-        return {
-          ...result,
-          personalScore: pScore?.personalScore || 0,
-          popularityScore: pScore?.popularityScore || 0,
-          finalScore: Math.max(0, Math.min(100, boostedScore)), // 0-100 범위
-        };
-      });
+    finalResults = finalResults.map(result => {
+      const pScore = scoreMap.get(result.place.id);
+      const boostedScore = result.finalScore + (pScore?.finalBoost || 0);
 
-      logger.debug('[Personalization] Applied to', finalResults.length, 'results');
-    } catch (error) {
-      logger.error('[Personalization] Failed:', error);
-      // 개인화 실패해도 원본 결과 반환
-    }
+      return {
+        ...result,
+        personalScore: pScore?.personalScore || 0,
+        popularityScore: pScore?.popularityScore || 0,
+        finalScore: Math.max(0, Math.min(100, boostedScore)), // 0-100 범위
+      };
+    });
+
+    logger.debug('[Personalization] Applied to', finalResults.length, 'results');
 
     // 재정렬 (개인화 적용 후)
     finalResults.sort((a, b) => b.finalScore - a.finalScore);

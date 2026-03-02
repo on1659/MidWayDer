@@ -1,8 +1,24 @@
+// @vitest-environment jsdom
 /**
  * useUserData.test.ts
- * 사용자 데이터 로드 로직 검증 (Node 환경)
+ * 사용자 데이터 로드 로직 검증 (Node 환경 + jsdom 환경)
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+
+// ─── Mocks ────────────────────────────────────────────────────────────────────
+
+vi.mock('@/lib/recent-searches', () => ({
+  getRecentSearches: vi.fn().mockReturnValue([]),
+}));
+
+vi.mock('@/lib/favorites', () => ({
+  getFavorites: vi.fn().mockReturnValue([]),
+}));
+
+import { useUserData } from '../useUserData';
+
+// ─── 즐겨찾기 로드 로직 (Node 환경) ──────────────────────────────────────────
 
 describe('useUserData — 즐겨찾기 로드 로직', () => {
   let store: Record<string, string> = {};
@@ -14,8 +30,6 @@ describe('useUserData — 즐겨찾기 로드 로직', () => {
 
   beforeEach(() => {
     store = {};
-    vi.stubGlobal('window', {});
-    vi.stubGlobal('localStorage', mockStorage);
   });
 
   it('localStorage에 즐겨찾기 없으면 빈 배열', () => {
@@ -42,6 +56,8 @@ describe('useUserData — 즐겨찾기 로드 로직', () => {
   });
 });
 
+// ─── 최근 검색 로드 로직 (Node 환경) ──────────────────────────────────────────
+
 describe('useUserData — 최근 검색 로드 로직', () => {
   let store: Record<string, string> = {};
   const mockStorage = {
@@ -66,8 +82,38 @@ describe('useUserData — 최근 검색 로드 로직', () => {
   });
 });
 
-describe('useUserData — 훅 (jsdom 환경 필요)', () => {
-  it.todo('renderHook: 초기 recentSearches 빈 배열');
-  it.todo('renderHook: setRecentSearches 업데이트');
-  it.todo('renderHook: setFavorites 업데이트');
+// ─── 훅 테스트 (jsdom 환경) ────────────────────────────────────────────────────
+
+describe('useUserData — 훅 (jsdom 환경)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renderHook: 초기 recentSearches 빈 배열', async () => {
+    const { result } = renderHook(() => useUserData());
+    await act(async () => {});
+    expect(Array.isArray(result.current.recentSearches)).toBe(true);
+  });
+
+  it('renderHook: setRecentSearches 업데이트', () => {
+    const { result } = renderHook(() => useUserData());
+    const newSearches = [
+      { id: 's1', startAddress: '서울시청', endAddress: '강남역', category: '카페', timestamp: Date.now() },
+    ];
+    act(() => {
+      result.current.setRecentSearches(newSearches as never[]);
+    });
+    expect(result.current.recentSearches).toHaveLength(1);
+  });
+
+  it('renderHook: setFavorites 업데이트', () => {
+    const { result } = renderHook(() => useUserData());
+    const newFavs = [
+      { id: 'f1', name: '집→회사', startAddress: '집', endAddress: '회사', category: '카페', createdAt: Date.now() },
+    ];
+    act(() => {
+      result.current.setFavorites(newFavs as never[]);
+    });
+    expect(result.current.favorites).toHaveLength(1);
+  });
 });

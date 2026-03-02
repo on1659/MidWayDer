@@ -32,7 +32,9 @@ export function addPlaceFavorite(place: Omit<PlaceFavorite, 'savedAt'>): void {
   const updated = [{ ...place, savedAt: Date.now() }, ...favorites].slice(0, MAX_PLACE_FAVORITES);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  } catch { /* ignore */ }
+  } catch {
+    // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+  }
 }
 
 export function removePlaceFavorite(placeId: string): void {
@@ -40,7 +42,9 @@ export function removePlaceFavorite(placeId: string): void {
   const updated = favorites.filter((f) => f.placeId !== placeId);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  } catch { /* ignore */ }
+  } catch {
+    // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+  }
 }
 
 export function isPlaceFavorited(placeId: string): boolean {

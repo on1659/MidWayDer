@@ -25,12 +25,16 @@ export function useSortFilter(results: DetourResult[]): UseSortFilterReturn {
       const saved = localStorage.getItem('sort-by') as SortBy | null;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved && ['score', 'distance', 'duration', 'closing'].includes(saved)) setSortBy(saved);
-    } catch { /* ignore */ }
+    } catch {
+      // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+    }
   }, []);
 
   // sortBy 변경 시 localStorage 저장
   useEffect(() => {
-    try { localStorage.setItem('sort-by', sortBy); } catch { /* ignore */ }
+    try { localStorage.setItem('sort-by', sortBy); } catch {
+      // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+    }
   }, [sortBy]);
 
   const { filteredResults, routeTypeCounts } = useMemo(() => {

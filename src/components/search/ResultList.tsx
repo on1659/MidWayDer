@@ -13,6 +13,7 @@ import type { NavApp } from '@/lib/navigation-links';
 import { getBusinessStatus } from '@/lib/business-hours';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { logger } from '@/lib/logger';
+import { fetchWithTimeout } from '@/lib/fetch-timeout';
 import { useRouteStore } from '@/store/route-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
@@ -160,13 +161,20 @@ export default function ResultList({
     lastPopularityIdsRef.current = placeIds;
 
     const controller = new AbortController();
-    fetch(`/api/popularity?placeIds=${encodeURIComponent(placeIds)}`, {
-      signal: controller.signal,
-    })
-      .then((res) => res.json())
+    fetchWithTimeout(
+      `/api/popularity?placeIds=${encodeURIComponent(placeIds)}`,
+      { signal: controller.signal },
+      3000
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((json) => { if (json.success) setPopularityMap(json.data || {}); })
       .catch((err) => {
-        if (err.name !== 'AbortError') logger.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
+        if (err.name !== 'AbortError' && err.name !== 'FetchTimeoutError') {
+          logger.warn('[ResultList] 인기도 API 실패 (UI에 영향 없음):', err);
+        }
       });
 
     return () => controller.abort();
@@ -182,8 +190,11 @@ export default function ResultList({
     if (!hasSearched || results.length > 0) return;
 
     const controller = new AbortController();
-    fetch('/api/stats?period=week', { signal: controller.signal })
-      .then((res) => res.json())
+    fetchWithTimeout('/api/stats?period=week', { signal: controller.signal }, 3000)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((json) => {
         if (json.success && Array.isArray(json.data?.categoryBreakdown)) {
           const cats = (json.data.categoryBreakdown as { category: string }[])
@@ -194,7 +205,9 @@ export default function ResultList({
         }
       })
       .catch((err) => {
-        if (err.name !== 'AbortError') logger.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
+        if (err.name !== 'AbortError' && err.name !== 'FetchTimeoutError') {
+          logger.warn('[ResultList] stats API 실패 (UI에 영향 없음):', err);
+        }
       });
 
     return () => controller.abort();
@@ -202,7 +215,9 @@ export default function ResultList({
 
   // ── isHeaderExpanded localStorage ──
   useEffect(() => {
-    try { localStorage.setItem('header-expanded', String(isHeaderExpanded)); } catch { /* ignore */ }
+    try { localStorage.setItem('header-expanded', String(isHeaderExpanded)); } catch {
+      // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
+    }
   }, [isHeaderExpanded]);
 
   // ── 새 결과 시 UI 상태 초기화 ──
@@ -413,10 +428,21 @@ export default function ResultList({
 
   const handleFeedback = async (helpful: boolean) => {
     try {
-      await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ helpful }) });
+      const res = await fetchWithTimeout('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ helpful }),
+      }, 5000);
+      if (!res.ok) {
+        logger.debug('[ResultList] 피드백 API 응답 오류:', res.status);
+        return;
+      }
       setFeedbackSent(true);
       setTimeout(() => setFeedbackSent(false), 3000);
-    } catch { /* ignore */ }
+    } catch (err) {
+      // 피드백 실패는 UX에 영향 없음 — 조용히 무시하되 디버그 로깅
+      logger.debug('[ResultList] 피드백 전송 실패 (무시됨):', err);
+    }
   };
 
   // ── Context Value ──

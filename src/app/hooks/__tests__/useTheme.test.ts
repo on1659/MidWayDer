@@ -1,10 +1,12 @@
+// @vitest-environment jsdom
 /**
  * useTheme.test.ts
  * 테마 전환 로직 검증 (Node 환경 — React 렌더링 없이)
  *
  * useTheme 훅의 핵심 비즈니스 로직을 동일한 알고리즘으로 재현하여 검증합니다.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
 
 // ---- 재현 함수 (useTheme 내부 로직과 동일) ----
 
@@ -68,9 +70,74 @@ describe('useTheme — 테마 토글 로직', () => {
   });
 });
 
-describe('useTheme — 훅 (jsdom 환경 필요)', () => {
-  it.todo('renderHook: 초기 테마 확인');
-  it.todo('renderHook: toggleTheme() 호출 시 dark로 전환');
-  it.todo('renderHook: localStorage에 테마 저장');
-  it.todo('renderHook: toggleAutoTheme() 동작');
+describe('useTheme — 훅 (jsdom 환경)', () => {
+  // Vitest v4 jsdom 환경에서 localStorage가 완전한 Storage API를 제공하지 않을 수 있어
+  // 테스트용 완전한 구현체를 설치한다
+  const lsStore: Record<string, string> = {};
+  const mockLS: Storage = {
+    getItem: (k: string) => lsStore[k] ?? null,
+    setItem: (k: string, v: string) => { lsStore[k] = v; },
+    removeItem: (k: string) => { delete lsStore[k]; },
+    clear: () => { Object.keys(lsStore).forEach(k => delete lsStore[k]); },
+    key: (i: number) => Object.keys(lsStore)[i] ?? null,
+    get length() { return Object.keys(lsStore).length; },
+  };
+
+  beforeAll(() => {
+    Object.defineProperty(window, 'localStorage', {
+      writable: true,
+      configurable: true,
+      value: mockLS,
+    });
+  });
+
+  beforeEach(() => {
+    mockLS.clear();
+    document.documentElement.classList.remove('theme-dark');
+    // matchMedia 모킹
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+  });
+
+  it('renderHook: 초기 테마 확인 (localStorage 없으면 light 또는 dark)', async () => {
+    const { useTheme } = await import('../useTheme');
+    const { result } = renderHook(() => useTheme());
+    expect(['light', 'dark']).toContain(result.current.theme);
+  });
+
+  it('renderHook: toggleTheme() 호출 시 테마 전환', async () => {
+    mockLS.setItem('theme', 'light');
+    const { useTheme } = await import('../useTheme');
+    const { result } = renderHook(() => useTheme());
+    const before = result.current.theme;
+    act(() => { result.current.toggleTheme(); });
+    expect(result.current.theme).not.toBe(before);
+  });
+
+  it('renderHook: localStorage에 테마 저장', async () => {
+    const { useTheme } = await import('../useTheme');
+    const { result } = renderHook(() => useTheme());
+    act(() => { result.current.toggleTheme(); });
+    expect(['light', 'dark']).toContain(mockLS.getItem('theme'));
+  });
+
+  it('renderHook: toggleAutoTheme() 동작', async () => {
+    const { useTheme } = await import('../useTheme');
+    const { result } = renderHook(() => useTheme());
+    const initialAuto = result.current.autoTheme;
+    act(() => { result.current.toggleAutoTheme(); });
+    expect(result.current.autoTheme).toBe(!initialAuto);
+  });
 });

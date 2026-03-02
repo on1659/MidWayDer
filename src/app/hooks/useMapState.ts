@@ -75,7 +75,9 @@ export function useMapState(): UseMapStateReturn {
         if (!cancelled && data.success && data.data) {
           setPreviewRoute(data.data);
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        logger.debug('[useMapState] 미리보기 경로 조회 실패 (무시됨):', err);
+      }
     })();
     return () => { cancelled = true; };
   }, [start?.coordinates, end?.coordinates, originalRoute]);
