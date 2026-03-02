@@ -103,19 +103,48 @@ export async function POST(request: NextRequest) {
     // 4. 캐시 체크
     const cached = loadSearchCache({ start: startLocation, end: endLocation, category });
     if (cached) {
-      logger.debug('[API /search] Cache hit! ✅');
-      const response: SearchWaypointsResponse = {
+      logger.debug('[API /search] Cache hit! ✅ — re-applying personalization');
+
+      const sessionId = request.cookies.get('sessionId')?.value || 'anonymous';
+      const routeHash = hashRoute(startCoords, endCoords);
+      const maxResults = options?.maxResults ?? 10;
+
+      const placeIds = cached.results.map(r => r.place.id);
+      const personalizationScores = await Promise.race([
+        calculatePersonalizationScores(sessionId, routeHash, placeIds),
+        new Promise<PersonalizationScore[]>((_, reject) =>
+          setTimeout(() => reject(new Error('PERSONALIZATION_TIMEOUT')), 2000)
+        ),
+      ]).catch(() => [] as PersonalizationScore[]);
+
+      const scoreMap = new Map(personalizationScores.map(p => [p.placeId, p]));
+
+      const personalizedResults = cached.results
+        .map(result => {
+          const pScore = scoreMap.get(result.place.id);
+          return {
+            ...result,
+            personalScore: pScore?.personalScore || 0,
+            popularityScore: pScore?.popularityScore || 0,
+            finalScore: Math.max(0, Math.min(100,
+              result.finalScore + (pScore?.finalBoost || 0)
+            )),
+          };
+        })
+        .sort((a, b) => b.finalScore - a.finalScore)
+        .slice(0, maxResults);
+
+      return NextResponse.json({
         success: true,
         fromCache: true,
         data: {
           originalRoute: cached.originalRoute,
-          results: cached.results,
+          results: personalizedResults,
           totalCandidates: cached.totalCandidates,
           apiCallsUsed: cached.apiCallsUsed,
           duration: Date.now() - startTime,
         },
-      };
-      return NextResponse.json(response);
+      } satisfies SearchWaypointsResponse);
     }
 
     logger.debug('[API /search] Cache miss, fetching...');
@@ -188,7 +217,18 @@ export async function POST(request: NextRequest) {
 
     let finalResults: TaggedDetourResult[] = Array.from(seenPlaces.values());
 
-    // 6. 개인화 점수 적용 (ClickLog 기반)
+    // 6. 캐시 저장 — raw 결과 (개인화 전) 저장
+    saveSearchCache(
+      { start: startLocation, end: endLocation, category },
+      {
+        results: finalResults,
+        originalRoute: primaryOriginalRoute,
+        totalCandidates,
+        apiCallsUsed,
+      }
+    );
+
+    // 7. 개인화 점수 적용 (ClickLog 기반)
     const sessionId = request.cookies.get('sessionId')?.value || 'anonymous';
     const routeHash = hashRoute(startCoords, endCoords);
 
@@ -231,13 +271,13 @@ export async function POST(request: NextRequest) {
     // 재정렬 (개인화 적용 후)
     finalResults.sort((a, b) => b.finalScore - a.finalScore);
 
-    // 7. 결과 반환 (maxResults 적용)
+    // 8. 결과 반환 (maxResults 적용)
     const maxResults = options?.maxResults ?? 10;
     const trimmedResults = finalResults.slice(0, maxResults);
 
     const searchDuration = Date.now() - startTime;
 
-    // 8. 검색 로그 저장 — intentional fire-and-forget
+    // 9. 검색 로그 저장 — intentional fire-and-forget
     // Response 반환 속도 유지를 위해 await 생략. 실패 시 에러만 로깅.
     // 개인화 데이터에 영향이 있으나 단일 실패는 허용 가능한 수준.
     void prisma.searchLog.create({
@@ -251,17 +291,6 @@ export async function POST(request: NextRequest) {
         routeHash, // 개인화용 경로 해시 저장
       },
     }).catch(err => logger.error('[SearchLog] Failed to save:', err));
-
-    // 9. 캐시 저장
-    saveSearchCache(
-      { start: startLocation, end: endLocation, category },
-      {
-        results: trimmedResults,
-        originalRoute: primaryOriginalRoute,
-        totalCandidates,
-        apiCallsUsed,
-      }
-    );
 
     const response: SearchWaypointsResponse = {
       success: true,

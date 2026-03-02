@@ -5,10 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    environmentMatchGlobs: [
-      ['src/app/hooks/__tests__/**', 'jsdom'],
-      ['src/components/**/__tests__/**', 'jsdom'],
-    ],
+    // environmentMatchGlobs 제거 — 파일별 // @vitest-environment jsdom 주석으로 대체
     exclude: ['**/node_modules/**', '**/tests/e2e/**'],
   },
   resolve: {

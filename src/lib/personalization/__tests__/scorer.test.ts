@@ -16,7 +16,7 @@ vi.mock('@/lib/logger', () => ({
 import { calculatePersonalizationScores } from '@/lib/personalization/scorer';
 import { prisma } from '@/lib/db/prisma';
 
-const mockGroupBy = vi.mocked(prisma.clickLog.groupBy);
+const mockGroupBy = prisma.clickLog.groupBy as unknown as ReturnType<typeof vi.fn>;
 
 const PLACE_IDS = ['place-A', 'place-B', 'place-C'];
 

@@ -3,6 +3,7 @@
  * setupFiles에 등록하지 않고, 각 jsdom 테스트 파일에서 필요 시 사용하거나
  * 파일별 beforeAll/beforeEach에서 직접 설정합니다.
  */
+import { vi } from 'vitest';
 
 // matchMedia 모킹 (useTheme 등에서 window.matchMedia 사용)
 if (typeof window !== 'undefined') {

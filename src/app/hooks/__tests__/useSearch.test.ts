@@ -110,8 +110,8 @@ function makeHookParams() {
 
 function setRouteState(start: { address: string; coordinates?: { lat: number; lng: number } } | null, end: typeof start | null) {
   mockUseRouteStore.mockReturnValue({
-    start,
-    end,
+    start: start as unknown as null,
+    end: end as unknown as null,
     setStart: mockSetStart,
     setEnd: mockSetEnd,
     setOriginalRoute: mockSetOriginalRoute,
@@ -184,12 +184,13 @@ describe('useSearch', () => {
     const { result } = renderHook(() => useSearch(params));
 
     const recentItem = {
+      id: 'test-recent-id',
       startAddress: '서울시청',
       endAddress: '강남역',
       startCoords: { lat: 37.5663, lng: 126.9779 },
       endCoords: { lat: 37.4979, lng: 127.0276 },
       category: '스타벅스',
-      searchedAt: Date.now(),
+      timestamp: Date.now(),
     };
 
     await act(async () => {
