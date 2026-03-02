@@ -12,6 +12,59 @@ interface EmptyStateProps {
   onCategoryChange?: (category: string) => void;
 }
 
+// 일러스트 컴포넌트
+const EmptyIllustration = ({ type }: { type: 'welcome' | 'no-results' }) => (
+  <div className="relative w-32 h-32 mx-auto mb-4">
+    <svg viewBox="0 0 128 128" className="w-full h-full">
+      {/* 배경 원 */}
+      <circle cx="64" cy="64" r="56" fill="var(--blue-50)" />
+      
+      {type === 'welcome' ? (
+        <>
+          {/* 지도 아이콘 */}
+          <path
+            d="M40 44 L88 44 L88 88 L40 88 Z"
+            fill="none"
+            stroke="var(--blue-400)"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          {/* 경로선 */}
+          <path
+            d="M48 60 L64 52 L80 68"
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* 마커 */}
+          <circle cx="48" cy="60" r="4" fill="var(--accent)" />
+          <circle cx="80" cy="68" r="4" fill="#ec4899" />
+          {/* 물음표 */}
+          <text x="64" y="82" textAnchor="middle" fill="var(--blue-500)" fontSize="20" fontWeight="bold">?</text>
+        </>
+      ) : (
+        <>
+          {/* 돋보기 */}
+          <circle cx="52" cy="52" r="16" fill="none" stroke="var(--blue-400)" strokeWidth="4" />
+          <line x1="64" y1="64" x2="80" y2="80" stroke="var(--blue-400)" strokeWidth="4" strokeLinecap="round" />
+          {/* X 표시 */}
+          <path d="M44 76 L60 92 M60 76 L44 92" stroke="var(--red-400)" strokeWidth="3" strokeLinecap="round" />
+        </>
+      )}
+    </svg>
+    
+    {/* 애니메이션 효과 */}
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div 
+        className="w-24 h-24 rounded-full animate-ping opacity-20"
+        style={{ background: 'var(--accent)' }}
+      />
+    </div>
+  </div>
+);
+
 export function EmptyState({
   hasSearched,
   currentCategory,
@@ -26,7 +79,7 @@ export function EmptyState({
 
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-        <div className="text-5xl mb-3 animate-bounce">🗺️</div>
+        <EmptyIllustration type="welcome" />
         <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
           가는 길에 들를 곳을 찾아드려요
         </h3>
@@ -88,7 +141,7 @@ export function EmptyState({
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-      <div className="text-6xl mb-4">😢</div>
+      <EmptyIllustration type="no-results" />
       <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
         이 경로에는 {currentCategory}가 없어요
       </h3>

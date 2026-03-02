@@ -5,6 +5,7 @@ import type { DetourResult } from '@/types/detour';
 import { getBusinessStatus } from '@/lib/business-hours';
 import { copyToClipboard } from '@/lib/clipboard';
 import { getRelativeSearchTime, getRoutePositionLabel } from './utils';
+import { TimeAccuracyNotice } from './TimeAccuracyNotice';
 
 type SortBy = 'score' | 'distance' | 'duration' | 'closing';
 
@@ -387,6 +388,9 @@ export const ResultHeader = forwardRef<HTMLDivElement, ResultHeaderProps>(({
           구간
         </button>
       </div>
+
+      {/* 시간 정확도 안내 (QA_REVIEW 반영) */}
+      <TimeAccuracyNotice />
     </div>
   );
 });
