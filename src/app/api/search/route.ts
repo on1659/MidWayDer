@@ -221,8 +221,10 @@ export async function POST(request: NextRequest) {
 
     const searchDuration = Date.now() - startTime;
 
-    // 8. 검색 로그 저장 (비동기, 실패해도 응답 차단 안 함)
-    prisma.searchLog.create({
+    // 8. 검색 로그 저장 — intentional fire-and-forget
+    // Response 반환 속도 유지를 위해 await 생략. 실패 시 에러만 로깅.
+    // 개인화 데이터에 영향이 있으나 단일 실패는 허용 가능한 수준.
+    void prisma.searchLog.create({
       data: {
         startAddress: start.address || `${startCoords.lat.toFixed(4)}, ${startCoords.lng.toFixed(4)}`,
         endAddress: end.address || `${endCoords.lat.toFixed(4)}, ${endCoords.lng.toFixed(4)}`,
