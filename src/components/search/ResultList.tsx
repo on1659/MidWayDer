@@ -38,6 +38,7 @@ import { useCardData } from './result-list/hooks/useCardData';
 import { useETA } from './result-list/hooks/useETA';
 import { useGPSProximity } from './result-list/hooks/useGPSProximity';
 import { useLoadingStages } from './result-list/hooks/useLoadingStages';
+import { useA11yAnnounce } from '@/hooks/useA11yAnnounce';
 
 // 유틸
 import {
@@ -102,6 +103,7 @@ export default function ResultList({
   const eta = useETA(currentCategory);
   const gps = useGPSProximity(results);
   const { loadingStage } = useLoadingStages(isLoading);
+  const { message: a11yMessage, announceResults, announceError, announceLoading } = useA11yAnnounce();
 
   // ── Destructure 안정 참조 (cardData) ──
   const {
@@ -152,6 +154,25 @@ export default function ResultList({
       if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
     };
   }, []);
+
+  // ── 접근성 알림 ──
+  useEffect(() => {
+    if (isLoading) {
+      announceLoading();
+    }
+  }, [isLoading, announceLoading]);
+
+  useEffect(() => {
+    if (!isLoading && results.length > 0 && hasSearched) {
+      announceResults(results.length, currentCategory);
+    }
+  }, [isLoading, results.length, hasSearched, currentCategory, announceResults]);
+
+  useEffect(() => {
+    if (error) {
+      announceError(error);
+    }
+  }, [error, announceError]);
 
   // ── 인기도 데이터 ──
   useEffect(() => {
@@ -599,7 +620,12 @@ export default function ResultList({
   // ── Render: 결과 ──
   return (
     <ResultListContext.Provider value={contextValue}>
-      <div className="space-y-3" ref={listRef} tabIndex={-1} style={{ outline: 'none' }}>
+      {/* 스크린 리더 알림 영역 */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {a11yMessage}
+      </div>
+
+      <div className="space-y-3" ref={listRef} tabIndex={-1} style={{ outline: 'none' }} role="list" aria-label={`${currentCategory} 검색 결과 ${results.length}개`}>
 
         <ResultHeader
           ref={summaryHeaderRef}

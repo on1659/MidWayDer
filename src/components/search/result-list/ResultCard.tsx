@@ -93,6 +93,9 @@ export const ResultCard = React.memo(function ResultCard({
         opacity: isVisited ? 0.65 : 1,
         transition: 'opacity 0.3s',
       }}
+      role="listitem"
+      aria-setsize={-1}
+      aria-posinset={index + 1}
     >
       {/* 이탈비용 컬러 스트라이프 */}
       <div
@@ -611,6 +614,8 @@ export const ResultCard = React.memo(function ResultCard({
               onClick={(e) => onToggleFav(e, result)}
               className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
               title={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 저장'}
+              aria-label={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 저장'}
+              aria-pressed={favPlaces.has(result.place.id)}
             >
               <Star
                 className="w-5 h-5 md:w-4 md:h-4"
@@ -682,6 +687,8 @@ export const ResultCard = React.memo(function ResultCard({
                   onClick={(e) => onTogglePin(e, result)}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
                   title={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '상단에 고정'}
+                  aria-label={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '상단에 고정'}
+                  aria-pressed={pinnedIds.has(result.place.id)}
                 >
                   <Bookmark
                     className="w-4 h-4"

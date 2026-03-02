@@ -72,8 +72,8 @@ export function getBestPickReason(result: DetourResult): string {
 }
 
 /** nameFilter 검색어 하이라이팅 */
-export function highlightText(text: string, query: string): React.ReactNode {
-  if (!query.trim()) return text;
+export function highlightText(text: string, query?: string): React.ReactNode {
+  if (!query?.trim()) return text;
   const lower = text.toLowerCase();
   const q = query.toLowerCase().trim();
   const idx = lower.indexOf(q);

@@ -57,6 +57,9 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
         opacity: isVisited ? 0.65 : 1,
         transition: 'opacity 0.3s',
       }}
+      role="listitem"
+      aria-setsize={-1}
+      aria-posinset={index + 1}
     >
       <button
         data-result-index={index}
