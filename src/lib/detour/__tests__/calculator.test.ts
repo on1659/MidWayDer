@@ -5,7 +5,9 @@ import {
   calculateFinalScore,
   calculateDetourCosts,
   computePathDistance,
+  calculateSingleDetourCost,
 } from '../calculator';
+import type { Route, Coordinates } from '@/types/location';
 
 // PostGIS 공간 필터링 모킹 (DB 의존성 제거)
 vi.mock('../spatial-filter', () => ({
@@ -184,5 +186,47 @@ describe('computePathDistance', () => {
     const fromWpt = computePathDistance([path[1], path[2]], 1);
     // haversine은 가산적이어야 한다: 두 구간 합 ≈ 전체 구간
     expect(toWpt + fromWpt).toBeCloseTo(total, -2); // ±100m 허용
+  });
+});
+
+describe('calculateSingleDetourCost — 일관성', () => {
+  const baseRoute: Route = {
+    distance: 10000,
+    duration: 1200,
+    path: [
+      { lat: 37.5, lng: 127.0, distance: 0 },
+      { lat: 37.51, lng: 127.01, distance: 10000 },
+    ],
+    start: { lat: 37.5, lng: 127.0 },
+    end: { lat: 37.51, lng: 127.01 },
+  };
+  const waypoint: Coordinates = { lat: 37.505, lng: 127.005 }; // 경로 중간 근처
+
+  it('기본 maxDetourDistance(3000) 사용 시 costScore 범위 [0,100]', () => {
+    const { costScore } = calculateSingleDetourCost(baseRoute, waypoint);
+    expect(costScore).toBeGreaterThanOrEqual(0);
+    expect(costScore).toBeLessThanOrEqual(100);
+  });
+
+  it('커스텀 maxDetourDistance 전달 시 공식에 반영 — 분모 클수록 점수 낮음', () => {
+    const score3000 = calculateSingleDetourCost(baseRoute, waypoint, 3000).costScore;
+    const score5000 = calculateSingleDetourCost(baseRoute, waypoint, 5000).costScore;
+    // detourDistance 동일하지만 분모가 다르므로 score3000 >= score5000
+    expect(score3000).toBeGreaterThanOrEqual(score5000);
+  });
+
+  it('경로에 가까운 경유지가 먼 경유지보다 낮은 costScore', () => {
+    const near: Coordinates = { lat: 37.5001, lng: 127.0 }; // 출발점 매우 근접
+    const far: Coordinates = { lat: 37.506, lng: 127.0 };    // 출발점에서 더 먼 곳
+    const scoreNear = calculateSingleDetourCost(baseRoute, near).costScore;
+    const scoreFar = calculateSingleDetourCost(baseRoute, far).costScore;
+    expect(scoreNear).toBeLessThan(scoreFar);
+  });
+
+  it('distance, duration, costScore 세 필드 모두 반환', () => {
+    const result = calculateSingleDetourCost(baseRoute, waypoint);
+    expect(typeof result.distance).toBe('number');
+    expect(typeof result.duration).toBe('number');
+    expect(typeof result.costScore).toBe('number');
   });
 });

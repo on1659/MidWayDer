@@ -8,6 +8,7 @@
 
 import { Place, RoutePoint, Route } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
+import { MAX_PROXIMITY_DISTANCE, ROUTE_CUTOFF_RATIO } from './constants';
 
 /**
  * 경로 근접도 점수 계산 (0-100)
@@ -53,8 +54,7 @@ export function calculateProximityScore(
     if (sampledPoints.length === 0) return 0;
     // 단일 포인트: 해당 포인트와의 거리만 계산, 진행률은 0으로 처리
     const singleDist = haversineDistance(place.coordinates, sampledPoints[0]);
-    const MAX_DISTANCE = 800;
-    const normalizedDist = Math.min(singleDist / MAX_DISTANCE, 1);
+    const normalizedDist = Math.min(singleDist / MAX_PROXIMITY_DISTANCE, 1);
     return Math.max(0, 100 * (1 - normalizedDist * normalizedDist));
   }
 
@@ -62,12 +62,11 @@ export function calculateProximityScore(
   const routeProgress = closestPointIndex / (sampledPoints.length - 1);
 
   // 경로 후반부(95% 이후) 매장 제외 (목적지 근처는 의미 없음)
-  if (routeProgress >= 0.95) return 0;
+  if (routeProgress >= ROUTE_CUTOFF_RATIO) return 0;
 
   // 거리 기반 점수 변환 (비선형 — 가까울수록 훨씬 높은 점수)
   // 0m → 100점, 100m → 85점, 300m → 50점, 500m → 20점, 800m+ → ~0점
-  const MAX_DISTANCE = 800;
-  const normalizedDist = Math.min(minDistance / MAX_DISTANCE, 1);
+  const normalizedDist = Math.min(minDistance / MAX_PROXIMITY_DISTANCE, 1);
   const distanceScore = Math.max(0, 100 * (1 - normalizedDist * normalizedDist));
 
   // 도착지 근처(80-95%)는 약간 보너스 (도착 직전에 들르기 편함)

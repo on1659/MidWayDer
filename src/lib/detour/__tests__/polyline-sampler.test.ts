@@ -51,3 +51,32 @@ describe('getOptimalSampleInterval', () => {
   it('30km → 1000m', () => expect(getOptimalSampleInterval(30000)).toBe(1000));
   it('80km → 2000m', () => expect(getOptimalSampleInterval(80000)).toBe(2000));
 });
+
+describe('samplePolyline — ratio 클램핑', () => {
+  it('연속 중복 좌표 입력 시 NaN/Infinity 없이 정상 반환', () => {
+    const duplicatePath: RoutePoint[] = [
+      { lat: 37.5, lng: 127.0, distance: 0 },
+      { lat: 37.5, lng: 127.0, distance: 0 },  // 중복!
+      { lat: 37.51, lng: 127.01, distance: 1000 },
+    ];
+    const sampled = samplePolyline(duplicatePath, 500);
+    sampled.forEach((pt) => {
+      expect(isFinite(pt.lat)).toBe(true);
+      expect(isFinite(pt.lng)).toBe(true);
+    });
+  });
+
+  it('보간된 포인트가 세그먼트 양 끝점 범위 내에 있음', () => {
+    const path: RoutePoint[] = [
+      { lat: 37.0, lng: 127.0, distance: 0 },
+      { lat: 37.1, lng: 127.1, distance: 15000 },
+    ];
+    const sampled = samplePolyline(path, 500);
+    sampled.forEach((pt) => {
+      expect(pt.lat).toBeGreaterThanOrEqual(37.0);
+      expect(pt.lat).toBeLessThanOrEqual(37.1);
+      expect(pt.lng).toBeGreaterThanOrEqual(127.0);
+      expect(pt.lng).toBeLessThanOrEqual(127.1);
+    });
+  });
+});

@@ -44,9 +44,10 @@ export function samplePolyline(
     // 샘플링 간격에 도달했는지 확인
     while (accumulatedDistance >= nextSampleDistance) {
       // 보간(interpolation)으로 정확한 샘플 포인트 계산
-      const ratio =
+      const rawRatio =
         (nextSampleDistance - (accumulatedDistance - segmentDistance)) /
         segmentDistance;
+      const ratio = Math.max(0, Math.min(1, rawRatio));
       const sampledPoint: RoutePoint = {
         lat: prev.lat + (curr.lat - prev.lat) * ratio,
         lng: prev.lng + (curr.lng - prev.lng) * ratio,

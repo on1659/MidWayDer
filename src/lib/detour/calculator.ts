@@ -21,6 +21,13 @@ import { samplePolyline, getOptimalSampleInterval } from './polyline-sampler';
 import { filterByProximity } from './proximity-scorer';
 import { haversineDistance } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import {
+  URBAN_SPEED_MS,
+  COST_DISTANCE_WEIGHT,
+  COST_DURATION_WEIGHT,
+  COST_DURATION_NORM_SEC,
+  DEFAULT_MAX_DETOUR_DISTANCE,
+} from './constants';
 
 /**
  * 경로 위 가장 가까운 포인트를 찾고, 해당 포인트에서 경유지까지의 이탈 비용 계산
@@ -64,7 +71,6 @@ export function computePathDistance(path: RoutePoint[], endIdx: number): number 
  * 왕복이므로 ×2, 도심 평균 20km/h = ~5.6m/s
  */
 export function estimateDetourDuration(distanceMeters: number): number {
-  const URBAN_SPEED_MS = 5.6; // 약 20km/h
   return Math.round((distanceMeters * 2) / URBAN_SPEED_MS);
 }
 
@@ -156,7 +162,8 @@ export async function calculateDetourCosts(
     // Cost Score 정규화 (0-100, 낮을수록 좋음)
     const costScore = Math.min(
       100,
-      (detourDistance / maxDetourDistance) * 60 + (detourDuration / 600) * 40
+      (detourDistance / maxDetourDistance) * COST_DISTANCE_WEIGHT
+        + (detourDuration / COST_DURATION_NORM_SEC) * COST_DURATION_WEIGHT
     );
 
     // 최종 점수 = (100 - costScore) * 0.7 + proximityScore * 0.3
@@ -232,7 +239,8 @@ export async function calculateDetourCosts(
  */
 export function calculateSingleDetourCost(
   originalRoute: Route,
-  waypoint: Coordinates
+  waypoint: Coordinates,
+  maxDetourDistance: number = DEFAULT_MAX_DETOUR_DISTANCE
 ): {
   distance: number;
   duration: number;
@@ -244,7 +252,8 @@ export function calculateSingleDetourCost(
 
   const costScore = Math.min(
     100,
-    (detourDistance / 5000) * 60 + (detourDuration / 600) * 40
+    (detourDistance / maxDetourDistance) * COST_DISTANCE_WEIGHT
+      + (detourDuration / COST_DURATION_NORM_SEC) * COST_DURATION_WEIGHT
   );
 
   return { distance: detourDistance, duration: detourDuration, costScore };
