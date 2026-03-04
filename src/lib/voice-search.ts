@@ -5,7 +5,24 @@
  * 예: "강남역에서 판교역으로 스타벅스"
  */
 
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
 interface SpeechRecognitionEvent {
+  resultIndex: number;
   results: SpeechRecognitionResultList;
 }
 
@@ -25,6 +42,24 @@ export interface VoiceSearchResult {
  * @returns Promise<VoiceSearchResult>
  * @throws Error if browser doesn't support Web Speech API
  */
+// 오류 메시지 공통 헬퍼
+function mapSpeechError(error: string): string {
+  switch (error) {
+    case 'no-speech':    return '음성이 감지되지 않았어요. 다시 시도해주세요 🎤';
+    case 'audio-capture': return '마이크를 찾을 수 없어요. 마이크 연결을 확인해주세요 🎙️';
+    case 'not-allowed':  return '마이크 권한이 거부되었어요. 브라우저 설정에서 허용해주세요 🔒';
+    case 'network':      return '네트워크 오류가 발생했어요. 인터넷 연결을 확인해주세요 🌐';
+    case 'aborted':      return '음성 인식이 취소되었어요';
+    default:             return `음성 인식 오류: ${error}`;
+  }
+}
+
+export interface VoiceSearchFeedbackOptions {
+  onInterimText: (text: string) => void;
+  setIsListening: (listening: boolean) => void;
+  setError: (error: string) => void;
+}
+
 export const startVoiceSearch = (): Promise<VoiceSearchResult> => {
   return new Promise((resolve, reject) => {
     // 브라우저 지원 체크
@@ -51,29 +86,7 @@ export const startVoiceSearch = (): Promise<VoiceSearchResult> => {
 
     // 음성 인식 실패
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      let errorMessage = '음성 인식 실패';
-      
-      switch (event.error) {
-        case 'no-speech':
-          errorMessage = '음성이 감지되지 않았어요. 다시 시도해주세요 🎤';
-          break;
-        case 'audio-capture':
-          errorMessage = '마이크를 찾을 수 없어요. 마이크 연결을 확인해주세요 🎙️';
-          break;
-        case 'not-allowed':
-          errorMessage = '마이크 권한이 거부되었어요. 브라우저 설정에서 허용해주세요 🔒';
-          break;
-        case 'network':
-          errorMessage = '네트워크 오류가 발생했어요. 인터넷 연결을 확인해주세요 🌐';
-          break;
-        case 'aborted':
-          errorMessage = '음성 인식이 취소되었어요';
-          break;
-        default:
-          errorMessage = `음성 인식 오류: ${event.error}`;
-      }
-      
-      reject(new Error(errorMessage));
+      reject(new Error(mapSpeechError(event.error)));
     };
 
     // 음성 인식이 아무 결과 없이 끝났을 때
@@ -83,6 +96,59 @@ export const startVoiceSearch = (): Promise<VoiceSearchResult> => {
     };
 
     // 시작!
+    recognition.start();
+  });
+};
+
+export const startVoiceSearchWithFeedback = (
+  options: VoiceSearchFeedbackOptions
+): Promise<VoiceSearchResult> => {
+  return new Promise((resolve, reject) => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      reject(new Error('이 브라우저는 음성 인식을 지원하지 않아요 😢'));
+      return;
+    }
+
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ko-KR';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    let settled = false;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      if (interim) options.onInterimText(interim);
+      if (final && !settled) {
+        settled = true;
+        options.onInterimText('');
+        resolve(parseVoiceInput(final));
+      }
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (settled) return;
+      settled = true;
+      options.setError(mapSpeechError(event.error));
+      reject(new Error(mapSpeechError(event.error)));
+    };
+
+    recognition.onend = () => {
+      options.setIsListening(false);
+      if (!settled) {
+        settled = true;
+        reject(new Error('음성이 감지되지 않았어요. 다시 시도해주세요 🎤'));
+      }
+    };
+
     recognition.start();
   });
 };

@@ -10,7 +10,7 @@ import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 import { getSavedLocationByLabel } from '@/lib/smart-location';
-import { startVoiceSearch } from '@/lib/voice-search';
+import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice-search';
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 
@@ -63,6 +63,7 @@ export default function SearchOverlay({
   const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [interimText, setInterimText] = useState<string>('');
 
   useEffect(() => {
     if (open) {
@@ -122,9 +123,17 @@ export default function SearchOverlay({
   const handleVoiceSearch = async () => {
     setIsListening(true);
     setVoiceError(null);
+    setInterimText('');
     
     try {
-      const result = await startVoiceSearch();
+      const result = await startVoiceSearchWithFeedback({
+        onInterimText: (text) => setInterimText(text),
+        setIsListening: (listening) => setIsListening(listening),
+        setError: (error) => {
+          setVoiceError(error);
+          setTimeout(() => setVoiceError(null), 3000);
+        },
+      });
       
       // 출발지 설정
       if (result.start) {
@@ -151,6 +160,7 @@ export default function SearchOverlay({
       setTimeout(() => setVoiceError(null), 3000);
     } finally {
       setIsListening(false);
+      setInterimText('');
     }
   };
 
@@ -162,6 +172,7 @@ export default function SearchOverlay({
           onClick={onClose}
           className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
           style={{ backgroundColor: 'var(--bg-hover)' }}
+          aria-label="뒤로 가기"
         >
           <ArrowLeft className="w-6 h-6" style={{ color: 'var(--text-strong)' }} />
         </button>
@@ -209,6 +220,35 @@ export default function SearchOverlay({
         </div>
       )}
 
+      {/* 음성 인식 중: 파형 애니메이션 + 실시간 텍스트 */}
+      {isListening && (
+        <div className="mx-4 mt-2 px-4 py-3 rounded-xl"
+             style={{ background: 'var(--accent)', color: 'white' }}
+             aria-live="polite"
+             aria-label="음성 인식 중">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="flex gap-0.5 items-end h-4" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <div key={i}
+                     className="w-1 rounded-full animate-bounce bg-white opacity-90"
+                     style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+            <span className="text-sm font-semibold">듣는 중...</span>
+          </div>
+          {interimText && (
+            <p className="text-sm opacity-90 italic">&quot;{interimText}&quot;</p>
+          )}
+        </div>
+      )}
+
+      {/* 비활성 상태: 음성 검색 예시 힌트 */}
+      {!isListening && !voiceError && (
+        <p className="mx-4 mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          🎤 예: &quot;{VOICE_SEARCH_EXAMPLES[0]}&quot;
+        </p>
+      )}
+
       {/* Route inputs */}
       <div className="px-4 pt-3 pb-2 relative z-20">
         {/* 📍 현재 위치 CTA 버튼 (홈/회사 칩보다 상단) */}
@@ -239,6 +279,7 @@ export default function SearchOverlay({
                     }}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
                     style={{ background: 'var(--blue-150)', color: 'var(--blue-700)' }}
+                    aria-label="집을 출발지로 설정"
                   >
                     <Home className="w-4 h-4" />
                     집
@@ -252,6 +293,7 @@ export default function SearchOverlay({
                     }}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
                     style={{ background: 'var(--green-150)', color: 'var(--green-700)' }}
+                    aria-label="회사를 출발지로 설정"
                   >
                     <Briefcase className="w-4 h-4" />
                     회사
@@ -284,6 +326,7 @@ export default function SearchOverlay({
                 className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
                 style={{ background: 'var(--accent)', color: 'white' }}
                 title="현재 위치"
+                aria-label="현재 위치를 출발지로 설정"
               >
                 <LocateFixed className={`w-5 h-5 ${gpsLoading ? 'animate-pulse' : ''}`} />
               </button>
@@ -300,6 +343,7 @@ export default function SearchOverlay({
                            hover:bg-blue-50 active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed"
                 style={{ border: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-surface)' }}
                 title="출발지↔도착지 바꾸기"
+                aria-label="출발지와 도착지 바꾸기"
               >
                 <ArrowUpDown className="w-5 h-5 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
               </button>
@@ -371,12 +415,14 @@ export default function SearchOverlay({
                   className="absolute top-1.5 right-1.5 p-1 rounded-full transition-colors hover:bg-red-50"
                   onClick={(e) => { e.stopPropagation(); handlePlaceFavDelete(place.placeId); }}
                   title="즐겨찾기 삭제"
+                  aria-label={`${place.placeName} 즐겨찾기 삭제`}
                 >
                   <X className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                 </button>
                 <button
                   className="text-left w-full pr-4"
                   onClick={() => onCategoryChange(place.category)}
+                  aria-label={`${place.placeName} 카테고리로 검색`}
                 >
                   <p className="text-[13px] font-bold truncate" style={{ color: 'var(--text-strong)' }}>
                     {place.placeName}
@@ -422,6 +468,7 @@ export default function SearchOverlay({
                   className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95"
                   style={{ background: 'var(--accent)', color: 'white' }}
                   title="바로 검색 실행"
+                  aria-label={`${item.startAddress}에서 ${item.endAddress} 즉시 검색`}
                 >
                   ▶
                 </button>
@@ -430,6 +477,7 @@ export default function SearchOverlay({
                   className="shrink-0 p-2 rounded-full transition-all active:scale-95"
                   style={{ background: 'var(--red-50)', color: 'var(--red-500)' }}
                   title="삭제"
+                  aria-label={`${item.startAddress} 검색 기록 삭제`}
                 >
                   <X className="w-4 h-4" />
                 </button>
