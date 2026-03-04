@@ -319,6 +319,14 @@ export function isValidCoordinates(coords: Coordinates): boolean {
  * // => ~10500 (약 10.5km)
  */
 export function haversineDistance(p1: Coordinates, p2: Coordinates): number {
+  // NaN / Infinity 입력 방어
+  if (
+    !Number.isFinite(p1.lat) || !Number.isFinite(p1.lng) ||
+    !Number.isFinite(p2.lat) || !Number.isFinite(p2.lng)
+  ) {
+    return 0;
+  }
+
   const R = 6371e3; // 지구 반지름 (미터)
   const φ1 = (p1.lat * Math.PI) / 180;
   const φ2 = (p2.lat * Math.PI) / 180;

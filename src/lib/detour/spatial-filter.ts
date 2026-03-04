@@ -219,10 +219,17 @@ async function fetchFromKakao(
   }
 
   if (samplePoints.length > 0 && failCount > samplePoints.length / 2) {
-    logger.error(
-      `[Spatial Filter] 카카오 API 과반 실패 (${failCount}/${samplePoints.length}). DB 결과만 사용.`
-    );
-    return [];
+    if (allPlaces.length > 0) {
+      logger.warn(
+        `[Spatial Filter] 카카오 API 과반 실패 (${failCount}/${samplePoints.length}), 부분 결과 반환: ${allPlaces.length}개 (성공한 ${samplePoints.length - failCount}/${samplePoints.length} 포인트)`
+      );
+      // fall-through: allPlaces의 부분 결과를 그대로 사용
+    } else {
+      logger.error(
+        `[Spatial Filter] 카카오 API 과반 실패 (${failCount}/${samplePoints.length}). 결과 없음.`
+      );
+      return [];
+    }
   }
 
   // 도착지 주변 추가 검색 (1km 반경, 도착 직전/직후 매장)
