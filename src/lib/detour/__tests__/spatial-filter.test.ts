@@ -3,6 +3,7 @@
  * filterPlacesByRoute — Prisma + Kakao 의존성 mock 테스트
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { DatabaseError } from '@/lib/errors';
 
 // Prisma mock (named export: { prisma })
 vi.mock('@/lib/db/prisma', () => ({
@@ -106,11 +107,11 @@ describe('filterPlacesByRoute', () => {
     expect(places.length).toBe(0);
   });
 
-  it('DB 오류 시 DATABASE_ERROR 예외 발생', async () => {
+  it('DB 오류 시 DatabaseError 예외 발생', async () => {
     (prisma.place.findMany as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error('Connection failed')
     );
-    await expect(filterPlacesByRoute(mockRoute, '카페', 1000)).rejects.toThrow('DATABASE_ERROR');
+    await expect(filterPlacesByRoute(mockRoute, '카페', 1000)).rejects.toThrow(DatabaseError);
   });
 
   it('bufferDistance 인자 없이 호출해도 정상 동작 (기본값 적용)', async () => {

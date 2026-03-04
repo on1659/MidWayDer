@@ -11,6 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { DatabaseError } from '@/lib/errors';
 
 // ─── Mocks (vi.mock 호이스팅 → 파일 최상단에 위치해야 함) ────────────────────
 
@@ -284,10 +285,10 @@ describe('POST /api/search', () => {
   });
 
   // ── TC-8: DB 에러 → 500 DATABASE_ERROR ───────────────────────────────────────
-  it('TC-8: DB 에러(DATABASE_ERROR 예외) → 500 DATABASE_ERROR 반환', async () => {
+  it('TC-8: DB 에러(DatabaseError 예외) → 500 DATABASE_ERROR 반환', async () => {
     // hashRoute는 allSettled 외부에서 호출되므로 outer catch로 전파됨
     vi.mocked(hashRoute).mockImplementationOnce(() => {
-      throw new Error('DATABASE_ERROR');
+      throw new DatabaseError('Spatial query failed');
     });
 
     const req = makeRequest(VALID_COORDS_BODY);
