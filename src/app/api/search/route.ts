@@ -17,6 +17,7 @@ import { searchRequestSchema } from '@/lib/validation/schemas';
 import { getDirectionsProvider, getGeocodingProvider } from '@/lib/map-provider';
 import { calculateDetourCosts } from '@/lib/detour/calculator';
 import { ApiErrorCode, ApiErrorMessage } from '@/types/api';
+import { DatabaseError } from '@/lib/errors';
 import type { Coordinates, Location } from '@/types/location';
 import type { SearchWaypointsResponse, SearchWaypointsErrorResponse } from '@/types/api';
 import type { DetourResult } from '@/types/detour';
@@ -315,7 +316,7 @@ export async function POST(request: NextRequest) {
     captureException(error, { endpoint: '/api/search' });
 
     // DB 에러
-    if (error instanceof Error && error.message === 'DATABASE_ERROR') {
+    if (error instanceof DatabaseError) {
       const errorResponse: SearchWaypointsErrorResponse = {
         success: false,
         error: {

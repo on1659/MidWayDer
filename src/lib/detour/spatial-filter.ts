@@ -11,6 +11,7 @@ import { Route, Place, Coordinates } from '@/types/location';
 import { haversineDistance } from '@/lib/utils';
 import { KakaoSearchProvider } from '@/lib/map-provider/kakao/search';
 import { logger } from '@/lib/logger';
+import { DatabaseError } from '@/lib/errors';
 import {
   MIN_DB_RESULTS,
   MAX_SPATIAL_RESULTS,
@@ -72,7 +73,7 @@ export async function filterPlacesByRoute(
     return merged.slice(0, MAX_SPATIAL_RESULTS);
   } catch (error) {
     logger.error('[Spatial Filter] Query failed:', error);
-    throw new Error('DATABASE_ERROR');
+    throw new DatabaseError('Spatial query failed', error);
   }
 }
 
@@ -91,22 +92,35 @@ async function queryDbPlaces(
     return [];
   }
 
-  const lats = route.path.map((p) => p.lat);
-  const lngs = route.path.map((p) => p.lng);
-  const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  // 단일 패스로 bounding box 계산 (6회 순회 → 1회 순회)
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+
+  for (const p of route.path) {
+    if (p.lat < minLat) minLat = p.lat;
+    if (p.lat > maxLat) maxLat = p.lat;
+    if (p.lng < minLng) minLng = p.lng;
+    if (p.lng > maxLng) maxLng = p.lng;
+  }
+
+  const centerLat = (minLat + maxLat) / 2;
   const latBufferDeg = bufferDistance / 111000;
   const lngBufferDeg = bufferDistance / (111000 * Math.cos(centerLat * Math.PI / 180));
-  const minLat = Math.min(...lats) - latBufferDeg;
-  const maxLat = Math.max(...lats) + latBufferDeg;
-  const minLng = Math.min(...lngs) - lngBufferDeg;
-  const maxLng = Math.max(...lngs) + lngBufferDeg;
+  const queryMinLat = minLat - latBufferDeg;
+  const queryMaxLat = maxLat + latBufferDeg;
+  const queryMinLng = minLng - lngBufferDeg;
+  const queryMaxLng = maxLng + lngBufferDeg;
 
+  // DB 쿼리에 take 제한 추가 (과도한 데이터 로드 방지)
   const dbPlaces = await prisma.place.findMany({
     where: {
       category,
-      lat: { gte: minLat, lte: maxLat },
-      lng: { gte: minLng, lte: maxLng },
+      lat: { gte: queryMinLat, lte: queryMaxLat },
+      lng: { gte: queryMinLng, lte: queryMaxLng },
     },
+    take: MAX_SPATIAL_RESULTS * 3, // 필터링 후에도 충분한 결과 확보
   });
 
   const filtered: Place[] = [];
