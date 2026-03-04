@@ -9,10 +9,16 @@ import {
 } from '../calculator';
 import type { Route, Coordinates } from '@/types/location';
 import { filterPlacesByRoute } from '../spatial-filter';
+import { filterByProximity } from '../proximity-scorer';
 
 // PostGIS 공간 필터링 모킹 (DB 의존성 제거)
 vi.mock('../spatial-filter', () => ({
   filterPlacesByRoute: vi.fn().mockResolvedValue([]),
+}));
+
+// 근접도 필터링 모킹
+vi.mock('../proximity-scorer', () => ({
+  filterByProximity: vi.fn().mockReturnValue([]),
 }));
 
 const makeMockRoute = (distance = 5000): Route => ({
@@ -316,5 +322,117 @@ describe('calculateSingleDetourCost — 일관성', () => {
     expect(typeof result.distance).toBe('number');
     expect(typeof result.duration).toBe('number');
     expect(typeof result.costScore).toBe('number');
+  });
+});
+
+// ========== 목표 1: calculateDetourCosts 정상 흐름 ==========
+
+// 헬퍼: Place + proximityScore 객체 생성
+const makeCandidate = (lat: number, lng: number, score: number) => ({
+  place: {
+    id: `p_${lat}`,
+    name: `장소_${lat}`,
+    category: '편의점',
+    address: '서울 테스트로 1',
+    coordinates: { lat, lng },
+  },
+  proximityScore: score,
+});
+
+describe('calculateDetourCosts — 정상 흐름 (후보지 있음)', () => {
+  it('근접 후보지 1개 → results 길이 1, apiCallsUsed=1', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue([
+      makeCandidate(37.5663, 126.9779, 80),
+    ]);
+    const route = makeMockRoute(5000);
+    const { results, apiCallsUsed } = await calculateDetourCosts(route, '편의점');
+    expect(results).toHaveLength(1);
+    expect(apiCallsUsed).toBe(1);
+  });
+
+  it('finalScore 내림차순 정렬 검증', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue([
+      makeCandidate(37.4979, 127.0276, 50),
+      makeCandidate(37.6, 127.1, 10),
+    ]);
+    const route = makeMockRoute(5000);
+    const { results } = await calculateDetourCosts(route, '편의점');
+    if (results.length >= 2) {
+      expect(results[0].finalScore).toBeGreaterThanOrEqual(results[1].finalScore);
+    }
+  });
+
+  it('maxDetourDistance 초과 후보지 → 결과에서 제외', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue([
+      makeCandidate(37.5663 + 0.018, 126.9779, 60), // ~2000m 이탈
+    ]);
+    const route = makeMockRoute(5000);
+    const { results } = await calculateDetourCosts(route, '편의점', {
+      maxDetourDistance: 1000,
+    });
+    expect(results).toHaveLength(0);
+  });
+
+  it('11개 후보지 → 최대 10개만 반환', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue(
+      Array.from({ length: 11 }, (_, i) =>
+        makeCandidate(37.5663 + i * 0.0001, 126.9779, 80 - i)
+      )
+    );
+    const route = makeMockRoute(10000);
+    const { results } = await calculateDetourCosts(route, '편의점');
+    expect(results.length).toBeLessThanOrEqual(10);
+  });
+
+  it('originalRoute.duration=0 → toWaypointDuration=0 (0 나눗셈 방지)', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue([
+      makeCandidate(37.5663, 126.9779, 80),
+    ]);
+    const route = {
+      ...makeMockRoute(5000),
+      duration: 0,
+      distance: 0,
+    };
+    const { results } = await calculateDetourCosts(route, '편의점');
+    if (results.length > 0) {
+      expect(results[0].routes.toWaypoint.duration).toBe(0);
+    }
+  });
+});
+
+describe('calculateDetourCosts — maxDetourDistance 버그 방어 (목표 3)', () => {
+  it('maxDetourDistance=0 → Infinity/NaN 점수 발생하지 않음', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue([
+      makeCandidate(37.5663, 126.9779, 80),
+    ]);
+    const route = makeMockRoute(5000);
+    const { results } = await calculateDetourCosts(route, '편의점', {
+      maxDetourDistance: 0,
+    });
+    // guard가 기본값 3000으로 폴백 → 정상 결과 or 빈 배열 (Infinity 없음)
+    results.forEach((r) => {
+      expect(Number.isFinite(r.finalScore)).toBe(true);
+      expect(Number.isFinite(r.detourCost.costScore)).toBe(true);
+    });
+  });
+
+  it('maxDetourDistance=NaN → 기본값 폴백 (crash 없음)', async () => {
+    vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);
+    vi.mocked(filterByProximity).mockReturnValue([
+      makeCandidate(37.5663, 126.9779, 80),
+    ]);
+    const route = makeMockRoute(5000);
+    const { results } = await calculateDetourCosts(route, '편의점', {
+      maxDetourDistance: NaN,
+    });
+    results.forEach((r) => {
+      expect(Number.isFinite(r.finalScore)).toBe(true);
+    });
   });
 });

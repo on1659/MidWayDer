@@ -122,6 +122,11 @@ export async function calculateDetourCosts(
     sampleInterval = getOptimalSampleInterval(originalRoute.distance),
   } = options;
 
+  const safeMaxDetour =
+    Number.isFinite(maxDetourDistance) && maxDetourDistance > 0
+      ? maxDetourDistance
+      : DEFAULT_MAX_DETOUR_DISTANCE;
+
   logger.debug('[Detour] Starting calculation (v2 - fixed route)...');
   logger.debug(`[Detour] Route: ${originalRoute.distance}m, ${originalRoute.duration}s`);
   logger.debug(`[Detour] Category: ${category}`);
@@ -172,14 +177,14 @@ export async function calculateDetourCosts(
     const detourDuration = estimateDetourDuration(distToRoute);
 
     // 최대 허용 이탈 거리 초과 시 제외
-    if (detourDistance > maxDetourDistance) {
+    if (detourDistance > safeMaxDetour) {
       continue;
     }
 
     // Cost Score 정규화 (0-100, 낮을수록 좋음)
     const costScore = Math.min(
       100,
-      (detourDistance / maxDetourDistance) * COST_DISTANCE_WEIGHT
+      (detourDistance / safeMaxDetour) * COST_DISTANCE_WEIGHT
         + (detourDuration / COST_DURATION_NORM_SEC) * COST_DURATION_WEIGHT
     );
 
