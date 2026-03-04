@@ -17,7 +17,7 @@ const {
   mockSetCategory,
   mockRestoreResults,
   mockShowToast,
-  mockGetState,
+  mockGetState: _mockGetState,
   mockUseRouteStore,
   mockUseSearchStore,
   mockLoadSessionResults,

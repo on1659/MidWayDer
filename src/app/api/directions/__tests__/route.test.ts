@@ -65,7 +65,7 @@ describe('POST /api/directions', () => {
   });
 
   it('option 파라미터 포함 정상 요청 → 200', async () => {
-    mockGetRoute.mockResolvedValue({ ...({} as any), distance: 0, duration: 0, path: [] });
+    mockGetRoute.mockResolvedValue({ distance: 0, duration: 0, path: [] });
     const res = await POST(makeRequest({ ...validBody, option: 'trafast' }));
     expect(res.status).toBe(200);
   });

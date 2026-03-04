@@ -12,7 +12,7 @@ import { getRoute } from '@/lib/map-provider/naver/directions';
 // 예시 1: 서울시청 → 강남역 경로에서 다이소 찾기
 // ========================
 
-async function example1() {
+async function _example1() {
   console.log('=== Example 1: 다이소 경유지 찾기 ===');
 
   // Step 1: 원본 경로 조회 (A→B)
@@ -56,7 +56,7 @@ async function example1() {
 // 예시 2: 커스텀 옵션 사용
 // ========================
 
-async function example2() {
+async function _example2() {
   console.log('=== Example 2: 커스텀 옵션 사용 ===');
 
   const originalRoute = await getRoute(
@@ -78,7 +78,7 @@ async function example2() {
 // 예시 3: 장거리 경로 처리
 // ========================
 
-async function example3() {
+async function _example3() {
   console.log('=== Example 3: 장거리 경로 (서울 → 부산) ===');
 
   const originalRoute = await getRoute(
@@ -98,7 +98,7 @@ async function example3() {
 // 예시 4: 에러 처리
 // ========================
 
-async function example4() {
+async function _example4() {
   console.log('=== Example 4: 에러 처리 ===');
 
   try {
@@ -124,7 +124,7 @@ async function example4() {
 import { samplePolyline, filterByProximity } from '@/lib/detour';
 import { filterPlacesByRoute } from '@/lib/detour';
 
-async function example5() {
+async function _example5() {
   console.log('=== Example 5: 개별 함수 사용 ===');
 
   const originalRoute = await getRoute(

@@ -44,10 +44,11 @@ async function testDirectionsApi() {
     console.log(`  - 거리: ${(route.distance / 1000).toFixed(2)} km`);
     console.log(`  - 소요시간: ${Math.round(route.duration / 60)} 분`);
     console.log(`  - 경로 포인트 수: ${route.path.length}`);
-  } catch (error: any) {
-    console.error('❌ 실패:', error.message);
-    if (error.details) {
-      console.error('  상세:', error.details);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('❌ 실패:', msg);
+    if (error instanceof Error && (error as unknown as { details: unknown }).details) {
+      console.error('  상세:', (error as unknown as { details: unknown }).details);
     }
   }
 }
@@ -71,10 +72,11 @@ async function testLocalSearchApi() {
       console.log(`  주소: ${places[0].address}`);
       console.log(`  좌표: (${places[0].coordinates.lat}, ${places[0].coordinates.lng})`);
     }
-  } catch (error: any) {
-    console.error('❌ 실패:', error.message);
-    if (error.details) {
-      console.error('  상세:', error.details);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('❌ 실패:', msg);
+    if (error instanceof Error && (error as unknown as { details: unknown }).details) {
+      console.error('  상세:', (error as unknown as { details: unknown }).details);
     }
   }
 }
@@ -90,10 +92,11 @@ async function testReverseGeocodeApi() {
 
     console.log('✅ 성공!');
     console.log(`  주소: ${address}`);
-  } catch (error: any) {
-    console.error('❌ 실패:', error.message);
-    if (error.details) {
-      console.error('  상세:', error.details);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('❌ 실패:', msg);
+    if (error instanceof Error && (error as unknown as { details: unknown }).details) {
+      console.error('  상세:', (error as unknown as { details: unknown }).details);
     }
   }
 }

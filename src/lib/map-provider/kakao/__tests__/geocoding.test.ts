@@ -74,7 +74,7 @@ describe('KakaoGeocodingProvider.reverseGeocode', () => {
 
   it('유효하지 않은 좌표 → INVALID_COORDINATES 에러', async () => {
     await expect(
-      provider.reverseGeocode(null as any)
+      provider.reverseGeocode(null as unknown as { lat: number; lng: number })
     ).rejects.toMatchObject({ code: 'INVALID_COORDINATES' });
   });
 });

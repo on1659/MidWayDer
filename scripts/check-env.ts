@@ -54,8 +54,9 @@ async function checkDatabase() {
 
     client.release();
     await pool.end();
-  } catch (err: any) {
-    log(FAIL, `DB connection failed: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `DB connection failed: ${msg}`);
     failures++;
   }
 }
@@ -111,8 +112,9 @@ async function checkKakaoApi() {
       log(FAIL, `Kakao Local Search failed: ${res.status} ${res.statusText}`);
       failures++;
     }
-  } catch (err: any) {
-    log(FAIL, `Kakao API request failed: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `Kakao API request failed: ${msg}`);
     failures++;
   }
 }
@@ -143,8 +145,9 @@ async function checkNaverApi() {
       log(FAIL, `Naver API failed: ${res.status} ${res.statusText}`);
       failures++;
     }
-  } catch (err: any) {
-    log(FAIL, `Naver API request failed: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `Naver API request failed: ${msg}`);
     failures++;
   }
 }

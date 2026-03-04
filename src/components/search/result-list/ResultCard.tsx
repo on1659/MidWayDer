@@ -17,7 +17,6 @@ import {
   highlightText,
   haversineDistanceKm,
 } from './utils';
-import { CardScoreDetail } from './CardScoreDetail';
 
 interface ResultCardProps {
   result: DetourResult;

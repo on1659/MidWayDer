@@ -85,13 +85,13 @@ describe('KakaoDirectionsProvider', () => {
 
   it('유효하지 않은 좌표 → INVALID_COORDINATES 에러', async () => {
     await expect(
-      provider.getRoute({ lat: null as any, lng: 126.9779 }, end)
+      provider.getRoute({ lat: null as unknown as number, lng: 126.9779 }, end)
     ).rejects.toMatchObject({ code: 'INVALID_COORDINATES' });
   });
 
   it('HTTP 500 에러 → HTTP_ERROR 에러', async () => {
     const httpError = new AxiosError('Request failed with status 500');
-    (httpError as any).response = { status: 500, data: {} };
+    (httpError as unknown as { response: unknown }).response = { status: 500, data: {} };
     mockGet.mockRejectedValue(httpError);
 
     await expect(provider.getRoute(start, end)).rejects.toMatchObject({

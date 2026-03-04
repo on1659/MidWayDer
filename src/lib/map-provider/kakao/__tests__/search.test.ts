@@ -86,7 +86,7 @@ describe('KakaoSearchProvider', () => {
 
   it('HTTP 에러 → HTTP_ERROR 에러 전파', async () => {
     const httpError = new AxiosError('Request failed with status 401');
-    (httpError as any).response = { status: 401, data: {} };
+    (httpError as unknown as { response: unknown }).response = { status: 401, data: {} };
     mockGet.mockRejectedValue(httpError);
 
     await expect(provider.searchPlaces('다이소')).rejects.toMatchObject({

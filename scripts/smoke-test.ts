@@ -31,8 +31,9 @@ async function testPageLoad() {
       log(FAIL, `GET / → ${res.status}`);
       failures++;
     }
-  } catch (err: any) {
-    log(FAIL, `Cannot connect to ${BASE}: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `Cannot connect to ${BASE}: ${msg}`);
     failures++;
   }
 }
@@ -58,8 +59,9 @@ async function testSearchValidation() {
       log(FAIL, `Expected 400, got ${res.status}`);
       failures++;
     }
-  } catch (err: any) {
-    log(FAIL, `Request failed: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `Request failed: ${msg}`);
     failures++;
   }
 }
@@ -89,8 +91,9 @@ async function testSearchEndpoint() {
       log(FAIL, `Search failed: ${data.error?.message || res.status}`);
       failures++;
     }
-  } catch (err: any) {
-    log(FAIL, `Request failed: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `Request failed: ${msg}`);
     failures++;
   }
 }
@@ -114,8 +117,9 @@ async function testDirectionsEndpoint() {
       log(FAIL, `Directions failed: ${data.error?.message || res.status}`);
       failures++;
     }
-  } catch (err: any) {
-    log(FAIL, `Request failed: ${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log(FAIL, `Request failed: ${msg}`);
     failures++;
   }
 }
