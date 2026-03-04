@@ -29,6 +29,9 @@ export function samplePolyline(
   path: RoutePoint[],
   intervalMeters: number = 500
 ): RoutePoint[] {
+  if (!Number.isFinite(intervalMeters) || intervalMeters <= 0) {
+    return path; // 비정상 간격 → 원본 반환 (안전 폴백)
+  }
   if (path.length === 0) return [];
   if (path.length === 1) return path;
 

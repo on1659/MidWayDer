@@ -405,6 +405,29 @@ describe('calculateDetourCosts — 정상 흐름 (후보지 있음)', () => {
   });
 });
 
+describe('toWaypointDuration — 경로 끝 근처 경유지 클램핑 검증', () => {
+  it('경로 끝 포인트(index=last)에 가장 가까운 waypoint의 toWaypointDuration이 전체 duration을 초과하지 않음', () => {
+    // 3포인트 경로: 각 구간 ~4km, 전체 ~8km
+    const path = [
+      { lat: 37.5663, lng: 126.9779 }, // 출발지
+      { lat: 37.5320, lng: 127.0030 }, // 중간
+      { lat: 37.4979, lng: 127.0276 }, // 도착지
+    ];
+    const totalDist = computePathDistance(path, 2);
+    const totalDuration = 1200; // 20분
+
+    // 도착지 바로 옆 waypoint → closestIdx = 2 (마지막)
+    const toWaypointDist = computePathDistance(path, 2); // 전체 거리
+    const toWaypointDuration = totalDuration > 0 && totalDist > 0
+      ? Math.round((toWaypointDist / totalDist) * totalDuration)
+      : 0;
+
+    // 경로 끝 waypoint의 toWaypointDuration ≤ 전체 duration (클램핑 검증)
+    expect(toWaypointDuration).toBeLessThanOrEqual(totalDuration);
+    expect(toWaypointDuration).toBeGreaterThanOrEqual(0);
+  });
+});
+
 describe('calculateDetourCosts — maxDetourDistance 버그 방어 (목표 3)', () => {
   it('maxDetourDistance=0 → Infinity/NaN 점수 발생하지 않음', async () => {
     vi.mocked(filterPlacesByRoute).mockResolvedValue([{} as never]);

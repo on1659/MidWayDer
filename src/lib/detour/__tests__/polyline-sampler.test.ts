@@ -204,3 +204,27 @@ describe('samplePolyline — ratio 클램핑', () => {
     });
   });
 });
+
+// ========== intervalMeters 비정상 입력 가드 테스트 (PLAN.md 목표 1) ==========
+
+describe('samplePolyline — intervalMeters 비정상 입력 가드', () => {
+  const basePath: RoutePoint[] = [
+    { lat: 37.5000, lng: 127.0000 },
+    { lat: 37.5090, lng: 127.0000 }, // ~1km
+  ];
+
+  it('intervalMeters = 0 → 원본 path 그대로 반환 (무한 루프 없음)', () => {
+    const result = samplePolyline(basePath, 0);
+    expect(result).toEqual(basePath);
+  });
+
+  it('intervalMeters = -1 → 원본 path 그대로 반환 (음수 간격 방어)', () => {
+    const result = samplePolyline(basePath, -1);
+    expect(result).toEqual(basePath);
+  });
+
+  it('intervalMeters = NaN → 원본 path 그대로 반환 (NaN 방어)', () => {
+    const result = samplePolyline(basePath, NaN);
+    expect(result).toEqual(basePath);
+  });
+});
