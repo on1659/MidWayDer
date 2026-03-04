@@ -42,7 +42,18 @@ export const searchRequestSchema = z.object({
       maxDetourDistance: z.number().min(500).max(50000).optional(),
     })
     .optional(),
-});
+}).refine(
+  (data) => {
+    const s = data.start.coordinates;
+    const e = data.end.coordinates;
+    if (!s || !e) return true; // 좌표 미입력 시 주소 기반 — 별도 검증
+    return !(s.lat === e.lat && s.lng === e.lng);
+  },
+  {
+    message: '출발지와 도착지가 동일합니다. 다른 위치를 입력해주세요.',
+    path: ['end'],
+  }
+);
 
 export type SearchRequestInput = z.infer<typeof searchRequestSchema>;
 

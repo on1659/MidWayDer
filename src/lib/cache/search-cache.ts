@@ -16,6 +16,7 @@ export interface SearchCacheKey {
   start: { coordinates: Coordinates };
   end: { coordinates: Coordinates };
   category: string;
+  bufferDistance?: number;
 }
 
 export interface SearchCacheValue {
@@ -41,7 +42,8 @@ export const generateCacheKey = (key: SearchCacheKey): string => {
   const endLat = key.end.coordinates.lat.toFixed(4);
   const endLng = key.end.coordinates.lng.toFixed(4);
   const cat = key.category.replace(/[^a-zA-Z0-9가-힣]/g, '_');
-  return `${CACHE_KEY_PREFIX}${startLat}_${startLng}_${endLat}_${endLng}_${cat}`;
+  const buf = key.bufferDistance ?? 1000;
+  return `${CACHE_KEY_PREFIX}${startLat}_${startLng}_${endLat}_${endLng}_${cat}_${buf}`;
 };
 
 /**

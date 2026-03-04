@@ -117,6 +117,39 @@ describe('searchRequestSchema — 카테고리 검증', () => {
 });
 
 // ────────────────────────────────────────────────────
+// 출발지=도착지 동일 좌표 검증 (Bug 1-B)
+// ────────────────────────────────────────────────────
+describe('searchRequestSchema — 출발지=도착지 동일 좌표 거부', () => {
+  it('출발지와 도착지 좌표가 같으면 실패한다', () => {
+    const result = searchRequestSchema.safeParse({
+      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
+      end:   { coordinates: { lat: 37.5663, lng: 126.9779 } },
+      category: '다이소',
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toContain('동일');
+  });
+
+  it('출발지와 도착지가 다르면 통과한다', () => {
+    const result = searchRequestSchema.safeParse({
+      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
+      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
+      category: '다이소',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('한쪽이 주소 기반(좌표 없음)이면 동일 좌표 검증을 건너뛴다', () => {
+    const result = searchRequestSchema.safeParse({
+      start: { address: '서울시청' },
+      end:   { address: '강남역' },
+      category: '스타벅스',
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ────────────────────────────────────────────────────
 // directionsRequestSchema
 // ────────────────────────────────────────────────────
 describe('directionsRequestSchema', () => {

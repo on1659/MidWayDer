@@ -26,6 +26,26 @@ const mockValue = {
   apiCallsUsed: 41,
 };
 
+describe('generateCacheKey — bufferDistance 분리', () => {
+  const base = {
+    start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
+    end: { coordinates: { lat: 37.4979, lng: 127.0276 } },
+    category: '다이소',
+  };
+
+  it('bufferDistance가 다르면 다른 캐시 키를 생성한다', () => {
+    const key1km = generateCacheKey({ ...base, bufferDistance: 1000 });
+    const key2km = generateCacheKey({ ...base, bufferDistance: 2000 });
+    expect(key1km).not.toBe(key2km);
+  });
+
+  it('bufferDistance 미지정 시 기본값(1000)으로 키를 생성한다', () => {
+    const keyDefault = generateCacheKey(base);
+    const key1000 = generateCacheKey({ ...base, bufferDistance: 1000 });
+    expect(keyDefault).toBe(key1000);
+  });
+});
+
 describe('generateCacheKey — 충돌 방지', () => {
   it('출발지가 다르면 키가 다름', () => {
     const key1 = generateCacheKey({

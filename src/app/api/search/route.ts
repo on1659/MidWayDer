@@ -101,7 +101,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. 캐시 체크
-    const cached = loadSearchCache({ start: startLocation, end: endLocation, category });
+    const cached = loadSearchCache({
+      start: startLocation,
+      end: endLocation,
+      category,
+      bufferDistance: options?.bufferDistance,
+    });
     if (cached) {
       logger.debug('[API /search] Cache hit! ✅ — re-applying personalization');
 
@@ -219,7 +224,7 @@ export async function POST(request: NextRequest) {
 
     // 6. 캐시 저장 — raw 결과 (개인화 전) 저장
     saveSearchCache(
-      { start: startLocation, end: endLocation, category },
+      { start: startLocation, end: endLocation, category, bufferDistance: options?.bufferDistance },
       {
         results: finalResults,
         originalRoute: primaryOriginalRoute,
