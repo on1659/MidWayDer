@@ -30,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0
 - Phase 3 (단일 선택 UX) 현재 UX와 일치하여 추가 작업 불필요
 - 658개 테스트 통과
 
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [0.14.0] - 2026-03-05
 
 ### Fixed
