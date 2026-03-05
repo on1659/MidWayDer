@@ -34,7 +34,7 @@ export default function AddressInput({
   value,
   onChange,
   onSelect,
-  placeholder = '장소나 주소를 검색하세요',
+  placeholder = '어디를 들를까? (예: 홍대입구역, 다이소, 스타벅스)',
   icon: _icon,
   mapCenter,
   dotColor,

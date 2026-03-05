@@ -89,8 +89,9 @@ export function calculateFinalScore(costScore: number, proximityScore: number): 
 
 export async function calculateDetourCosts(
   originalRoute: Route,
-  category: string,
-  options: Partial<SpatialFilterOptions> = {}
+  searchQuery: string,
+  options: Partial<SpatialFilterOptions> = {},
+  searchType: 'category' | 'keyword' = 'category'
 ): Promise<{
   results: DetourResult[];
   totalCandidates: number;
@@ -129,19 +130,44 @@ export async function calculateDetourCosts(
 
   logger.debug('[Detour] Starting calculation (v2 - fixed route)...');
   logger.debug(`[Detour] Route: ${originalRoute.distance}m, ${originalRoute.duration}s`);
-  logger.debug(`[Detour] Category: ${category}`);
+  logger.debug(`[Detour] Search: ${searchQuery} (type: ${searchType})`);
 
   // Step 1: Polyline 샘플링
   const sampledPoints = samplePolyline(originalRoute.path, sampleInterval);
   logger.debug(`[Detour] Sampled ${sampledPoints.length} points (interval: ${sampleInterval}m)`);
 
-  // Step 2: PostGIS 공간 필터링 (1차)
-  const spatialCandidates = await filterPlacesByRoute(
-    originalRoute,
-    category,
-    bufferDistance
-  );
-  logger.debug(`[Detour] Spatial filter: ${spatialCandidates.length} candidates`);
+  // Step 2: 공간 필터링 (searchType에 따라 다르게)
+  let spatialCandidates: Place[];
+  
+  if (searchType === 'keyword') {
+    // 키워드 검색: Naver Local Search API 직접 호출
+    const { searchPlaces } = await import('@/lib/map-provider/naver/search');
+    const allPlaces = await searchPlaces(searchQuery, {
+      maxResults: 100,
+      sort: 'random',
+    });
+    
+    // 경로 주변 필터링 (Haversine)
+    spatialCandidates = allPlaces.filter(place => {
+      if (!place.coordinates) return false;
+      
+      // 경로 포인트 중 하나라도 bufferDistance 내에 있으면 포함
+      return sampledPoints.some(point => {
+        const dist = haversineDistance(place.coordinates!, point);
+        return dist <= bufferDistance;
+      });
+    });
+    
+    logger.debug(`[Detour] Keyword search: ${allPlaces.length} total → ${spatialCandidates.length} in buffer`);
+  } else {
+    // 카테고리 검색: 기존 PostGIS + Kakao 하이브리드
+    spatialCandidates = await filterPlacesByRoute(
+      originalRoute,
+      searchQuery,
+      bufferDistance
+    );
+    logger.debug(`[Detour] Category search: ${spatialCandidates.length} candidates`);
+  }
 
   if (spatialCandidates.length === 0) {
     return { results: [], totalCandidates: 0, apiCallsUsed: 1 };

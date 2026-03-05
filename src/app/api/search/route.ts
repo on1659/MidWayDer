@@ -64,7 +64,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const { start, end, category, options } = parseResult.data;
+    const { start, end, category, query, searchType, options } = parseResult.data;
+
+    // 검색어 결정 (category 또는 query)
+    const searchQuery = category || query || '';
+    if (!searchQuery) {
+      const errorResponse: SearchWaypointsErrorResponse = {
+        success: false,
+        error: {
+          code: ApiErrorCode.VALIDATION_ERROR,
+          message: 'category 또는 query 중 하나는 필수입니다.',
+        },
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
+    }
+
+    // 검색 타입 자동 감지
+    const CATEGORY_LIST = ['다이소', '스타벅스', '올리브영', '이디야', 'CU', 'GS25', '세븐일레븐', '파리바게트', '빽다방', '커피빈'];
+    const detectedSearchType = searchType || (CATEGORY_LIST.includes(searchQuery) ? 'category' : 'keyword');
+
+    logger.info(`[API /search] Search type: ${detectedSearchType}, Query: ${searchQuery}`);
 
     // 3. 주소 → 좌표 변환 (필요 시)
     let startCoords: Coordinates;
@@ -105,7 +124,7 @@ export async function POST(request: NextRequest) {
     const cached = loadSearchCache({
       start: startLocation,
       end: endLocation,
-      category,
+      category: searchQuery, // category 또는 query
       bufferDistance: options?.bufferDistance,
     });
     if (cached) {

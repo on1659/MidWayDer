@@ -34,7 +34,12 @@ const locationSchema = z
 export const searchRequestSchema = z.object({
   start: locationSchema,
   end: locationSchema,
-  category: z.string().min(1, '카테고리를 입력해주세요.'),
+  // 기존 category (선택사항으로 변경)
+  category: z.string().min(1, '카테고리를 입력해주세요.').optional(),
+  // 새로운 query (category 또는 query 중 하나 필수)
+  query: z.string().min(1, '검색어를 입력해주세요.').optional(),
+  // 검색 타입 (선택사항, 자동 감지)
+  searchType: z.enum(['category', 'keyword']).optional(),
   options: z
     .object({
       maxResults: z.number().int().min(1).max(50).optional(),
@@ -43,6 +48,12 @@ export const searchRequestSchema = z.object({
     })
     .optional(),
 }).refine(
+  (data) => data.category || data.query,
+  {
+    message: 'category 또는 query 중 하나는 필수입니다.',
+    path: ['category'],
+  }
+).refine(
   (data) => {
     const s = data.start.coordinates;
     const e = data.end.coordinates;
