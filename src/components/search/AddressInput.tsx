@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
-import { MapPin, X, Loader2, Search } from 'lucide-react';
+import { MapPin, X, Loader2 } from 'lucide-react';
 
 interface AutocompleteResult {
   name: string;

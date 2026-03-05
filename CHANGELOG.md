@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
+## [0.17.1] - 2026-03-06
+
+### Fixed
+- **린트 경고 수정**
+  - AddressInput.tsx: 미사용 `Search` import 제거
+  - ResultList.tsx: 불필요한 `eslint-disable` 주석 제거
+
+### Code Quality
+- 린트 0 errors, 0 warnings 달성
+- 코드 정리로 유지보수성 향상
+
+### Test Results
+- 660개 테스트 모두 통과 ✅
+- 빌드 성공 ✅
+
 ## [0.17.0] - 2026-03-06
 
 ### Verified
