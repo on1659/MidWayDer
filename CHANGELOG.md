@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-03-05
+
+### Fixed
+- AddressInput 테스트 타이머 모킹 추가 (fake timers)
+- 테스트 타임아웃 문제 해결 (debounce timer 처리)
+- 모든 테스트 통과 (658/658)
+
 ## [0.11.0] - 2026-03-05
 
 ### Changed

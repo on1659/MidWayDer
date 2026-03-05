@@ -15,6 +15,11 @@ describe('AddressInput', () => {
     mockOnChange.mockClear();
     mockOnSelect.mockClear();
     (global.fetch as Mock).mockClear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('입력 필드가 렌더링되어야 함', () => {
@@ -66,12 +71,16 @@ describe('AddressInput', () => {
     const input = screen.getByLabelText('출발지');
     fireEvent.change(input, { target: { value: '서울역' } });
 
-    await waitFor(
-      async () => {
+    // Advance debounce timer (300ms)
+    await vi.advanceTimersByTimeAsync(300);
+
+    // Wait for fetch to complete
+    await vi.waitFor(
+      () => {
         expect(screen.getByText('서울역')).toBeInTheDocument();
         expect(screen.getByText('서울역공항철도')).toBeInTheDocument();
       },
-      { timeout: 5000 }
+      { timeout: 1000 }
     );
   });
 
@@ -92,7 +101,10 @@ describe('AddressInput', () => {
     );
     const input = screen.getByLabelText('출발지');
     fireEvent.change(input, { target: { value: '서울역' } });
-    await waitFor(() => {
+
+    await vi.advanceTimersByTimeAsync(300);
+
+    await vi.waitFor(() => {
       expect(screen.getByText('서울역')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('서울역'));
@@ -120,7 +132,10 @@ describe('AddressInput', () => {
     );
     const input = screen.getByLabelText('출발지');
     fireEvent.change(input, { target: { value: '서울역' } });
-    await waitFor(() => {
+
+    await vi.advanceTimersByTimeAsync(300);
+
+    await vi.waitFor(() => {
       expect(screen.getByText('서울역')).toBeInTheDocument();
     });
     // ArrowDown으로 이동
@@ -148,7 +163,10 @@ describe('AddressInput', () => {
     );
     const input = screen.getByLabelText('출발지');
     fireEvent.change(input, { target: { value: '서울역' } });
-    await waitFor(() => {
+
+    await vi.advanceTimersByTimeAsync(300);
+
+    await vi.waitFor(() => {
       expect(screen.getByText('서울역')).toBeInTheDocument();
     });
     fireEvent.keyDown(input, { key: 'Escape' });
