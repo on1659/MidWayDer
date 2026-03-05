@@ -94,6 +94,9 @@ function makeContextValue(
     expandedCompactId: null,
     editingMemoId: null,
     editingMemoText: '',
+    // === 단일 선택 UX ===
+    selectedPlaces: new Set(),
+    allowMultiSelect: false,
     departureTime: '09:00',
     departureMs: Date.now(),
     dwellMinutes: 0,
@@ -125,6 +128,10 @@ function makeContextValue(
     onOpenNavi: vi.fn(),
     onOpenNaviSheet: vi.fn(),
     triggerNav: vi.fn(),
+    // === 단일 선택 콜백 ===
+    onToggleSelection: vi.fn(),
+    onEnableMultiSelect: vi.fn(),
+    onResetSelection: vi.fn(),
     ...overrides,
   };
 }

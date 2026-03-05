@@ -244,7 +244,7 @@ export async function POST(request: NextRequest) {
 
     // 6. 캐시 저장 — raw 결과 (개인화 전) 저장
     saveSearchCache(
-      { start: startLocation, end: endLocation, category, bufferDistance: options?.bufferDistance },
+      { start: startLocation, end: endLocation, category: searchQuery, bufferDistance: options?.bufferDistance },
       {
         results: finalResults,
         originalRoute: primaryOriginalRoute,
@@ -309,7 +309,7 @@ export async function POST(request: NextRequest) {
       data: {
         startAddress: start.address || `${startCoords.lat.toFixed(4)}, ${startCoords.lng.toFixed(4)}`,
         endAddress: end.address || `${endCoords.lat.toFixed(4)}, ${endCoords.lng.toFixed(4)}`,
-        category,
+        category: searchQuery,
         resultsCount: trimmedResults.length,
         searchDuration,
         sessionId: sessionId === 'anonymous' ? null : sessionId,

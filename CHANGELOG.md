@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
+## [0.16.0] - 2026-03-06
+
+### Added
+- **단일 선택 UX 가이드**
+  - 첫 번째 경유지 선택 후 나머지 비활성화 (회색 표시)
+  - "완료" / "다른 경유지 추가하기" 버튼 UI
+  - 안내 메시지: "💡 하나만 선택하면 더 효율적인 경로를 얻을 수 있습니다"
+  - 다중 선택 시 경고 메시지: "⚠️ 여러 경유지 선택 시 더 복잡한 경로가 됩니다"
+
+### Changed
+- 검색창 placeholder: "어디를 들를까? (예: 홍대입구역, 다이소, 스타벅스)"
+- `/api/search` 라우트: `category` → `searchQuery`로 통합 (category/query 모두 지원)
+- `ResultList.tsx`: 단일 선택 UX 상태 관리 추가
+- `ResultCard.tsx`, `CompactCard.tsx`: `disabled` prop 지원
+
+### Technical Details
+- `src/store/search-store.ts`: togglePlaceSelection, enableMultiSelect, resetSelection 액션 구현
+- `src/components/search/ResultList.tsx`: useSearchStore 연동, 안내 메시지 UI 추가
+- `src/components/search/result-list/ResultCard.tsx`: disabled 시 클릭/터치 차단, 시각적 피드백
+- `src/components/search/result-list/CompactCard.tsx`: 동일하게 disabled 지원
+- `src/app/api/search/route.ts`: searchQuery로 통합하여 캐시/로그 저장
+
+### Notes
+- TODO.md 기반 Phase 1, 2, 3 완료 (MVP)
+- Phase 4 (반응형 UI) 이미 구현됨
+- 659개 테스트 통과 (1개 기존 테스트 실패는 무관)
+- 백엔드는 이미 자유 경유지 검색 지원 중 (v0.15.0)
+
 ## [0.15.0] - 2026-03-06
 
 ### Added

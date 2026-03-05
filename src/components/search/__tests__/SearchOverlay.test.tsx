@@ -74,6 +74,14 @@ describe('SearchOverlay', () => {
     expect(onCategoryChange).toHaveBeenCalled();
   });
 
+  it('직접 입력 토글 클릭 시 카테고리 입력 필드가 나타남', () => {
+    render(<SearchOverlay {...defaultProps} />);
+
+    fireEvent.click(screen.getByTestId('custom-category-toggle'));
+
+    expect(screen.getByTestId('custom-category-input')).toBeInTheDocument();
+  });
+
   it('open=false 이면 컴포넌트가 렌더링되지 않음', () => {
     render(<SearchOverlay {...defaultProps} open={false} />);
     expect(screen.queryByPlaceholderText('출발지를 입력하세요')).toBeNull();

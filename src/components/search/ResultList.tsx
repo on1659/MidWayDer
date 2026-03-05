@@ -15,6 +15,7 @@ import { hashRoute } from '@/lib/utils/route-hash';
 import { logger } from '@/lib/logger';
 import { fetchWithTimeout } from '@/lib/fetch-timeout';
 import { useRouteStore } from '@/store/route-store';
+import { useSearchStore } from '@/store/search-store';
 import ErrorFallback from '@/components/ui/ErrorFallback';
 import BottomSheet from '@/components/ui/BottomSheet';
 
@@ -97,6 +98,15 @@ export default function ResultList({
   // ── 라우트 해시 (hooks에 주입) ──
   const { originalRoute } = useRouteStore();
   const routeHash = originalRoute ? hashRoute(originalRoute.start, originalRoute.end) : '';
+
+  // ── 단일 선택 UX 상태 ──
+  const { 
+    selectedPlaces = new Set(), 
+    allowMultiSelect = false, 
+    togglePlaceSelection, 
+    enableMultiSelect, 
+    resetSelection 
+  } = useSearchStore();
 
   // ── 커스텀 훅 ──
   const cardData = useCardData(results, routeHash);
@@ -339,13 +349,17 @@ export default function ResultList({
   // ── Handlers ──
   const handleSelect = useCallback(async (result: DetourResult, rank: number) => {
     setOverflowMenuId(null);
+    
+    // 단일 선택 UX: 토글
+    togglePlaceSelection(result.place.id);
+    
     fetch('/api/log-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ placeId: result.place.id, rank }),
     }).catch((err) => logger.error('[ClickLog] Failed:', err));
     onSelect(result);
-  }, [onSelect]);
+  }, [onSelect, togglePlaceSelection]);
 
   const handleTogglePin = useCallback((e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
@@ -515,6 +529,15 @@ export default function ResultList({
     onOpenNavi: handleOpenNavi,
     onOpenNaviSheet: handleOpenNaviSheet,
     triggerNav,
+    // === 단일 선택 UX ===
+    selectedPlaces: selectedPlaces || new Set(),
+    allowMultiSelect: allowMultiSelect || false,
+    onToggleSelection: (e: React.MouseEvent, placeId: string) => {
+      e.stopPropagation();
+      if (togglePlaceSelection) togglePlaceSelection(placeId);
+    },
+    onEnableMultiSelect: enableMultiSelect || (() => {}),
+    onResetSelection: resetSelection || (() => {}),
   }), [
     results, filters.filteredResults, filters.nameFilter,
     currentCategory, sortBy,
@@ -533,6 +556,8 @@ export default function ResultList({
     handleEditMemo, handleSaveMemo, handleCancelMemo,
     setScoreDetailOpenId, setOverflowMenuId,
     setExpandedCompactId, handleOpenNavi, handleOpenNaviSheet, triggerNav,
+    // 단일 선택 UX 의존성
+    selectedPlaces, allowMultiSelect, togglePlaceSelection, enableMultiSelect, resetSelection,
   ]);
 
   // ── Render: Loading ──
@@ -682,6 +707,8 @@ export default function ResultList({
               );
             }
             const { result, index } = item;
+            const isDisabled = !selectedPlaces.has(result.place.id) && selectedPlaces.size >= 1 && !allowMultiSelect;
+            
             return isCompact ? (
               <CompactCard
                 key={result.place.id}
@@ -690,6 +717,7 @@ export default function ResultList({
                 isSelected={selectedId === result.place.id}
                 swipeHandlers={swipeHandlers}
                 swipeVisual={swipeVisual}
+                disabled={isDisabled}
               />
             ) : (
               <ResultCard
@@ -702,6 +730,7 @@ export default function ResultList({
                 swipeHintId={swipeHintId}
                 swipeHintDeltaX={swipeHintDeltaX}
                 onHoverResult={onHoverResult}
+                disabled={isDisabled}
               />
             );
           })}
@@ -725,6 +754,39 @@ export default function ResultList({
           >
             접기
           </button>
+        )}
+
+        {/* 단일 선택 UX 안내 메시지 */}
+        {selectedPlaces.size === 1 && !allowMultiSelect && (
+          <div className="p-3 rounded-2xl text-sm" style={{ background: 'var(--blue-50)', border: '1.5px solid var(--blue-200)' }}>
+            <p style={{ color: 'var(--blue-700)' }}>
+              💡 하나만 선택하면 더 효율적인 경로를 얻을 수 있습니다
+            </p>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => onSelect(results.find(r => selectedPlaces.has(r.place.id))!)}
+                className="flex-1 py-2 rounded-xl font-bold text-sm"
+                style={{ background: 'var(--accent)', color: 'white' }}
+              >
+                완료
+              </button>
+              <button
+                onClick={enableMultiSelect}
+                className="flex-1 py-2 rounded-xl font-bold text-sm"
+                style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1.5px solid var(--border-soft)' }}
+              >
+                다른 경유지 추가하기
+              </button>
+            </div>
+          </div>
+        )}
+
+        {selectedPlaces.size >= 2 && (
+          <div className="p-3 rounded-2xl text-sm" style={{ background: 'var(--yellow-50)', border: '1.5px solid var(--yellow-200)' }}>
+            <p style={{ color: 'var(--yellow-700)' }}>
+              ⚠️ 여러 경유지 선택 시 더 복잡한 경로가 됩니다
+            </p>
+          </div>
         )}
 
         {/* 즐겨찾기 CTA */}

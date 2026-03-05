@@ -31,6 +31,7 @@ interface ResultCardProps {
   swipeHintId: string | null;
   swipeHintDeltaX: number;
   onHoverResult?: (id: string | null) => void;
+  disabled?: boolean;
 }
 
 export const ResultCard = React.memo(function ResultCard({
@@ -42,6 +43,7 @@ export const ResultCard = React.memo(function ResultCard({
   swipeHintId,
   swipeHintDeltaX,
   onHoverResult,
+  disabled = false,
 }: ResultCardProps) {
   const ctx = useResultList();
   const {
@@ -163,27 +165,28 @@ export const ResultCard = React.memo(function ResultCard({
 
       <div
         data-result-index={index}
-        onClick={() => onSelect(result, index + 1)}
+        onClick={() => !disabled && onSelect(result, index + 1)}
         onMouseEnter={() => onHoverResult?.(result.place.id)}
         onMouseLeave={() => onHoverResult?.(null)}
-        onTouchStart={(e) => swipeHandlers.onTouchStart(e, result.place.id)}
-        onTouchMove={(e) => swipeHandlers.onTouchMove(e, result.place.id)}
-        onTouchEnd={() => swipeHandlers.onTouchEnd(result)}
+        onTouchStart={(e) => !disabled && swipeHandlers.onTouchStart(e, result.place.id)}
+        onTouchMove={(e) => !disabled && swipeHandlers.onTouchMove(e, result.place.id)}
+        onTouchEnd={() => !disabled && swipeHandlers.onTouchEnd(result)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
             e.preventDefault();
             onSelect(result, index + 1);
           }
         }}
         role="button"
-        tabIndex={0}
-        aria-label={`${result.place.name}, ${result.place.category}, 이탈 거리 ${detourKm}킬로미터, 이탈 시간 ${detourMin}분${isSelected ? ', 선택됨' : ''}`}
-        className="w-full p-5 md:p-4 rounded-2xl text-left active:scale-[0.98] cursor-pointer group hover:shadow-md transition-shadow"
+        tabIndex={disabled ? -1 : 0}
+        aria-label={`${result.place.name}, ${result.place.category}, 이탈 거리 ${detourKm}킬로미터, 이탈 시간 ${detourMin}분${isSelected ? ', 선택됨' : ''}${disabled ? ', 비활성화됨' : ''}`}
+        className={`w-full p-5 md:p-4 rounded-2xl text-left ${disabled ? 'cursor-not-allowed' : 'cursor-pointer active:scale-[0.98]'} group hover:shadow-md transition-shadow`}
         style={{
-          background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
+          background: isSelected ? 'var(--blue-200)' : disabled ? 'var(--bg-surface-muted)' : 'var(--bg-surface)',
           border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
           transform: `translateX(${swipeDeltaX}px)`,
           transition: !isBeingSwiped ? 'transform 0.35s ease' : 'none',
+          opacity: disabled ? 0.5 : 1,
         }}
       >
         {/* 🏆 베스트 픽 배너 */}

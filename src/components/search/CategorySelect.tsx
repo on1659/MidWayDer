@@ -84,71 +84,53 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
   };
 
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-      {/* 기본 카테고리 칩 */}
-      {categories.map(({ name, emoji, query, bg, activeBg }) => {
-        const isSelected = selected === query;
-        return (
-          <button
-            key={query}
-            onClick={() => onChange(query)}
-            className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
-              transition-all active:scale-95 shrink-0 text-base font-semibold"
-            style={{
-              background: isSelected ? activeBg : bg,
-              color: isSelected ? 'var(--bg-surface)' : 'var(--text-strong)',
-              boxShadow: isSelected ? `0 2px 8px ${activeBg}40` : 'none',
-            }}
-          >
-            <span className="text-lg">{emoji}</span>
-            <span>{name}</span>
-          </button>
-        );
-      })}
+    <div>
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        {/* 기본 카테고리 칩 */}
+        {categories.map(({ name, emoji, query, bg, activeBg }) => {
+          const isSelected = selected === query;
+          return (
+            <button
+              key={query}
+              onClick={() => onChange(query)}
+              className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
+                transition-all active:scale-95 shrink-0 text-base font-semibold"
+              style={{
+                background: isSelected ? activeBg : bg,
+                color: isSelected ? 'var(--bg-surface)' : 'var(--text-strong)',
+                boxShadow: isSelected ? `0 2px 8px ${activeBg}40` : 'none',
+              }}
+            >
+              <span className="text-lg">{emoji}</span>
+              <span>{name}</span>
+            </button>
+          );
+        })}
 
-      {/* 최근 직접 입력 카테고리 칩 */}
-      {customCategories.map((cat) => {
-        const isSelected = selected === cat;
-        return (
-          <button
-            key={`custom-${cat}`}
-            onClick={() => onChange(cat)}
-            className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
-              transition-all active:scale-95 shrink-0 text-base font-semibold"
-            style={{
-              background: isSelected ? 'var(--purple-500, #8b5cf6)' : 'var(--purple-100)',
-              color: isSelected ? 'var(--bg-surface)' : 'var(--purple-700, #6d28d9)',
-              boxShadow: isSelected ? '0 2px 8px rgba(139,92,246,0.35)' : 'none',
-            }}
-          >
-            <span className="text-lg">🔍</span>
-            <span>{cat}</span>
-          </button>
-        );
-      })}
+        {/* 최근 직접 입력 카테고리 칩 */}
+        {customCategories.map((cat) => {
+          const isSelected = selected === cat;
+          return (
+            <button
+              key={`custom-${cat}`}
+              onClick={() => onChange(cat)}
+              className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
+                transition-all active:scale-95 shrink-0 text-base font-semibold"
+              style={{
+                background: isSelected ? 'var(--purple-500, #8b5cf6)' : 'var(--purple-100)',
+                color: isSelected ? 'var(--bg-surface)' : 'var(--purple-700, #6d28d9)',
+                boxShadow: isSelected ? '0 2px 8px rgba(139,92,246,0.35)' : 'none',
+              }}
+            >
+              <span className="text-lg">🔍</span>
+              <span>{cat}</span>
+            </button>
+          );
+        })}
 
-      {/* 직접 입력 칩 / 인라인 입력 필드 */}
-      {isInputMode ? (
-        <div className="flex items-center shrink-0">
-          <input
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleCustomSubmit}
-            placeholder="카테고리 입력..."
-            maxLength={20}
-            className="px-4 py-3 rounded-full text-base font-semibold outline-none w-40"
-            style={{
-              background: 'var(--purple-100)',
-              color: 'var(--purple-700, #6d28d9)',
-              border: '2px solid var(--purple-400, #a78bfa)',
-            }}
-          />
-        </div>
-      ) : (
         <button
           onClick={() => setIsInputMode(true)}
+          data-testid="custom-category-toggle"
           className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
             transition-all active:scale-95 shrink-0 text-base font-semibold"
           style={{
@@ -161,6 +143,28 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
           <span className="text-lg">✏️</span>
           <span>직접 입력</span>
         </button>
+      </div>
+
+      {isInputMode && (
+        <div className="mt-2">
+          <input
+            ref={inputRef}
+            data-testid="custom-category-input"
+            aria-label="카테고리 직접 입력"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleCustomSubmit}
+            placeholder="카테고리 입력..."
+            maxLength={20}
+            className="w-full px-4 py-3 rounded-2xl text-base font-semibold outline-none"
+            style={{
+              background: 'var(--purple-100)',
+              color: 'var(--purple-700, #6d28d9)',
+              border: '2px solid var(--purple-400, #a78bfa)',
+            }}
+          />
+        </div>
       )}
     </div>
   );

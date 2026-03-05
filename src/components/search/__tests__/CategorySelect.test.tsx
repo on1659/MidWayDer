@@ -63,10 +63,7 @@ describe('CategorySelect', () => {
   it('직접 입력 버튼 클릭 시 입력 모드 전환', () => {
     render(<CategorySelect selected="" onChange={mockOnChange} />);
 
-    const 직접입력Button = screen.getByText('직접 입력').closest('button');
-    if (직접입력Button) {
-      fireEvent.click(직접입력Button);
-    }
+    fireEvent.click(screen.getByTestId('custom-category-toggle'));
 
     expect(screen.getByPlaceholderText('카테고리 입력...')).toBeInTheDocument();
   });
@@ -75,13 +72,10 @@ describe('CategorySelect', () => {
     render(<CategorySelect selected="" onChange={mockOnChange} />);
 
     // 직접 입력 모드 전환
-    const 직접입력Button = screen.getByText('직접 입력').closest('button');
-    if (직접입력Button) {
-      fireEvent.click(직접입력Button);
-    }
+    fireEvent.click(screen.getByTestId('custom-category-toggle'));
 
     // 커스텀 카테고리 입력
-    const input = screen.getByPlaceholderText('카테고리 입력...');
+    const input = screen.getByTestId('custom-category-input');
     fireEvent.change(input, { target: { value: '편의점' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
@@ -94,13 +88,10 @@ describe('CategorySelect', () => {
     render(<CategorySelect selected="" onChange={mockOnChange} />);
 
     // 직접 입력 모드 전환
-    const 직접입력Button = screen.getByText('직접 입력').closest('button');
-    if (직접입력Button) {
-      fireEvent.click(직접입력Button);
-    }
+    fireEvent.click(screen.getByTestId('custom-category-toggle'));
 
     // 커스텀 카테고리 입력
-    const input = screen.getByPlaceholderText('카테고리 입력...');
+    const input = screen.getByTestId('custom-category-input');
     fireEvent.change(input, { target: { value: '약국' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
@@ -116,15 +107,20 @@ describe('CategorySelect', () => {
     render(<CategorySelect selected="" onChange={mockOnChange} />);
 
     // 직접 입력 모드 전환
-    const 직접입력Button = screen.getByText('직접 입력').closest('button');
-    if (직접입력Button) {
-      fireEvent.click(직접입력Button);
-    }
+    fireEvent.click(screen.getByTestId('custom-category-toggle'));
 
-    const input = screen.getByPlaceholderText('카테고리 입력...');
+    const input = screen.getByTestId('custom-category-input');
     fireEvent.keyDown(input, { key: 'Escape' });
 
     expect(screen.getByText('직접 입력')).toBeInTheDocument();
     expect(mockOnChange).not.toHaveBeenCalled();
+  });
+
+  it('입력 모드일 때 직접 입력 필드는 가로 전체 너비 클래스를 가져야 함', () => {
+    render(<CategorySelect selected="" onChange={mockOnChange} />);
+
+    fireEvent.click(screen.getByTestId('custom-category-toggle'));
+
+    expect(screen.getByTestId('custom-category-input')).toHaveClass('w-full');
   });
 });

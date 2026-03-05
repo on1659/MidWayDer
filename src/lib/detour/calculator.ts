@@ -14,7 +14,7 @@
  * API 호출 최소화: 원본 경로 1회만 호출, 경유지별 추가 호출 없음!
  */
 
-import { Route, Coordinates, RoutePoint } from '@/types/location';
+import { Route, Coordinates, RoutePoint, Place } from '@/types/location';
 import { DetourResult, SpatialFilterOptions } from '@/types/detour';
 import { filterPlacesByRoute } from './spatial-filter';
 import { samplePolyline, getOptimalSampleInterval } from './polyline-sampler';

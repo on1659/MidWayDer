@@ -18,9 +18,10 @@ interface CompactCardProps {
     onTouchEnd: (result: DetourResult) => void;
   };
   swipeVisual: { id: string; deltaX: number } | null;
+  disabled?: boolean;
 }
 
-export const CompactCard = React.memo(function CompactCard({ result, index, isSelected, swipeHandlers, swipeVisual }: CompactCardProps) {
+export const CompactCard = React.memo(function CompactCard({ result, index, isSelected, swipeHandlers, swipeVisual, disabled = false }: CompactCardProps) {
   const ctx = useResultList();
   const {
     favPlaces, visitedDates, pinnedIds,
@@ -64,6 +65,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
       <button
         data-result-index={index}
         onClick={() => {
+          if (disabled) return;
           if (expandedCompactId === result.place.id) {
             onSelect(result, index + 1);
           } else {
@@ -73,13 +75,15 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
         }}
         onMouseEnter={() => {}}
         onMouseLeave={() => {}}
-        onTouchStart={(e) => swipeHandlers.onTouchStart(e, result.place.id)}
-        onTouchMove={(e) => swipeHandlers.onTouchMove(e, result.place.id)}
-        onTouchEnd={() => swipeHandlers.onTouchEnd(result)}
-        className="w-full px-4 py-3 md:px-3 md:py-2.5 rounded-2xl text-left active:scale-[0.98]"
+        onTouchStart={(e) => !disabled && swipeHandlers.onTouchStart(e, result.place.id)}
+        onTouchMove={(e) => !disabled && swipeHandlers.onTouchMove(e, result.place.id)}
+        onTouchEnd={() => !disabled && swipeHandlers.onTouchEnd(result)}
+        disabled={disabled}
+        className={`w-full px-4 py-3 md:px-3 md:py-2.5 rounded-2xl text-left ${disabled ? 'cursor-not-allowed' : 'active:scale-[0.98]'}`}
         style={{
-          background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
+          background: isSelected ? 'var(--blue-200)' : disabled ? 'var(--bg-surface-muted)' : 'var(--bg-surface)',
           border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
+          opacity: disabled ? 0.5 : 1,
           transform: `translateX(${swipeDeltaX}px)`,
           transition: !isBeingSwiped ? 'transform 0.35s ease' : 'none',
         }}
