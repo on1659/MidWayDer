@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-03-05
+
+### Fixed
+- ESLint 경고 수정 (waitFor 미사용 import 제거)
+
+### Changed
+- PHASES.md 진행률 업데이트 (55% → 100%)
+- TODO.md 완료된 작업 정리
+- 다음 버전 계획 추가 (v0.15.0+)
+
+### Notes
+- 모든 Phase 완료 (Phase 0~8)
+- 프로덕션 배포 준비 완료
+- 658개 테스트 통과
+
 ## [0.13.0] - 2026-03-05
 
 ### Added
