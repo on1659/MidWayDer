@@ -33,6 +33,12 @@ interface SearchState {
   /** AbortController (검색 취소용) */
   abortController: AbortController | null;
 
+  // === 단일 선택 UX 상태 ===
+  /** 선택된 경유지 ID 집합 */
+  selectedPlaces: Set<string>;
+  /** 다중 선택 허용 여부 */
+  allowMultiSelect: boolean;
+
   // Actions
   /** 카테고리 변경 */
   setCategory: (category: string) => void;
@@ -44,6 +50,14 @@ interface SearchState {
   cancelSearch: () => void;
   /** 세션 캐시에서 결과 복원 */
   restoreResults: (results: DetourResult[], totalCandidates: number, apiCallsUsed: number) => void;
+
+  // === 단일 선택 액션 ===
+  /** 경유지 선택 토글 */
+  togglePlaceSelection: (placeId: string) => void;
+  /** 다중 선택 활성화 */
+  enableMultiSelect: () => void;
+  /** 선택 초기화 */
+  resetSelection: () => void;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
@@ -56,6 +70,10 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   hasSearched: false,
   isCached: false,
   abortController: null,
+
+  // 단일 선택 UX 초기 상태
+  selectedPlaces: new Set(),
+  allowMultiSelect: false,
 
   setCategory: (category) => set({ category }),
 
@@ -209,10 +227,41 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     const controller = get().abortController;
     if (controller) {
       controller.abort();
-      set({ 
-        abortController: null, 
+      set({
+        abortController: null,
         isLoading: false,
       });
     }
   },
+
+  // === 단일 선택 액션 ===
+  togglePlaceSelection: (placeId) => {
+    const { selectedPlaces, allowMultiSelect } = get();
+    const newSelected = new Set(selectedPlaces);
+
+    if (newSelected.has(placeId)) {
+      // 이미 선택된 경우 → 선택 해제
+      newSelected.delete(placeId);
+    } else {
+      // 선택되지 않은 경우
+      if (newSelected.size === 0) {
+        // 첫 번째 선택은 자유롭게
+        newSelected.add(placeId);
+      } else if (allowMultiSelect) {
+        // 다중 선택 허용 시 추가
+        newSelected.add(placeId);
+      }
+      // else: 다중 선택 비허용 시 아무 동작 안 함
+    }
+
+    set({ selectedPlaces: newSelected });
+  },
+
+  enableMultiSelect: () => set({ allowMultiSelect: true }),
+
+  resetSelection: () =>
+    set({
+      selectedPlaces: new Set(),
+      allowMultiSelect: false,
+    }),
 }));

@@ -25,6 +25,10 @@ export interface ResultListContextValue {
   editingMemoId: string | null;
   editingMemoText: string;
 
+  // === 단일 선택 UX 상태 ===
+  selectedPlaces: Set<string>;
+  allowMultiSelect: boolean;
+
   // ETA 관련
   departureTime: string;
   departureMs: number;
@@ -65,6 +69,11 @@ export interface ResultListContextValue {
   onOpenNaviSheet: (e: React.MouseEvent, place: DetourResult['place']) => void;
   triggerNav: (place: DetourResult['place']) => void;
   nameFilter: string;
+
+  // === 단일 선택 콜백 ===
+  onToggleSelection: (e: React.MouseEvent, placeId: string) => void;
+  onEnableMultiSelect: () => void;
+  onResetSelection: () => void;
 }
 
 export const ResultListContext = createContext<ResultListContextValue | null>(null);

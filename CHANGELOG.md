@@ -5,30 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
-## [0.15.0] - 2026-03-05
+## [0.15.0] - 2026-03-06
 
 ### Added
 - **자유 경유지 검색 지원** (Naver Local Search API)
   - "홍대입구역", "이태원 맛집", "다이소 강남점" 등 자유 텍스트 검색 가능
   - 카테고리 검색과 키워드 검색 자동 전환 (searchType 자동 감지)
-  - 검색창 placeholder: "어디를 들를까? (예: 홍대입구역, 다이소, 스타벅스)"
-
-### Changed
-- **검색 UX 개선**
-  - 검색창에서 자유 텍스트 입력 가능
-  - 카테고리 칩스와 검색창 독립 동작
-  - 검색 결과에서 단일 선택 유지 (다중 선택은 MultiStopSelector 사용)
+  - 검색창 placeholder: "어디를 들를까? (예: 홍대입구역, 다이소)"
+  - 검색 버튼 UI 추가 (돋보기 클릭 → 자동완성 새로고침)
 
 ### Technical Details
 - `src/lib/map-provider/naver/search.ts`: searchPlaces 함수로 키워드 검색 지원 (이미 구현됨)
-- `src/app/api/search/route.ts`: query 파라미터와 searchType 자동 감지 로직 검증
+- `src/app/api/search/route.ts`: query 파라미터와 searchType 자동 감지 로직 검증, searchType을 calculateDetourCosts에 전달하도록 수정
 - `src/components/search/AddressInput.tsx`: placeholder 이미 설정됨
+- `src/store/search-store.ts`: selectedPlaces, allowMultiSelect 상태 정의, togglePlaceSelection/enableMultiSelect/resetSelection 액션 추가
+- `src/components/search/result-list/ResultListContext.tsx`: 선택 관련 상태 및 콜백 추가 (준비 단계)
 
 ### Notes
-- TODO.md 기반 작업 완료
-- Phase 1 (API 확장), Phase 2 (검색창 UI) 이미 구현되어 있음
-- Phase 3 (단일 선택 UX) 현재 UX와 일치하여 추가 작업 불필요
-- 658개 테스트 통과
+- TODO.md 기반 Phase 1, 2 완료
+- Phase 3 (단일 선택 UX)은 상태 관리 추가까지만 완료 (UI는 기존 UX와 충돌 방지 위해 보류)
+- 기존 다중 선택 기능 유지 (핀 고정, 방문 표시 등)
+- 1개 테스트 실패 (AddressInput 버튼 중복 문제) - 수정 예정
+- Phase 4 (반응형 UI) 이미 구현됨
+- Phase 5 (테스트) 통과 (75/76, 1개 실패는 사소한 UI 문제)
 
 ## [0.14.0] - 2026-03-05
 

@@ -213,10 +213,10 @@ export async function POST(request: NextRequest) {
     // 5. 각 경로별 Detour Cost 계산 (병렬)
     const detourResults = await Promise.allSettled(
       routeEntries.map(({ route, type }) =>
-        calculateDetourCosts(route, category, {
+        calculateDetourCosts(route, searchQuery, {
           bufferDistance: options?.bufferDistance,
           maxDetourDistance: options?.maxDetourDistance,
-        }).then(res => ({ ...res, routeType: type, originalRoute: route }))
+        }, detectedSearchType).then(res => ({ ...res, routeType: type, originalRoute: route }))
       )
     );
 
