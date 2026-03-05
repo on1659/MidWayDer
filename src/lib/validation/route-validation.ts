@@ -31,8 +31,12 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
  * 경로 유효성 검사
  */
 export function validateRoute(start: Location, end: Location): ValidationResult {
+  // 좌표 추출
+  const { coordinates: { lat: startLat, lng: startLng } } = start;
+  const { coordinates: { lat: endLat, lng: endLng } } = end;
+
   // 좌표가 완전히 동일한 경우
-  if (start.lat === end.lat && start.lng === end.lng) {
+  if (startLat === endLat && startLng === endLng) {
     return {
       valid: false,
       error: 'SAME_LOCATION',
@@ -42,10 +46,10 @@ export function validateRoute(start: Location, end: Location): ValidationResult 
 
   // 좌표가 유효한지 확인
   if (
-    !isFinite(start.lat) ||
-    !isFinite(start.lng) ||
-    !isFinite(end.lat) ||
-    !isFinite(end.lng)
+    !isFinite(startLat) ||
+    !isFinite(startLng) ||
+    !isFinite(endLat) ||
+    !isFinite(endLng)
   ) {
     return {
       valid: false,
@@ -56,10 +60,10 @@ export function validateRoute(start: Location, end: Location): ValidationResult 
 
   // 좌표 범위 확인
   if (
-    Math.abs(start.lat) > 90 ||
-    Math.abs(end.lat) > 90 ||
-    Math.abs(start.lng) > 180 ||
-    Math.abs(end.lng) > 180
+    Math.abs(startLat) > 90 ||
+    Math.abs(endLat) > 90 ||
+    Math.abs(startLng) > 180 ||
+    Math.abs(endLng) > 180
   ) {
     return {
       valid: false,
@@ -69,7 +73,7 @@ export function validateRoute(start: Location, end: Location): ValidationResult 
   }
 
   // 거리 계산
-  const distance = haversineDistance(start.lat, start.lng, end.lat, end.lng);
+  const distance = haversineDistance(startLat, startLng, endLat, endLng);
 
   // 매우 가까운 경우 (50m 이내)
   if (distance < 0.05) {

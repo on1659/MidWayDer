@@ -47,7 +47,7 @@ const ERROR_CONFIG: Record<string, {
     icon: Clock,
     title: '잠시 후 다시 시도해주세요',
     description: '일일 검색 한도에 도달했습니다',
-    action: null,
+    action: undefined,
     color: 'gray',
   },
   'SAME_LOCATION': {

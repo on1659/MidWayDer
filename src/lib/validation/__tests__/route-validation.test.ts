@@ -4,8 +4,8 @@ import { validateRoute, formatDistance } from '../route-validation';
 describe('validateRoute', () => {
   it('같은 좌표면 SAME_LOCATION 에러', () => {
     const result = validateRoute(
-      { lat: 37.5, lng: 127.0, address: 'test' },
-      { lat: 37.5, lng: 127.0, address: 'test' }
+      { address: 'test', coordinates: { lat: 37.5, lng: 127.0 } },
+      { address: 'test', coordinates: { lat: 37.5, lng: 127.0 } }
     );
     expect(result.valid).toBe(false);
     expect(result.error).toBe('SAME_LOCATION');
@@ -13,8 +13,8 @@ describe('validateRoute', () => {
 
   it('50m 이내면 TOO_CLOSE 에러', () => {
     const result = validateRoute(
-      { lat: 37.5, lng: 127.0, address: 'test' },
-      { lat: 37.5004, lng: 127.0, address: 'test' } // 약 44m
+      { address: 'test', coordinates: { lat: 37.5, lng: 127.0 } },
+      { address: 'test', coordinates: { lat: 37.5004, lng: 127.0 } } // 약 44m
     );
     expect(result.valid).toBe(false);
     expect(result.error).toBe('TOO_CLOSE');
@@ -22,8 +22,8 @@ describe('validateRoute', () => {
 
   it('500km 초과면 TOO_FAR 에러', () => {
     const result = validateRoute(
-      { lat: 37.5, lng: 127.0, address: '서울' },
-      { lat: 35.0, lng: 139.0, address: '도쿄' } // 약 1155km
+      { address: '서울', coordinates: { lat: 37.5, lng: 127.0 } },
+      { address: '도쿄', coordinates: { lat: 35.0, lng: 139.0 } } // 약 1155km
     );
     expect(result.valid).toBe(false);
     expect(result.error).toBe('TOO_FAR');
@@ -31,8 +31,8 @@ describe('validateRoute', () => {
 
   it('유효한 경로면 success', () => {
     const result = validateRoute(
-      { lat: 37.5663, lng: 126.9779, address: '서울시청' },
-      { lat: 37.4979, lng: 127.0276, address: '강남역' } // 약 11km
+      { address: '서울시청', coordinates: { lat: 37.5663, lng: 126.9779 } },
+      { address: '강남역', coordinates: { lat: 37.4979, lng: 127.0276 } } // 약 11km
     );
     expect(result.valid).toBe(true);
     expect(result.error).toBeUndefined();
@@ -40,8 +40,8 @@ describe('validateRoute', () => {
 
   it('NaN 좌표면 INVALID_COORDINATES 에러', () => {
     const result = validateRoute(
-      { lat: NaN, lng: 127.0, address: 'test' },
-      { lat: 37.5, lng: 127.0, address: 'test' }
+      { address: 'test', coordinates: { lat: NaN, lng: 127.0 } },
+      { address: 'test', coordinates: { lat: 37.5, lng: 127.0 } }
     );
     expect(result.valid).toBe(false);
     expect(result.error).toBe('INVALID_COORDINATES');
@@ -49,8 +49,8 @@ describe('validateRoute', () => {
 
   it('좌표 범위 초과면 COORDINATES_OUT_OF_RANGE 에러', () => {
     const result = validateRoute(
-      { lat: 91, lng: 127.0, address: 'test' },
-      { lat: 37.5, lng: 127.0, address: 'test' }
+      { address: 'test', coordinates: { lat: 91, lng: 127.0 } },
+      { address: 'test', coordinates: { lat: 37.5, lng: 127.0 } }
     );
     expect(result.valid).toBe(false);
     expect(result.error).toBe('COORDINATES_OUT_OF_RANGE');
