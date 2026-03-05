@@ -161,7 +161,7 @@ export const ResultCard = React.memo(function ResultCard({
         <Copy className="w-5 h-5 text-white" />
       </div>
 
-      <button
+      <div
         data-result-index={index}
         onClick={() => onSelect(result, index + 1)}
         onMouseEnter={() => onHoverResult?.(result.place.id)}
@@ -169,7 +169,15 @@ export const ResultCard = React.memo(function ResultCard({
         onTouchStart={(e) => swipeHandlers.onTouchStart(e, result.place.id)}
         onTouchMove={(e) => swipeHandlers.onTouchMove(e, result.place.id)}
         onTouchEnd={() => swipeHandlers.onTouchEnd(result)}
-        className="w-full p-5 md:p-4 rounded-2xl text-left active:scale-[0.98]"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onSelect(result, index + 1);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        className="w-full p-5 md:p-4 rounded-2xl text-left active:scale-[0.98] cursor-pointer group hover:shadow-md transition-shadow"
         style={{
           background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',
           border: isSelected ? '1.5px solid var(--accent)' : '1px solid var(--border-soft)',
@@ -717,7 +725,7 @@ export const ResultCard = React.memo(function ResultCard({
             )}
           </div>
         </div>
-      </button>
+      </div>
     </div>
   );
 });

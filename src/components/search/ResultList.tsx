@@ -29,6 +29,7 @@ import { CompactCard } from './result-list/CompactCard';
 import { RelatedCategories } from './result-list/RelatedCategories';
 import { StickyBar } from './result-list/StickyBar';
 import { EmptyState } from './result-list/EmptyState';
+import { ResultListSkeleton } from '@/components/ui/Skeleton';
 
 // 훅
 import { useFilters } from './result-list/hooks/useFilters';
