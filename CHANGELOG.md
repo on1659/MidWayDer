@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-03-05
+
+### Added
+- **카카오맵 스타일 컬러 팔레트 CSS 변수 추가**
+  - Primary: #3274F9 (파란색)
+  - Secondary: #FF6B00 (주황색 - 이탈 거리)
+  - Success: #4CAF50 (초록색 - 거리/시간)
+  - 다크모드용 색상 추가 (Dark Primary: #60A5FA, Dark Secondary: #FFA500)
+
+### Technical Details
+- globals.css: 카카오맵 스타일 CSS 변수 추가 (--kakao-primary, --kakao-secondary, --kakao-success)
+- theme.css: 다크모드용 카카오맵 스타일 변수 추가
+- Fallback 색상 정의 (CSS 변수 미지원 브라우저 대응)
+- WCAG AA 색상 대비 기준 준수
+
+### Notes
+- UI 컴포넌트 변경은 다음 버전에서 진행 예정
+- 점진적 마이그레이션을 위해 기존 CSS 변수 유지
+
 ## [0.12.0] - 2026-03-05
 
 ### Changed
