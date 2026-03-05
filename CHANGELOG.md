@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
+## [0.17.0] - 2026-03-06
+
+### Verified
+- **자유 경유지 검색 + 단일 선택 UX 기능 검증 완료**
+  - `/api/search`: query 파라미터 및 searchType 자동 감지 로직 검증 ✅
+  - 검색창 placeholder: "어디를 들를까? (예: 홍대입구역, 다이소, 스타벅스)" ✅
+  - 시간대별 스마트 제안 칩 정상 동작 ✅
+  - 단일 선택 UX (selectedPlaces, allowMultiSelect) 완전 구현 ✅
+  - 비활성화 로직, 안내 메시지 UI 정상 동작 ✅
+
+### Technical Details
+- TODO.md v0.15.0 목표가 v0.16.1에 이미 완전히 구현됨을 확인
+- 660개 테스트 모두 통과 (8.82초)
+- 기존 기능 호환성 유지 (다중 선택 로직 포함)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 검증 및 버전 업데이트
+- 새로운 코드 추가 없음 (이미 구현된 기능 검증)
+
 ## [0.16.1] - 2026-03-06
 
 ### Fixed
