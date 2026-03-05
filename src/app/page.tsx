@@ -78,6 +78,12 @@ export default function HomePage() {
   const { mapClickInfo, setMapClickInfo, hoveredWaypointId, setHoveredWaypointId, mapPanned, setMapPanned, handleMapClick, handleMapIdle } = useMapState();
   const { handleSearch, handleInstantSearch, handleExpandRadius, handleCategoryChange } = useSearch({ setBottomSheetSnap, setRecentSearches, savedScrollRef });
 
+  // 검색 취소 핸들러
+  const handleCancelSearch = useCallback(() => {
+    cancelSearch();
+    setSearchOverlayOpen(false);
+  }, [cancelSearch]);
+
   // 스플래시 스크린
   useEffect(() => {
     const timer = setTimeout(() => setAppReady(true), 1500);
@@ -259,7 +265,29 @@ export default function HomePage() {
 
         {/* Mobile Search Overlay */}
         <div className="md:hidden">
-          <SearchOverlay open={searchOverlayOpen} onClose={() => setSearchOverlayOpen(false)} startAddress={start?.address || ''} endAddress={end?.address || ''} category={category} onStartChange={handleStartChange} onEndChange={handleEndChange} onStartSelect={handleStartSelect} onEndSelect={handleEndSelect} mapCenter={mapCenter} onCategoryChange={handleCategoryChange} onSearch={handleSearch} onSwap={handleSwap} isLoading={isLoading} canSearch={canSearch} theme={theme} onToggleTheme={toggleTheme} onGPS={handleGPS} gpsLoading={gpsLoading} onInstantSearch={handleInstantSearch} />
+          <SearchOverlay
+            open={searchOverlayOpen}
+            onClose={() => setSearchOverlayOpen(false)}
+            startAddress={start?.address || ''}
+            endAddress={end?.address || ''}
+            category={category}
+            onStartChange={handleStartChange}
+            onEndChange={handleEndChange}
+            onStartSelect={handleStartSelect}
+            onEndSelect={handleEndSelect}
+            mapCenter={mapCenter}
+            onCategoryChange={handleCategoryChange}
+            onSearch={handleSearch}
+            onSwap={handleSwap}
+            isLoading={isLoading}
+            canSearch={canSearch}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            onGPS={handleGPS}
+            gpsLoading={gpsLoading}
+            onInstantSearch={handleInstantSearch}
+            onCancel={handleCancelSearch}
+          />
         </div>
 
         {/* Mobile Bottom Sheet */}

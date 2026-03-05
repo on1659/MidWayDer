@@ -155,6 +155,7 @@ export default function AddressInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
+          aria-label={label || placeholder}
           className="w-full px-4 py-3.5 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
           style={{
             background: 'var(--bg-surface-muted)',

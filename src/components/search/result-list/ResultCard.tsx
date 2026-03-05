@@ -177,6 +177,7 @@ export const ResultCard = React.memo(function ResultCard({
         }}
         role="button"
         tabIndex={0}
+        aria-label={`${result.place.name}, ${result.place.category}, 이탈 거리 ${detourKm}킬로미터, 이탈 시간 ${detourMin}분${isSelected ? ', 선택됨' : ''}`}
         className="w-full p-5 md:p-4 rounded-2xl text-left active:scale-[0.98] cursor-pointer group hover:shadow-md transition-shadow"
         style={{
           background: isSelected ? 'var(--blue-200)' : 'var(--bg-surface)',

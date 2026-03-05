@@ -35,6 +35,7 @@ interface SearchOverlayProps {
   onGPS?: () => void;
   gpsLoading?: boolean;
   onInstantSearch?: (item: RecentSearch) => void;
+  onCancel?: () => void;  // 추가: 검색 취소
 }
 
 export default function SearchOverlay({
@@ -58,6 +59,7 @@ export default function SearchOverlay({
   onGPS,
   gpsLoading = false,
   onInstantSearch,
+  onCancel,  // 추가
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
@@ -492,15 +494,37 @@ export default function SearchOverlay({
 
       {/* Search button */}
       <div className="px-4 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <button
-          data-testid="mobile-search-route-btn"
-          onClick={handleSearch}
-          disabled={isLoading || !canSearch}
-          className="w-full py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md"
-          style={{ background: isLoading || !canSearch ? undefined : 'var(--accent)' }}
-        >
-          {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
-        </button>
+        {isLoading ? (
+          /* 로딩 중: 취소 버튼 */
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-2 py-5 rounded-2xl font-bold text-lg"
+                 style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}>
+              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <span>경로 분석 중...</span>
+            </div>
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                aria-label="검색 취소"
+              >
+                <X className="w-4 h-4" />
+                <span>취소</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          /* 기본: 검색 버튼 */
+          <button
+            data-testid="mobile-search-route-btn"
+            onClick={handleSearch}
+            disabled={!canSearch}
+            className="w-full py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md"
+            style={{ background: canSearch ? 'var(--accent)' : undefined }}
+          >
+            경유지 찾기 🔍
+          </button>
+        )}
       </div>
     </div>
   );

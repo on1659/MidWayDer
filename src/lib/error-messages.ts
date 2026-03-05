@@ -4,9 +4,9 @@
 
 export const ERROR_MESSAGES = {
   // GPS 관련
-  GPS_DENIED: '위치 권한이 필요해요. 설정에서 허용해주세요',
-  GPS_UNAVAILABLE: '현재 위치를 가져올 수 없어요. 주소를 직접 입력해주세요',
-  GPS_TIMEOUT: '위치 확인이 지연되고 있어요. 다시 시도해주세요',
+  GPS_DENIED: '위치 권한이 거부되었습니다. 브라우저 설정에서 위치 정보 허용으로 변경해주세요.',
+  GPS_UNAVAILABLE: '위치 정보를 사용할 수 없습니다. GPS가 켜져 있는지 확인하거나, 주소를 직접 입력해주세요.',
+  GPS_TIMEOUT: '위치 확인 시간이 초과되었습니다. 다시 시도해주세요.',
   
   // 네트워크 관련
   NETWORK_ERROR: '인터넷 연결을 확인해주세요',
