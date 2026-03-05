@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
-import { MapPin, X, Loader2 } from 'lucide-react';
+import { MapPin, X, Loader2, Search } from 'lucide-react';
 
 interface AutocompleteResult {
   name: string;
@@ -171,13 +171,26 @@ export default function AddressInput({
             e.currentTarget.style.background = 'var(--bg-surface-muted)';
           }}
         />
-        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--text-muted)' }} />
           ) : localValue ? (
-            <button onClick={handleClear} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-              <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => fetchResults(localValue)}
+                className="p-2 rounded-lg hover:bg-blue-500 hover:text-white transition-colors"
+                title="검색"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </button>
+              <button onClick={handleClear} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+                <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            </>
           ) : null}
         </div>
 
