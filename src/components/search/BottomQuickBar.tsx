@@ -51,28 +51,20 @@ export default function BottomQuickBar({ favorites, setBottomSheetSnap, setSearc
         
         {/* 검색창 추가 */}
         <div className="px-5 pb-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="어디를 들를까? (예: 홍대입구역, 다이소)"
-              onClick={() => setSearchOverlayOpen(true)}
-              className="w-full px-4 py-3.5 pr-12 rounded-2xl text-base placeholder:text-gray-400 cursor-pointer"
-              style={{
-                background: 'var(--bg-surface-muted)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-soft)',
-              }}
-            />
-            <button 
-              onClick={() => setSearchOverlayOpen(true)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)' }}>
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={() => setSearchOverlayOpen(true)}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all hover:shadow-md active:scale-[0.98]"
+            style={{
+              background: '#F3F4F6',
+              border: '2px solid #E5E7EB',
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#9CA3AF' }}>
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <span style={{ color: '#9CA3AF' }}>어디를 들를까? (예: 홍대입구역, 다이소)</span>
+          </button>
         </div>
         {favorites.length > 0 && (
           <div className="px-5 pb-3">
