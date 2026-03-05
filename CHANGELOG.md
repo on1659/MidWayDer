@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
+## [0.16.1] - 2026-03-06
+
+### Fixed
+- **AddressInput clear 버튼 접근성 개선**
+  - `title="삭제"`, `aria-label="삭제"` 속성 추가
+  - 테스트 실패 수정 (검색 버튼과 clear 버튼 식별 가능)
+
+### Test Results
+- 660개 테스트 모두 통과 ✅
+
 ## [0.16.0] - 2026-03-06
 
 ### Added
@@ -30,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0
 ### Notes
 - TODO.md 기반 Phase 1, 2, 3 완료 (MVP)
 - Phase 4 (반응형 UI) 이미 구현됨
-- 659개 테스트 통과 (1개 기존 테스트 실패는 무관)
 - 백엔드는 이미 자유 경유지 검색 지원 중 (v0.15.0)
 
 ## [0.15.0] - 2026-03-06
