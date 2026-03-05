@@ -363,8 +363,8 @@ export default function HomePage() {
           </BottomSheet>
         </div>
 
-        {/* Bottom Quick Bar (모바일, 검색 전 + 즐겨찾기/최근 검색 없을 때) */}
-        {!hasResults && !selectedWaypoint && !mapClickInfo && favorites.length === 0 && recentSearches.length === 0 && (
+        {/* Bottom Quick Bar (모바일) - 검색창 항상 표시 */}
+        {!hasResults && !selectedWaypoint && !mapClickInfo && (
           <BottomQuickBar favorites={favorites} setBottomSheetSnap={setBottomSheetSnap} setSearchOverlayOpen={setSearchOverlayOpen} onRoutineApply={handleRoutineApply} />
         )}
       </main>
