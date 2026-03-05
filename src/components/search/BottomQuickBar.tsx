@@ -48,6 +48,30 @@ export default function BottomQuickBar({ favorites, setBottomSheetSnap, setSearc
           <p className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ 가는 길에 어디 들를까요?</p>
           <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
         </div>
+        
+        {/* 검색창 추가 */}
+        <div className="px-5 pb-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="어디를 들를까? (예: 홍대입구역, 다이소)"
+              onClick={() => setSearchOverlayOpen(true)}
+              readOnly
+              className="w-full px-4 py-3.5 rounded-2xl text-base placeholder:text-gray-400 cursor-pointer"
+              style={{
+                background: 'var(--bg-surface-muted)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-soft)',
+              }}
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)' }}>
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </div>
+          </div>
+        </div>
         {favorites.length > 0 && (
           <div className="px-5 pb-3">
             <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>자주 가는 경로</p>
