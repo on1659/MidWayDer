@@ -31,3 +31,9 @@ test-results/
 .dev/
 PLAN.md
 IMPL.md
+
+# Auto-generated docs
+docs/automeeting/
+
+# Test coverage
+coverage/

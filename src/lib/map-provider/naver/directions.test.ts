@@ -4,7 +4,6 @@ import type { Coordinates } from '@/types/location';
 
 describe('Naver Directions', () => {
   const mockStart: Coordinates = { lat: 37.5665, lng: 126.9780 };
-  const mockEnd: Coordinates = { lat: 37.5670, lng: 126.9790 };
 
   describe('DirectionsApiError', () => {
     it('should create error with code and details', () => {
