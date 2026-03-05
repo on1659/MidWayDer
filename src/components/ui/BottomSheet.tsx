@@ -111,13 +111,26 @@ export default function BottomSheet({
     >
       {/* Drag handle */}
       <div
-        className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-center h-11 cursor-grab active:cursor-grabbing"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onMouseDown={onMouseDown}
+        aria-label="드래그하여 패널 조절"
+        role="slider"
+        aria-valuenow={snap === 'full' ? 100 : snap === 'half' ? 50 : 0}
       >
-        <div className="bottom-sheet-handle" />
+        <div
+          className={`
+            w-12 h-1.5
+            rounded-full
+            mx-auto
+            transition-all duration-200
+            ${isDragging
+              ? 'bg-blue-500 dark:bg-blue-400 scale-x-125'
+              : 'bg-gray-300 dark:bg-gray-600'}
+          `}
+        />
       </div>
 
       <div ref={contentRef} className="overflow-y-auto scrollbar-hide" style={{ height: 'calc(100% - 28px)' }}>

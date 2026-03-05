@@ -24,8 +24,12 @@ interface UseMapStateReturn {
   setHoveredWaypointId: React.Dispatch<React.SetStateAction<string | null>>;
   mapPanned: boolean;
   setMapPanned: React.Dispatch<React.SetStateAction<boolean>>;
+  mapZoomed: boolean;
+  setMapZoomed: React.Dispatch<React.SetStateAction<boolean>>;
   handleMapClick: (coords: { lat: number; lng: number }) => Promise<void>;
   handleMapIdle: () => void;
+  handleMapInteraction: () => void;
+  resetMapInteraction: () => void;
 }
 
 export function useMapState(): UseMapStateReturn {
@@ -36,6 +40,7 @@ export function useMapState(): UseMapStateReturn {
   const [previewRoute, setPreviewRoute] = useState<Route | null>(null);
   const [hoveredWaypointId, setHoveredWaypointId] = useState<string | null>(null);
   const [mapPanned, setMapPanned] = useState(false);
+  const [mapZoomed, setMapZoomed] = useState(false);
   const mapIdleIgnoreRef = useRef(false);
 
   const handleMapClick = useCallback(async (coords: { lat: number; lng: number }) => {
@@ -98,6 +103,16 @@ export function useMapState(): UseMapStateReturn {
     setMapPanned(true);
   }, [hasSearched]);
 
+  const handleMapInteraction = useCallback(() => {
+    setMapPanned(true);
+    setMapZoomed(true);
+  }, []);
+
+  const resetMapInteraction = useCallback(() => {
+    setMapPanned(false);
+    setMapZoomed(false);
+  }, []);
+
   return {
     mapClickInfo,
     setMapClickInfo,
@@ -107,7 +122,11 @@ export function useMapState(): UseMapStateReturn {
     setHoveredWaypointId,
     mapPanned,
     setMapPanned,
+    mapZoomed,
+    setMapZoomed,
     handleMapClick,
     handleMapIdle,
+    handleMapInteraction,
+    resetMapInteraction,
   };
 }

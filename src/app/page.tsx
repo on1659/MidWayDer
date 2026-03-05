@@ -75,7 +75,7 @@ export default function HomePage() {
   const { gpsLoading, handleGPS } = useGeolocation();
   const { routeTypeFilter, setRouteTypeFilter, sortBy, setSortBy, filteredResults, routeTypeCounts } = useSortFilter(results);
   const { recentSearches, setRecentSearches, favorites, setFavorites } = useUserData();
-  const { mapClickInfo, setMapClickInfo, hoveredWaypointId, setHoveredWaypointId, mapPanned, setMapPanned, handleMapClick, handleMapIdle } = useMapState();
+  const { mapClickInfo, setMapClickInfo, hoveredWaypointId, setHoveredWaypointId, mapPanned, setMapPanned, mapZoomed, handleMapClick, handleMapIdle, handleMapInteraction, resetMapInteraction } = useMapState();
   const { handleSearch, handleInstantSearch, handleExpandRadius, handleCategoryChange } = useSearch({ setBottomSheetSnap, setRecentSearches, savedScrollRef });
 
   // 검색 취소 핸들러
@@ -202,10 +202,12 @@ export default function HomePage() {
           onMapClick={handleMapClick}
           clickedCoords={mapClickInfo?.coords || null}
           onMapIdle={handleMapIdle}
+          onMapInteraction={handleMapInteraction}
+          onResetInteraction={resetMapInteraction}
         />
 
         {/* 지도 영역 재검색 */}
-        {mapPanned && hasSearched && !isLoading && (
+        {(mapPanned || mapZoomed) && hasSearched && !isLoading && (
           <button className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all active:scale-95 hover:shadow-xl" style={{ background: 'white', color: 'var(--accent)', border: '1.5px solid var(--accent)' }}
             onClick={async () => {
               setMapPanned(false);

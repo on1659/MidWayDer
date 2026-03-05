@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-03-05
+
+### Added
+- **모바일 UX 개선**
+  - BottomSheet 드래그 핸들 시각적 피드백 (드래그 시 색상 변경 + 크기 확대)
+  - 터치 영역 확대 (20px → 44px, iOS 권장 터치 영역)
+  - 지도 줌/팬 시 검색 오버레이 자동 숨김
+  - 줌 완료 후 1초 뒤 오버레이 복원
+
+- **테스트 커버리지 향상**
+  - CategorySelect 컴포넌트 테스트 7개 추가
+  - AddressInput 컴포넌트 테스트 8개 추가
+  - 테스트 setup 파일 생성 (src/test/setup.ts, global.d.ts)
+  - vitest.config.ts에 setupFiles 추가
+
+### Changed
+- useMapState 훅에 mapZoomed state 추가
+- MapContainer 컴포넌트에 onMapInteraction, onResetInteraction props 추가
+- @testing-library/jest-dom 패키지 추가
+
+### Fixed
+- 지도 제스처 최적화 (드래그/줌 모두 "이 지역 재검색" 버튼 표시)
+
 ## [0.9.1] - 2026-03-05
 
 ### Fixed
