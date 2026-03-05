@@ -181,7 +181,8 @@ describe('AddressInput', () => {
         onChange={mockOnChange}
       />
     );
-    const clearButton = screen.getByRole('button');
+    // 검색 버튼과 clear 버튼이 모두 있으므로 title로 구분
+    const clearButton = screen.getByTitle('삭제') || screen.getByLabelText('삭제');
     fireEvent.click(clearButton);
     expect(mockOnChange).toHaveBeenCalledWith('');
   });

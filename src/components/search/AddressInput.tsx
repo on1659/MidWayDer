@@ -187,7 +187,12 @@ export default function AddressInput({
                   <path d="m21 21-4.3-4.3" />
                 </svg>
               </button>
-              <button onClick={handleClear} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+              <button
+                onClick={handleClear}
+                className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                title="삭제"
+                aria-label="삭제"
+              >
                 <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
               </button>
             </>
