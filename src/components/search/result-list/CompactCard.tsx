@@ -95,7 +95,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
             {index + 1}
           </div>
           <span className="text-base shrink-0">{getCategoryIcon(result.place.category)}</span>
-          <p className="text-sm font-bold flex-1 truncate min-w-0" style={{ color: 'var(--text-primary)' }}>
+          <p className="text-sm font-bold flex-1 truncate min-w-0" style={{ color: '#3274F9' }}>
             {highlightText(result.place.name, nameFilter)}
           </p>
           {(() => {

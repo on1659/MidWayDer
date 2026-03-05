@@ -453,8 +453,12 @@ export default function SearchOverlay({
             {recentSearches.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 p-3 rounded-xl transition-all"
-                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+                className="flex items-center gap-2 p-3 rounded-2xl transition-all"
+                style={{ 
+                  background: 'var(--bg-surface)', 
+                  border: '1px solid var(--border-soft)',
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+                }}
               >
                 <button
                   className="flex-1 text-left min-w-0"

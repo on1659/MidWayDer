@@ -156,7 +156,7 @@ export default function AddressInput({
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
           aria-label={label || placeholder}
-          className="w-full px-4 py-3.5 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
+          className="w-full px-4 py-3.5 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
           style={{
             background: 'var(--bg-surface-muted)',
             color: 'var(--text-primary)',
@@ -183,10 +183,11 @@ export default function AddressInput({
 
       {isOpen && results.length > 0 && (
         <div
-          className="absolute top-full left-0 right-0 mt-1 border rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-1 border rounded-2xl shadow-xl overflow-hidden z-50 max-h-[260px] overflow-y-auto"
           style={{
             backgroundColor: 'var(--bg-surface)',
-            borderColor: 'var(--border-soft)'
+            borderColor: 'var(--border-soft)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
           }}
         >
           {results.map((result, i) => (
@@ -200,11 +201,11 @@ export default function AddressInput({
             >
               <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#9CA3AF' }} />
               <div className="min-w-0 flex-1">
-                <p className="text-base font-semibold truncate" style={{ color: '#000000' }}>{result.name}</p>
+                <p className="text-base font-bold truncate" style={{ color: '#3274F9' }}>{result.name}</p>
                 <p className="text-sm truncate mt-0.5" style={{ color: '#6B7280' }}>
                   {result.address}
                   {result.category && (
-                    <span className="ml-1.5">· {result.category}</span>
+                    <span className="ml-1.5 text-xs" style={{ color: '#9CA3AF' }}>· {result.category}</span>
                   )}
                 </p>
               </div>

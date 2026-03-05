@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-03-05
+
+### Changed
+- **UI/UX: 카카오맵 스타일 완성**
+  - 검색창 둥근 모서리 (rounded-2xl) + 그림자 효과 (shadow-xl)
+  - 자동완성 리스트: 장소명 파란색 + 굵은 폰트, 카테고리 회색
+  - 결과 카드: 매장명 파란색 (#3274F9) + 굵은 폰트
+  - 최근 검색 카드: 둥근 모서리 + 그림자 효과
+  - 다크모드 색상 일관성 유지
+
+### Technical Details
+- AddressInput: 검색창 스타일 개선 (rounded-2xl)
+- AddressInput: 자동완성 리스트 스타일 개선 (장소명 파란색, 카테고리 회색)
+- CompactCard: 매장명 파란색으로 변경
+- SearchOverlay: 최근 검색 카드 스타일 개선
+
 ## [0.11.1] - 2026-03-05
 
 ### Fixed
