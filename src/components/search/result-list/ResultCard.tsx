@@ -229,7 +229,7 @@ export const ResultCard = React.memo(function ResultCard({
           </div>
 
           <div className="flex-1 min-w-0 mr-2">
-            <h3 className="text-lg md:text-[17px] font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="text-lg md:text-[17px] font-bold truncate" style={{ color: '#3274F9' }}>
               {highlightText(result.place.name, nameFilter)}
             </h3>
             {(result.place.roadAddress || result.place.address) && (
@@ -244,8 +244,8 @@ export const ResultCard = React.memo(function ResultCard({
                 className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
                 style={
                   sortBy === 'distance'
-                    ? { background: 'var(--accent)', color: 'white' }
-                    : { background: 'var(--accent-weak)', color: 'var(--accent)' }
+                    ? { background: 'var(--success)', color: 'white' }
+                    : { background: 'var(--green-100)', color: 'var(--success)' }
                 }
               >
                 {sortBy === 'distance' && '📏 '}+{detourKm}km
@@ -254,8 +254,8 @@ export const ResultCard = React.memo(function ResultCard({
                 className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
                 style={
                   sortBy === 'duration'
-                    ? { background: 'var(--yellow-500, #eab308)', color: 'white' }
-                    : { background: 'var(--yellow-100)', color: 'var(--yellow-600)' }
+                    ? { background: 'var(--success)', color: 'white' }
+                    : { background: 'var(--green-100)', color: 'var(--success)' }
                 }
               >
                 {sortBy === 'duration' && '⏱ '}+{detourMin}분

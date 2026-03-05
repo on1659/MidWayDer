@@ -14,8 +14,14 @@
   --text-disabled: #c4ccd8;
 
   /* Brand / accents */
-  --accent: #6c9cff;
+  --accent: #3274F9;          /* KakaoMap Blue */
+  --accent-light: #5B93FA;    /* Lighter Blue */
+  --accent-dark: #1E5CD9;     /* Darker Blue */
   --accent-weak: #dbeafe;
+
+  /* Status Colors */
+  --warning: #FF6B00;         /* Orange - Detour Distance */
+  --success: #4CAF50;         /* Green - Distance/Time */
 
   /* Palette */
   --blue-50: #eff6ff;
@@ -71,8 +77,14 @@
   --text-muted: #94a3b8;
   --text-disabled: #475569;
 
-  --accent: #7aa6ff;
+  --accent: #5B93FA;          /* KakaoMap Blue (Dark mode) */
+  --accent-light: #7AA6FF;
+  --accent-dark: #3274F9;
   --accent-weak: #1e293b;
+
+  /* Status Colors */
+  --warning: #FF8C42;         /* Orange - Detour Distance */
+  --success: #34D399;         /* Green - Distance/Time */
 
   --blue-50: #1e293b;
   --blue-100: #1f2a44;

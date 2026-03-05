@@ -182,19 +182,26 @@ export default function AddressInput({
         </div>
 
       {isOpen && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto">
+        <div
+          className="absolute top-full left-0 right-0 mt-1 border rounded-xl shadow-lg overflow-hidden z-50 max-h-[260px] overflow-y-auto"
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            borderColor: 'var(--border-soft)'
+          }}
+        >
           {results.map((result, i) => (
             <button
               key={`${result.lat}-${result.lng}-${i}`}
               onClick={() => handleSelect(result)}
               className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${
-                i === activeIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
-              } ${i > 0 ? 'border-t border-gray-50' : ''}`}
+                i === activeIndex ? 'bg-[#F3F4F6]' : 'hover:bg-[#F3F4F6]'
+              } ${i > 0 ? 'border-t' : ''}`}
+              style={{ borderColor: 'var(--border-soft)' }}
             >
-              <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: 'var(--accent)' }} />
+              <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#9CA3AF' }} />
               <div className="min-w-0 flex-1">
-                <p className="text-[16px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>{result.name}</p>
-                <p className="text-[13px] truncate mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-base font-semibold truncate" style={{ color: '#000000' }}>{result.name}</p>
+                <p className="text-sm truncate mt-0.5" style={{ color: '#6B7280' }}>
                   {result.address}
                   {result.category && (
                     <span className="ml-1.5">· {result.category}</span>

@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-03-05
+
+### Changed
+- **UI/UX: 카카오맵 스타일 개선**
+  - 컬러 팔레트 변경 (파란색 #3274F9 기반)
+  - 검색창 둥근 모서리 + 그림자 효과
+  - 자동완성 리스트 스타일 (아이콘 + 계층형 텍스트)
+  - 결과 카드 디자인 (파란색 매장명, 회색 주소, 초록색 배지)
+  - 숫자 마커 (1, 2, 3...)
+  - 파란색 경로 선
+  - 드래그 핸들 색상 개선
+
+### Added
+- 타이포그래피 CSS 변수 추가
+- 맥동 애니메이션 (현재 위치 마커)
+
+### Fixed
+- 다크모드 색상 일관성 개선
+
 ## [0.10.0] - 2026-03-05
 
 ### Added
