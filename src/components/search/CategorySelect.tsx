@@ -93,6 +93,8 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
             <button
               key={query}
               onClick={() => onChange(query)}
+              aria-label={name}
+              aria-pressed={isSelected}
               className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
                 transition-all active:scale-95 shrink-0 text-base font-semibold"
               style={{
@@ -114,6 +116,8 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
             <button
               key={`custom-${cat}`}
               onClick={() => onChange(cat)}
+              aria-label={`${cat}, 최근 사용`}
+              aria-pressed={isSelected}
               className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
                 transition-all active:scale-95 shrink-0 text-base font-semibold"
               style={{
@@ -131,6 +135,7 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
         <button
           onClick={() => setIsInputMode(true)}
           data-testid="custom-category-toggle"
+          aria-label="직접 입력"
           className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
             transition-all active:scale-95 shrink-0 text-base font-semibold"
           style={{

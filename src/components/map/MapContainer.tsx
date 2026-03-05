@@ -222,7 +222,7 @@ export default function MapContainer({
 
   if (mapProvider === 'naver') {
     return (
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
         {providerToggle}
         <NaverMap
           center={center}
@@ -250,7 +250,7 @@ export default function MapContainer({
 
   // 기본값: Kakao Maps
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
       {providerToggle}
       <div className="absolute top-4 right-4 z-10 bg-white/95 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-700">
         <div className="flex items-center gap-2">

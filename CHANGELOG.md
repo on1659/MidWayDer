@@ -5,20 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
-## [0.17.1] - 2026-03-06
+## [0.19.0] - 2026-03-06
+
+### Changed
+- **단일 선택 UX 개선**: MultiStopSelector에서 기본적으로 하나의 경유지만 선택하도록 UX 변경
+  - 첫 번째 선택 후 나머지 체크박스 자동 비활성화
+  - "다른 경유지 추가하기" 버튼으로 다중 선택 모드 진입
+  - 다중 선택 모드에서 안내 문구 및 경고 표시
+  - "완료" 버튼으로 단일 선택 완료 가능
 
 ### Fixed
-- **린트 경고 수정**
-  - AddressInput.tsx: 미사용 `Search` import 제거
-  - ResultList.tsx: 불필요한 `eslint-disable` 주석 제거
+- 기존 사용자 혼란 방지를 위한 가이드 문구 추가
+- 선택 초기화 시 단일 선택 모드로 자동 복귀
 
-### Code Quality
-- 린트 0 errors, 0 warnings 달성
-- 코드 정리로 유지보수성 향상
+### Technical
+- MultiStopSelector 컴포넌트 리팩토링 (allowMultiSelect 상태 추가)
+- handleToggle 로직 개선 (단일 선택 모드 지원)
+- 유닛 테스트 10개 추가 (모두 통과)
 
 ### Test Results
-- 660개 테스트 모두 통과 ✅
-- 빌드 성공 ✅
+- 670개 테스트 모두 통과 (660 + 10)
+- 빌드 성공
+- 모든 기존 테스트 통과
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Phase 1: Planning → Phase 2: Implementation Document → Phase 3: Coding
+
+## [0.18.0] - 2026-03-06
+
+### Added
+- **접근성 향상**
+  - CategorySelect: aria-label, aria-pressed 속성 추가
+  - ResultCard: aria-describedby로 부가 정보 연결
+  - MapContainer: aria-label, role="application" 추가
+
+### Accessibility Improvements
+- WCAG 2.1 AA 준수도 향상
+- 스크린 리더 호환성 개선
+
+### Test Results
+- 663개 테스트 모두 통과 (660 + 3)
+- 모든 기존 테스트 통과
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- 접근성 테스트 3개 추가 (CategorySelect, ResultList, MapContainer)
+
+## [0.17.1] - 2026-03-06
 
 ## [0.17.0] - 2026-03-06
 

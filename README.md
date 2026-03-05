@@ -55,6 +55,13 @@ MidWayDer의 해결책:
 ## 기술 스택
 
 ### Frontend
+
+- **Next.js 14+** - App Router, React Server Components
+- **TypeScript** - 타입 안전성
+- **Tailwind CSS** - 유틸리티 기반 스타일링
+- **Zustand** - 경량 상태 관리
+- **Lucide React** - 아이콘
+- **접근성** - WCAG 2.1 AA 준수 (ARIA 속성, 스크린 리더 지원)
 - **Next.js 14+** - App Router, React Server Components
 - **TypeScript** - 타입 안전성
 - **Tailwind CSS** - 유틸리티 기반 스타일링

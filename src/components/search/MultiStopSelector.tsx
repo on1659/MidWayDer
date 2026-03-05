@@ -35,12 +35,17 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [result, setResult] = useState<OptimizeResult | null>(null);
+  const [allowMultiSelect, setAllowMultiSelect] = useState(false);
 
   const handleToggle = (id: string) => {
     const newSelected = new Set(selected);
     if (newSelected.has(id)) {
       newSelected.delete(id);
     } else {
+      // 단일 선택 모드에서 이미 1개 선택됨 → 추가 선택 불가
+      if (!allowMultiSelect && newSelected.size >= 1) {
+        return;
+      }
       if (newSelected.size >= 5) {
         alert('경유지는 최대 5개까지 선택 가능합니다.');
         return;
@@ -92,6 +97,7 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
   const handleClear = () => {
     setSelected(new Set());
     setResult(null);
+    setAllowMultiSelect(false); // 단일 선택 모드로 복귀
   };
 
   // 결과 순서에 맞게 정렬된 waypoint 목록
@@ -116,6 +122,65 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
         여러 곳을 들러야 하나요? 2~5개 선택 후 최적 순서를 찾아드려요 🚗
       </p>
 
+      {/* 단일 선택 안내 (1개 선택 시) */}
+      {selected.size === 1 && !allowMultiSelect && (
+        <div className="mb-3 p-3 rounded-xl" style={{ background: 'var(--bg-surface-muted)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium" style={{ color: 'var(--text-strong)' }}>
+              ✓ 선택됨
+            </span>
+          </div>
+          
+          <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
+            💡 하나만 선택하면 더 효율적인 경로를 얻을 수 있습니다
+          </p>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => onOptimize?.(Array.from(selected))}
+              className="flex-1 px-4 py-2.5 rounded-xl text-white font-bold transition-all active:scale-[0.98]"
+              style={{ background: 'var(--accent)' }}
+            >
+              완료
+            </button>
+            <button
+              onClick={() => setAllowMultiSelect(true)}
+              className="px-4 py-2.5 rounded-xl font-medium transition-colors"
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-soft)' }}
+            >
+              다른 경유지 추가하기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 다중 선택 모드 안내 */}
+      {allowMultiSelect && selected.size >= 1 && (
+        <div className="mb-3 p-3 rounded-xl" style={{ background: 'var(--orange-50)', border: '1px solid var(--orange-200)' }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium" style={{ color: 'var(--orange-900)' }}>
+              선택됨 ({selected.size})
+            </span>
+            <button
+              onClick={() => {
+                setSelected(new Set());
+                setAllowMultiSelect(false);
+              }}
+              className="text-xs px-3 py-1 rounded-lg"
+              style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}
+            >
+              초기화
+            </button>
+          </div>
+          
+          {selected.size >= 2 && (
+            <p className="text-xs" style={{ color: 'var(--orange-700)' }}>
+              ⚠️ 여러 경유지 선택 시 더 복잡한 경로가 됩니다
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Selection List */}
       <div className="space-y-2 mb-3">
         {waypoints.slice(0, 10).map((wp) => (
@@ -133,6 +198,7 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
               type="checkbox"
               checked={selected.has(wp.id)}
               onChange={() => handleToggle(wp.id)}
+              disabled={!allowMultiSelect && selected.size >= 1 && !selected.has(wp.id)}
               className="w-5 h-5 rounded accent-blue-600"
             />
             <div className="flex-1 min-w-0">
@@ -163,25 +229,29 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
             선택 초기화
           </button>
         )}
-        <button
-          onClick={handleOptimize}
-          disabled={selected.size < 2 || isOptimizing}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold transition-all
-                     active:scale-[0.98] disabled:bg-gray-300 disabled:cursor-not-allowed"
-          style={{ background: selected.size >= 2 && !isOptimizing ? 'var(--accent)' : undefined }}
-        >
-          {isOptimizing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              최적화 중...
-            </>
-          ) : (
-            <>
-              <MapPin className="w-4 h-4" />
-              경로 최적화
-            </>
-          )}
-        </button>
+        
+        {/* 다중 선택 모드에서만 최적화 버튼 표시 */}
+        {allowMultiSelect && (
+          <button
+            onClick={handleOptimize}
+            disabled={selected.size < 2 || isOptimizing}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold transition-all
+                       active:scale-[0.98] disabled:bg-gray-300 disabled:cursor-not-allowed"
+            style={{ background: selected.size >= 2 && !isOptimizing ? 'var(--accent)' : undefined }}
+          >
+            {isOptimizing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                최적화 중...
+              </>
+            ) : (
+              <>
+                <MapPin className="w-4 h-4" />
+                경로 최적화
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Optimization Result */}

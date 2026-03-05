@@ -97,7 +97,15 @@ export const ResultCard = React.memo(function ResultCard({
       role="listitem"
       aria-setsize={-1}
       aria-posinset={index + 1}
+      aria-describedby={`result-desc-${result.place.id}`}
     >
+      {/* 스크린 리더용 부가 정보 */}
+      <span
+        id={`result-desc-${result.place.id}`}
+        className="sr-only"
+      >
+        {result.place.name}, 이탈 {detourKm}km {detourMin}분
+      </span>
       {/* 이탈비용 컬러 스트라이프 */}
       <div
         className="absolute left-0 top-0 bottom-0 z-[1] rounded-l-2xl pointer-events-none"
