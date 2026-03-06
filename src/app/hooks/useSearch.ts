@@ -6,6 +6,7 @@ import { useSearchStore } from '@/store/search-store';
 import { useToast } from '@/hooks/useToast';
 import { addRecentSearch, getRecentSearches, type RecentSearch } from '@/lib/recent-searches';
 import { saveSessionResults, loadSessionResults } from '@/lib/cache/session-results';
+import { startTimer } from '@/lib/monitoring/performance';
 
 type BottomSheetSnap = 'collapsed' | 'half' | 'full';
 
@@ -97,7 +98,11 @@ export function useSearch({
   }, [results, isLoading, showToast]);
 
   const handleSearch = useCallback(async () => {
-    if (!start?.address || !end?.address) return;
+    const endTimer = startTimer('search_duration');
+    if (!start?.address || !end?.address) {
+      endTimer();
+      return;
+    }
     addRecentSearch({
       startAddress: start.address,
       endAddress: end.address,
@@ -110,8 +115,12 @@ export function useSearch({
     selectWaypoint(null);
     setOriginalRoute(null);
     if (savedScrollRef.current !== undefined) savedScrollRef.current = 0;
-    await search({ address: start.address }, { address: end.address }, category);
-    setBottomSheetSnap('half');
+    try {
+      await search({ address: start.address }, { address: end.address }, category);
+      setBottomSheetSnap('half');
+    } finally {
+      endTimer();
+    }
   }, [start, end, category, clearResults, selectWaypoint, setOriginalRoute, search, setBottomSheetSnap, setRecentSearches, savedScrollRef]);
 
   const handleInstantSearch = useCallback(async (item: RecentSearch) => {

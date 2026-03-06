@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
+## [0.24.0] - 2026-03-06
+
+### Error Resilience & Performance Monitoring
+- **Error Boundaries**: Graceful error handling and app
+  - Created ErrorBoundary component for React error catching
+  - Created Next.js error.tsx for root error handling
+  - Wrapped app root with error boundary
+  - Wrapped map component with error boundary
+  - User-friendly error messages with retry options
+
+- **Performance Monitoring**: Real-time performance tracking
+  - Created performance monitoring utilities (src/lib/monitoring/performance.ts)
+  - Web Vitals collection (LCP, FID, CLS, TTFB, INP)
+  - Custom metrics for search and API timing
+  - Development-only console logging
+  - Automatic Sentry integration (when available)
+
+### Technical Details
+- Created src/components/ui/ErrorBoundary.tsx (new)
+- Created src/app/error.tsx (new)
+- Created src/lib/monitoring/performance.ts (new)
+- Updated src/app/layout.tsx (error boundary, web vitals export)
+- Updated src/app/hooks/useSearch.ts (performance tracking)
+- Updated src/lib/map-provider/naver/client.ts (API timing)
+
+- Added startTimer utility for timing measurements
+- Added response interceptors for API duration tracking
+
+### Test Results
+- All 672 tests passing ✅
+- Zero type errors ✅
+- Zero lint errors ✅
+- Build successful ✅
+
+### Developer Experience
+- Better error visibility in development
+- Performance metrics in console
+- Graceful error recovery
+
+### Migration
+- **No user action required**
+- Automatic error handling improvements
+- No API changes
+
+- No breaking changes
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (Error Resilience & Performance Monitoring)
+- Progressive enhancement approach
+- Next focus: Code quality improvements or feature enhancements
+
 ## [0.23.0] - 2026-03-06
 
 ### UX/UI Improvements

@@ -6,6 +6,7 @@
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { logger } from '@/lib/logger';
+import { startTimer } from '@/lib/monitoring/performance';
 
 // ========================
 // 상수
@@ -43,8 +44,36 @@ export const naverMapsClient: AxiosInstance = axios.create({
 naverMapsClient.interceptors.request.use((config) => {
   config.headers['X-NCP-APIGW-API-KEY-ID'] = process.env.NAVER_MAPS_CLIENT_ID || '';
   config.headers['X-NCP-APIGW-API-KEY'] = process.env.NAVER_MAPS_CLIENT_SECRET || '';
+
+  // Performance tracking: start timer
+  (config as any)._timerStart = Date.now();
+
   return config;
 });
+
+// Response timing interceptor
+naverMapsClient.interceptors.response.use(
+  (response) => {
+    // Performance tracking: record API duration
+    const startTime = (response.config as any)?._timerStart;
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      const endpoint = response.config.url?.split('?')[0]?.replace('/map-', '') || 'unknown';
+      startTimer(`api_naver_${endpoint}`)();
+    }
+    return response;
+  },
+  (error) => {
+    // Performance tracking: record failed API duration
+    const startTime = (error.config as any)?._timerStart;
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      const endpoint = error.config?.url?.split('?')[0]?.replace('/map-', '') || 'unknown';
+      startTimer(`api_naver_${endpoint}_failed`)();
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ========================
 // Retry 인터셉터

@@ -1,31 +1,47 @@
 'use client';
 
 import { useEffect } from 'react';
-import { logger } from '@/lib/logger';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
-interface ErrorProps {
+/**
+ * Next.js Root Error Boundary
+ * 앱 전체에서 포착되지 않은 에러를 처리
+ */
+export default function Error({
+  error,
+  reset,
+}: {
   error: Error & { digest?: string };
   reset: () => void;
-}
-
-export default function Error({ error, reset }: ErrorProps) {
+}) {
   useEffect(() => {
-    logger.error('[App Error]', error);
+    // Log the error to console (Sentry would capture this in production)
+    console.error('[App Error]', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="text-center max-w-sm">
-        <p className="text-4xl mb-4">⚠️</p>
-        <h2 className="text-lg font-bold mb-2">문제가 발생했어요</h2>
-        <p className="text-sm text-gray-500 mb-6">
-          일시적인 오류입니다. 다시 시도해 주세요.
-        </p>
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+      <AlertTriangle className="w-16 h-16 text-red-500 mb-6" />
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+        문제가 발생했어요
+      </h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
+        예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+      </p>
+      <div className="flex gap-4">
         <button
           onClick={reset}
-          className="px-6 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium"
+          className="flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
         >
+          <RefreshCw className="w-5 h-5" />
           다시 시도
+        </button>
+        <button
+          onClick={() => (window.location.href = '/')}
+          className="flex items-center gap-2 px-6 py-3 text-base font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700"
+        >
+          <Home className="w-5 h-5" />
+          홈으로
         </button>
       </div>
     </div>

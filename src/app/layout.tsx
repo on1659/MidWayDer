@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import './globals.css';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+// Re-export reportWebVitals for Next.js automatic collection
+export { reportWebVitals } from '@/lib/monitoring/performance';
 
 export const metadata: Metadata = {
   title: 'MidWayDer - 가는 길 중간에 필요한 곳을 더하다',
@@ -43,7 +47,11 @@ export default function RootLayout({
   } catch {}
 })();`}</Script>
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+      </body>
     </html>
   );
 }
