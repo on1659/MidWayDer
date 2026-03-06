@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-03-07
+
+### E2E Test Coverage Expansion
+- **search-flow.spec.ts**: 경로 검색 플로우 테스트 (URL 파라미터, 자동 검색, 결과 확인)
+- **waypoint-selection.spec.ts**: 경유지 선택 테스트 (결과 클릭, 상세 정보 확인)
+- **multi-route.spec.ts**: 다중 경로 테스트 (최단거리/최단시간 탭)
+- **autocomplete.spec.ts**: 자동완성 테스트 (입력 필드, 모바일 오버레이)
+- **offline.spec.ts**: 오프라인 모드 테스트 (Service Worker, 네트워크 차단)
+
+### Technical Details
+- E2E 테스트 5개 신규 추가 (기존 3개 → 총 8개)
+- Mock API 패턴 활용 (`page.route()`)
+- URL 파라미터 기반 테스트 시나리오
+- 데스크톱/모바일 분기 테스트
+
+### Test Results
+- ✅ 712 unit tests passing
+- ✅ 8 E2E test files
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (테스트 추가만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.33.0] - 2026-03-07
 
 ### Dependencies
