@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
+## [0.21.2] - 2026-03-06
+
+### Changed
+- **Dependencies Updated**: Safe patch/minor version updates
+  - Prisma: 7.3.0 → 7.4.2
+  - React: 19.2.3 → 19.2.4
+  - React DOM: 19.2.3 → 19.2.4
+  - Zustand: 5.0.10 → 5.0.11
+  - Tailwind CSS: 4.1.18 → 4.2.1
+  - @tailwindcss/postcss: 4.1.18 → 4.2.1
+  - @types/node: 20.19.30 → 20.19.37
+  - @types/react: 19.2.10 → 19.2.14
+  - @types/pg: 8.16.0 → 8.18.0
+  - pg: 8.17.2 → 8.20.0
+  - dotenv: 17.2.3 → 17.3.1
+  - ESLint: 9.39.2 → 9.39.3 (patch, NOT 10.x)
+  - lucide-react: 0.563.0 → 0.577.0
+
+### Technical Details
+- 70 packages changed, 12 added, 8 removed
+- All 672 tests passing
+- Zero type errors
+- Zero lint errors
+- Build verified successfully
+- Prisma client regenerated (v7.4.2)
+
+### Migration
+- **No user action required**
+- Automatic dependency update via `npm update`
+
+### Notes
+- Major version updates skipped (ESLint 10, @types/node 25)
+- Production deployment via Railway automatic
+
 ## [0.21.1] - 2026-03-06
 
 ### Added
