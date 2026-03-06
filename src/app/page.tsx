@@ -19,6 +19,7 @@ import SortFilter from '@/components/search/SortFilter';
 import MultiStopSelector from '@/components/search/MultiStopSelector';
 import DesktopSidePanel from '@/components/search/DesktopSidePanel';
 import BottomQuickBar from '@/components/search/BottomQuickBar';
+import { ResultListSkeleton } from '@/components/ui/Skeleton';
 
 const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
   loading: () => (
@@ -33,17 +34,7 @@ const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
 });
 
 const ResultList = dynamic(() => import('@/components/search/ResultList'), {
-  loading: () => (
-    <div className="animate-pulse space-y-3 p-4">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          className="h-32 rounded-lg"
-          style={{ background: 'var(--bg-surface-muted)' }}
-        />
-      ))}
-    </div>
-  ),
+  loading: () => <ResultListSkeleton count={5} />,
   ssr: false,
 });
 

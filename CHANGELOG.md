@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-03-07
+
+### UX Improvements
+- **검색 로딩 UX 개선**: 단계별 로딩 메시지 표시
+  - "경로 분석 중..." → "주변 매장 검색 중..." → "최적 경유지 계산 중..."
+  - 시간 기반 단계 추정 (0~1초, 1~3초, 3초+)
+- **스켈레톤 UI 개선**: ResultCardSkeleton에 shimmer 효과 추가
+  - 실제 결과 카드와 유사한 스켈레톤 디자인
+  - animate-shimmer 효과로 로딩 애니메이션 개선
+
+### Technical Details
+- `search-store.ts`: searchPhase 상태 추가 ('idle' | 'route' | 'places' | 'detour')
+- `Skeleton.tsx`: ResultCardSkeleton에 shimmer 효과 적용
+- `page.tsx`: ResultList loading 컴포넌트를 ResultListSkeleton으로 변경
+- `SearchOverlay.tsx`: 단계별 로딩 메시지 표시
+- `ResultListSkeleton.tsx`: 중복 파일 삭제 (ui/Skeleton.tsx로 통합)
+
+### Test Results
+- ✅ 712 unit tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (UX 개선만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.35.0] - 2026-03-07
 
 ### Fixed

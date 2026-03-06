@@ -13,6 +13,7 @@ import { getSavedLocationByLabel } from '@/lib/smart-location';
 import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice-search';
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
+import { useSearchStore } from '@/store/search-store';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -66,6 +67,14 @@ export default function SearchOverlay({
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState<string>('');
+
+  // 검색 진행 단계 (v0.36.0)
+  const searchPhase = useSearchStore((state) => state.searchPhase);
+  const phaseMessages: Record<string, string> = {
+    route: '경로 분석 중...',
+    places: '주변 매장 검색 중...',
+    detour: '최적 경유지 계산 중...',
+  };
 
   useEffect(() => {
     if (open) {
@@ -509,7 +518,7 @@ export default function SearchOverlay({
               aria-label="검색 진행 중"
             >
               <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-              <span>경로 분석 중...</span>
+              <span>{phaseMessages[searchPhase] || '검색 중...'}</span>
             </div>
             {onCancel && (
               <button

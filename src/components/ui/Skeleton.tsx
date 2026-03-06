@@ -25,9 +25,12 @@ export function Skeleton({ width = 'w-full', height = 'h-4', className = '' }: S
 export function ResultCardSkeleton() {
   return (
     <div
-      className="p-5 md:p-4 rounded-2xl animate-pulse"
+      className="p-5 md:p-4 rounded-2xl overflow-hidden relative"
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
     >
+      {/* Shimmer effect (v0.36.0) */}
+      <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      
       {/* 매장명 스켈레톤 */}
       <div className="flex items-start gap-3">
         <Skeleton width="w-11" height="h-11" className="rounded-full flex-shrink-0" />

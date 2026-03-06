@@ -39,6 +39,10 @@ interface SearchState {
   /** 다중 선택 허용 여부 */
   allowMultiSelect: boolean;
 
+  // === 검색 진행 상태 (v0.36.0) ===
+  /** 검색 단계 (로딩 메시지용) */
+  searchPhase: 'idle' | 'route' | 'places' | 'detour';
+
   // Actions
   /** 카테고리 변경 */
   setCategory: (category: string) => void;
@@ -75,6 +79,9 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   selectedPlaces: new Set(),
   allowMultiSelect: false,
 
+  // 검색 진행 상태 초기값
+  searchPhase: 'idle',
+
   setCategory: (category) => set({ category }),
 
   search: async (start, end, category, extraOptions) => {
@@ -86,6 +93,22 @@ export const useSearchStore = create<SearchState>((set, get) => ({
 
     // 새 AbortController 생성
     const controller = new AbortController();
+    
+    // 검색 시작 시간 (단계별 메시지용)
+    const searchStartTime = Date.now();
+    
+    // 단계별 메시지 업데이트 interval
+    const phaseInterval = setInterval(() => {
+      const elapsed = Date.now() - searchStartTime;
+      if (elapsed < 1000) {
+        set({ searchPhase: 'route' });
+      } else if (elapsed < 3000) {
+        set({ searchPhase: 'places' });
+      } else {
+        set({ searchPhase: 'detour' });
+      }
+    }, 500);
+    
     set({ 
       isLoading: true, 
       error: null, 
@@ -95,6 +118,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       hasSearched: true, 
       isCached: false,
       abortController: controller,
+      searchPhase: 'route',
     });
 
     // 좌표 추출
@@ -107,6 +131,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
 
     if (cached) {
       logger.debug('✅ Cache HIT:', routeHash, category);
+      clearInterval(phaseInterval);
       set({
         results: cached.data.results,
         totalCandidates: cached.data.totalCandidates,
@@ -115,6 +140,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         hasSearched: true,
         isCached: true,
         abortController: null,
+        searchPhase: 'idle',
       });
       return;
     }
@@ -149,11 +175,13 @@ export const useSearchStore = create<SearchState>((set, get) => ({
 
       if (!data.success) {
         const friendlyError = getAPIErrorMessage(response.status, data.error.message);
+        clearInterval(phaseInterval);
         set({
           error: friendlyError,
           isLoading: false,
           isCached: false,
           abortController: null,
+          searchPhase: 'idle',
         });
         return;
       }
@@ -162,6 +190,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       setCachedSearch(routeHash, category, data);
 
       // 3. 상태 업데이트
+      clearInterval(phaseInterval);
       set({
         results: data.data.results,
         totalCandidates: data.data.totalCandidates,
@@ -170,6 +199,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         error: null,
         isCached: false,
         abortController: null,
+        searchPhase: 'idle',
       });
     } catch (error) {
       let errorMessage: string;
@@ -177,10 +207,12 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           // 취소 시 에러 메시지 표시하지 않음
+          clearInterval(phaseInterval);
           set({
             isLoading: false,
             isCached: false,
             abortController: null,
+            searchPhase: 'idle',
           });
           return;
         } else if (error.message.includes('fetch')) {
@@ -192,11 +224,13 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         errorMessage = getAPIErrorMessage();
       }
       
+      clearInterval(phaseInterval);
       set({
         error: errorMessage,
         isLoading: false,
         isCached: false,
         abortController: null,
+        searchPhase: 'idle',
       });
     }
   },
