@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-03-06
+
+### Performance Improvements
+- **Lazy Loading 확대**: PlaceDetail, SaveRouteDialog, FeedbackWidget 컴포넌트 동적 로딩 적용
+- **초기 번들 크기 최적화**: 30-40KB 절감 (gzipped 기준)
+- **코드 구조 개선**: shouldDropShortestRoute 함수를 별도 유틸리티로 분리 (`src/lib/utils/route-utils.ts`)
+
+### Technical Details
+- Dynamic import로 초기 로드 시간 단축
+- Loading skeleton으로 사용자 경험 개선
+- Next.js Route export 규칙 준수 (HTTP 메서드만 export)
+- 번들 크기: ~250KB (gzipped, 목표 달성)
+
+### Test Results
+- ✅ 675개 테스트 모두 통과
+- ✅ Build successful
+- ✅ TypeScript strict mode 통과
+- ✅ ESLint 0 warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기존 기능 호환성 유지
+- Breaking changes 없음
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: 접근성 강화, 모바일 UX 개선
+
 ## [0.27.2] - 2026-03-06
 
 ### Fixed

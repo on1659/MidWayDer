@@ -34,14 +34,7 @@ import { loadSearchCache, saveSearchCache } from '@/lib/cache/search-cache';
 import { captureException } from '@/lib/monitoring';
 import { getErrorMessage } from '@/lib/error-utils';
 import { logger } from '@/lib/logger';
-
-export function shouldDropShortestRoute(
-  shortest: { route: { duration: number } },
-  fastest: { route: { duration: number } }
-): boolean {
-  if (fastest.route.duration === 0) return false; // 0 나누기 방지
-  return shortest.route.duration / fastest.route.duration >= 1.35;
-}
+import { shouldDropShortestRoute } from '@/lib/utils/route-utils';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();

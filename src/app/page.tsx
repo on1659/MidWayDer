@@ -13,15 +13,12 @@ import { Search, Share2, LocateFixed, Sun, Moon, Star, Wifi } from 'lucide-react
 import MapContainer from '@/components/map/MapContainer';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
-import PlaceDetail from '@/components/place/PlaceDetail';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
-import SaveRouteDialog from '@/components/search/SaveRouteDialog';
 import MultiStopSelector from '@/components/search/MultiStopSelector';
 import DesktopSidePanel from '@/components/search/DesktopSidePanel';
 import BottomQuickBar from '@/components/search/BottomQuickBar';
-import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 
 const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
   loading: () => (
@@ -49,6 +46,30 @@ const ResultList = dynamic(() => import('@/components/search/ResultList'), {
   ),
   ssr: false,
 });
+
+const PlaceDetail = dynamic(() => import('@/components/place/PlaceDetail'), {
+  loading: () => (
+    <div className="h-64 animate-pulse rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
+  ),
+  ssr: false,
+});
+
+const SaveRouteDialog = dynamic(() => import('@/components/search/SaveRouteDialog'), {
+  loading: () => (
+    <div className="h-96 animate-pulse rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
+  ),
+  ssr: false,
+});
+
+const FeedbackWidget = dynamic(
+  () => import('@/components/feedback/FeedbackWidget').then((mod) => ({ default: mod.FeedbackWidget })),
+  {
+    loading: () => (
+      <div className="h-12 w-12 animate-pulse rounded-full" style={{ background: 'var(--bg-surface-muted)' }} />
+    ),
+    ssr: false,
+  }
+);
 
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';

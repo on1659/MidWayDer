@@ -55,7 +55,8 @@ vi.mock('@/lib/monitoring', () => ({
 
 // ─── 실제 모듈 import (mock 이후에 위치) ─────────────────────────────────────
 
-import { POST, shouldDropShortestRoute } from '../route';
+import { POST } from '../route';
+import { shouldDropShortestRoute } from '@/lib/utils/route-utils';
 import { loadSearchCache } from '@/lib/cache/search-cache';
 import { getDirectionsProvider } from '@/lib/map-provider';
 import { calculateDetourCosts } from '@/lib/detour/calculator';
