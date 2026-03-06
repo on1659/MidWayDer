@@ -112,3 +112,18 @@ model UserPoints {
 
   @@index([sessionId])
 }
+
+model Feedback {
+  id        String   @id @default(cuid())
+  rating    Int // 1-5점
+  category  String // "bug" | "suggestion" | "praise"
+  comment   String? @db.Text
+  userId    String?
+  userAgent String?
+  url       String? // 피드백 제출한 페이지 URL
+  metadata  Json? // 추가 메타데이터 (검색어, 경로 등)
+  createdAt DateTime @default(now())
+
+  @@index([category, createdAt])
+  @@index([rating, createdAt])
+}

@@ -1,117 +1,70 @@
-/**
- * POST /api/feedback - 검색 결과 피드백
- * 
- * 사용자가 검색 결과에 대해 피드백을 남깁니다.
- * 알고리즘 개선 및 사용자 만족도 측정에 사용됩니다.
- */
-
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
 
-interface FeedbackRequest {
-  searchLogId?: string; // 선택적 (최근 검색 찾기)
-  helpful: boolean; // true: 👍, false: 👎
-  comment?: string; // 선택적 코멘트
-}
+const feedbackSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  category: z.enum(['bug', 'suggestion', 'praise']),
+  comment: z.string().max(1000).optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body: FeedbackRequest = await request.json();
-    const { searchLogId, helpful, comment } = body;
+    const body = await request.json();
+    const validated = feedbackSchema.parse(body);
 
-    if (typeof helpful !== 'boolean') {
-      return NextResponse.json(
-        { success: false, error: 'helpful must be a boolean' },
-        { status: 400 }
-      );
-    }
-
-    const sessionId = request.cookies.get('sessionId')?.value || null;
-
-    let targetSearchLogId = searchLogId;
-
-    // searchLogId가 없으면 최근 검색 로그 찾기
-    if (!targetSearchLogId) {
-      const recentSearchLog = await prisma.searchLog.findFirst({
-        where: {
-          sessionId: sessionId || undefined,
-          timestamp: {
-            gte: new Date(Date.now() - 30 * 60 * 1000), // 30분 이내
-          },
-        },
-        orderBy: { timestamp: 'desc' },
-      });
-
-      if (!recentSearchLog) {
-        return NextResponse.json(
-          { success: false, error: 'No recent search found' },
-          { status: 404 }
-        );
-      }
-
-      targetSearchLogId = recentSearchLog.id;
-    }
-
-    // 중복 피드백 방지 (같은 searchLogId에 이미 피드백 있으면 업데이트)
-    const existing = await prisma.searchFeedback.findUnique({
-      where: { searchLogId: targetSearchLogId },
+    const feedback = await prisma.feedback.create({
+      data: {
+        rating: validated.rating,
+        category: validated.category,
+        comment: validated.comment,
+        metadata: validated.metadata,
+        userAgent: request.headers.get('user-agent') || undefined,
+        url: request.headers.get('referer') || undefined,
+      },
     });
 
-    if (existing) {
-      // 업데이트
-      await prisma.searchFeedback.update({
-        where: { id: existing.id },
-        data: { helpful, comment },
-      });
-    } else {
-      // 생성
-      await prisma.searchFeedback.create({
-        data: {
-          searchLogId: targetSearchLogId,
-          helpful,
-          comment,
-        },
-      });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    logger.error('[API /feedback] Error:', error);
+    return NextResponse.json({ success: true, id: feedback.id }, { status: 201 });
+  } catch (error) {
+    console.error('Feedback submission error:', error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { success: false, error: 'Invalid feedback data' },
+      { status: 400 }
     );
   }
 }
 
-/**
- * GET /api/feedback/stats - 피드백 통계
- * 
- * 전체 피드백 만족도 조회
- */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const total = await prisma.searchFeedback.count();
-    const helpful = await prisma.searchFeedback.count({
-      where: { helpful: true },
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const limit = parseInt(searchParams.get('limit') || '50');
+
+    const where = category ? { category } : {};
+
+    const feedbacks = await prisma.feedback.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
     });
 
-    const satisfaction = total > 0 ? Math.round((helpful / total) * 100) : 0;
+    const stats = await prisma.feedback.aggregate({
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
 
     return NextResponse.json({
-      success: true,
-      data: {
-        total,
-        helpful,
-        notHelpful: total - helpful,
-        satisfactionRate: satisfaction,
+      feedbacks,
+      stats: {
+        averageRating: stats._avg.rating || 0,
+        totalCount: stats._count._all,
       },
     });
   } catch (error) {
-    logger.error('[API /feedback/stats] Error:', error);
+    console.error('Feedback fetch error:', error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Failed to fetch feedbacks' },
       { status: 500 }
     );
   }

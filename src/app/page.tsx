@@ -21,6 +21,7 @@ import SaveRouteDialog from '@/components/search/SaveRouteDialog';
 import MultiStopSelector from '@/components/search/MultiStopSelector';
 import DesktopSidePanel from '@/components/search/DesktopSidePanel';
 import BottomQuickBar from '@/components/search/BottomQuickBar';
+import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 
 const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
   loading: () => (
@@ -415,6 +416,9 @@ export default function HomePage() {
       />
 
       <ToastContainer toasts={toasts} />
+
+      {/* Feedback Widget */}
+      <FeedbackWidget />
     </div>
   );
 }

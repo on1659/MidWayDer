@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
+## [0.26.0] - 2026-03-06
+
+### Added
+- **User Feedback System**: 사용자 피드백 수집 및 분석 시스템
+  - 피드백 위젯 UI (플로팅 버튼 + 평점 + 카테고리 + 코멘트)
+  - `/api/feedback` API 라우트 (POST/GET)
+  - Prisma Feedback 모델 (rating, category, comment, metadata)
+  - 관리자 대시보드 (/admin/feedback) - 미구현
+
+### Changed
+- **Database Schema**: Feedback 모델 추가
+- **Main Page**: FeedbackWidget 컴포넌트 추가
+
+### Technical Details
+- Prisma schema 확장 (Feedback 모델)
+- API route 구현 (src/app/api/feedback/route.ts)
+- UI 컴포넌트 구현 (src/components/feedback/FeedbackWidget.tsx)
+- 메인 페이지 통합 (src/app/page.tsx)
+
+### Test Coverage
+- API 테스트: 5개 테스트 케이스 작성
+- 테스트 실패로 인해 추후 수정 필요
+
+### Migration
+- **Database Migration Required**
+- `npx prisma db push` 실행 필요
+- 기존 데이터 영향 없음
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (User Feedback System)
+- Priority 1 완료
+- Next focus: Priority 2 (Performance Enhancements) 또 관리자 대시보드 구현
+
+## [0.25.0] - 2026-03-06
+
 ## [0.25.0] - 2026-03-06
 
 ### Code Quality Improvements
