@@ -140,7 +140,17 @@ export default function AddressInput({
 
   return (
     <div className="relative" ref={containerRef}>
-      {label && <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>{label}</label>}
+      {label && (
+        <label htmlFor={testId} className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+          {label}
+        </label>
+      )}
+      
+      {/* Screen reader hint */}
+      <span id={hintId} className="sr-only">
+        {placeholder} 입력 후 자동완성 결과가 표시됩니다
+      </span>
+
       <div className="relative flex items-center">
         {dotColor && (
           <div className="w-4 h-4 rounded-full shrink-0 mr-3" style={{ background: dotColor }} />
@@ -155,7 +165,12 @@ export default function AddressInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
+          role="combobox"
           aria-label={label || placeholder}
+          aria-describedby={hintId}
+          aria-autocomplete="list"
+          aria-expanded={isOpen}
+          aria-activedescendant={activeIndex >= 0 ? `result-${activeIndex}` : undefined}
           className="w-full px-4 py-3.5 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
           style={{
             background: 'var(--bg-surface-muted)',
@@ -202,6 +217,8 @@ export default function AddressInput({
       {isOpen && results.length > 0 && (
         <div
           className="absolute top-full left-0 right-0 mt-1 border rounded-2xl shadow-xl overflow-hidden z-50 max-h-[260px] overflow-y-auto"
+          role="listbox"
+          aria-label="검색 결과"
           style={{
             backgroundColor: 'var(--bg-surface)',
             borderColor: 'var(--border-soft)',
@@ -216,6 +233,9 @@ export default function AddressInput({
                 i === activeIndex ? 'bg-[#F3F4F6]' : 'hover:bg-[#F3F4F6]'
               } ${i > 0 ? 'border-t' : ''}`}
               style={{ borderColor: 'var(--border-soft)' }}
+              role="option"
+              aria-selected={i === activeIndex}
+              id={`result-${i}`}
             >
               <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#9CA3AF' }} />
               <div className="min-w-0 flex-1">

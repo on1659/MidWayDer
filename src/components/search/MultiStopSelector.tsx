@@ -88,7 +88,7 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
       }
     } catch (err) {
       logger.error('Optimize error:', err);
-      alert('경로 최적화 중 오류가 발생했습니다.');
+        alert('경로 최적화 중 오류가 발생했습니다.');
     } finally {
       setIsOptimizing(false);
     }
@@ -106,7 +106,18 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
     : [];
 
   return (
-    <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--bg-surface)' }}>
+    <div 
+      className="mb-4 p-4 rounded-2xl" 
+      style={{ background: 'var(--bg-surface)' }}
+      role="region"
+      aria-label="멀티 경유지 선택 패널"
+    >
+      {/* Screen reader status */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {selectedCountText}. {selectionHint}
+      </div>
+
+      {/* Header */
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
