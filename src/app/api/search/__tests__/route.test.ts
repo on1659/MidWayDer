@@ -12,6 +12,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { DatabaseError } from '@/lib/errors';
+import type { IDirectionsProvider } from '@/lib/map-provider/types';
 
 // ─── Mocks (vi.mock 호이스팅 → 파일 최상단에 위치해야 함) ────────────────────
 
@@ -309,7 +310,7 @@ describe('POST /api/search - Keyword Search', () => {
     vi.mocked(loadSearchCache).mockReturnValue(null);
     vi.mocked(getDirectionsProvider).mockResolvedValue({
       getRoute: vi.fn().mockResolvedValue(MOCK_ROUTE),
-    } as any);
+    } as IDirectionsProvider);
     vi.mocked(calculateDetourCosts).mockResolvedValue({
       results: [MOCK_DETOUR_RESULT],
       totalCandidates: 10,
@@ -380,7 +381,7 @@ describe('POST /api/search - Keyword Search', () => {
     vi.mocked(loadSearchCache).mockReturnValue(null);
     vi.mocked(getDirectionsProvider).mockResolvedValue({
       getRoute: vi.fn().mockResolvedValue(MOCK_ROUTE),
-    } as any);
+    } as IDirectionsProvider);
     vi.mocked(calculateDetourCosts).mockResolvedValue({
       results: [MOCK_DETOUR_RESULT],
       totalCandidates: 10,

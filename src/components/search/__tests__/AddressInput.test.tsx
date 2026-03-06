@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import AddressInput from '../AddressInput';
 import '@testing-library/jest-dom';
 

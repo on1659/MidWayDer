@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
+## [0.21.0] - 2026-03-06
+
+### Fixed
+- 린트 warning 2개 해결 (any 타입 → 구체적 타입)
+- TypeScript strict mode 준수 강화
+- AddressInput.test.tsx에서 `afterEach` import 누락 수정
+
+### Technical Details
+- `src/app/api/search/__tests__/route.test.ts`:
+  - `as any` → `as IDirectionsProvider`로 수정 (L313, L384)
+  - 타입 안전성 개선
+- `src/components/search/__tests__/AddressInput.test.tsx`:
+  - `afterEach` import 추가
+- **0 errors, 0 warnings** 달성
+- 672개 테스트 여전히 통과
+
+### Test Results
+- **672개 테스트 모두 통과** (77 test files)
+- 타입 체크 통과 (0 errors)
+- 린트 통과 (0 errors, 0 warnings)
+- 빌드 성공
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (테스트 코드만 수정)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (코드 품질 개선)
+
 ## [0.20.0] - 2026-03-06
 
 ### Added
