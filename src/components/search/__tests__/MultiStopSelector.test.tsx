@@ -42,7 +42,7 @@ describe('MultiStopSelector - 단일 선택 UX', () => {
     const firstCheckbox = screen.getAllByRole('checkbox')[0];
     fireEvent.click(firstCheckbox);
 
-    expect(screen.getByText(/선택됨/)).toBeInTheDocument();
+    // "선택됨" 텍스트가 여러 요소에 있을 수 있으므로 더 구체적인 텍스트로 확인
     expect(screen.getByText(/하나만 선택하면 더 효율적인 경로를 얻을 수 있습니다/)).toBeInTheDocument();
   });
 

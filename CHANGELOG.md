@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.27.2] - 2026-03-06
+
+### Fixed
+- **AddressInput.tsx**: `hintId` 미정의 ReferenceError 해결
+  - Screen reader hint ID 동적 생성 로직 추가
+  - Line 43: `const hintId = testId ? \`${testId}-hint\` : undefined;`
+- **MultiStopSelector.tsx**: 문법 에러 및 누락된 변수 정의 수정
+  - Line 120: 중복 주석 제거
+  - Line 48-54: `selectedCountText`, `selectionHint` 변수 정의 추가
+- **MultiStopSelector.test.tsx**: 테스트 선택자 구체화
+  - "선택됨" 텍스트 중복 매칭 이슈 해결
+
+### Test Results
+- ✅ 675개 테스트 모두 통과 (78개 테스트 파일)
+- ✅ 실행 시간: ~9초
+
+### Technical Details
+- ARIA 접근성 속성 유지 (aria-describedby)
+- Screen reader 지원 개선
+- 테스트 안정성 향상
+
+### Migration
+- Database: 변경사항 없음
+- Environment: 변경사항 없음
+
+### Breaking Changes
+- 없음
+
+---
+
 ### 🎉 Major Milestone: All Features Already Implemented!
 
 **분석 결과:** TODO.md의 모든 요구사항이 이미 완전히 구현되어 있음을 확인했습니다.

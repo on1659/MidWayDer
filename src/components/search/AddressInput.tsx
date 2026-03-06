@@ -40,6 +40,7 @@ export default function AddressInput({
   dotColor,
   testId,
 }: AddressInputProps) {
+  const hintId = testId ? `${testId}-hint` : undefined;
   const [localValue, setLocalValue] = useState(value);
   const [results, setResults] = useState<AutocompleteResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);

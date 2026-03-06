@@ -37,6 +37,14 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
   const [result, setResult] = useState<OptimizeResult | null>(null);
   const [allowMultiSelect, setAllowMultiSelect] = useState(false);
 
+  // Screen reader text
+  const selectedCountText = selected.size === 0 ? '선택된 경유지 없음' : `경유지 ${selected.size}개 선택됨`;
+  const selectionHint = selected.size === 0 
+    ? '경유지를 선택하려면 아래 항목을 클릭하세요' 
+    : selected.size < 2 
+      ? '최적화하려면 2개 이상 선택하세요' 
+      : '경로 최적화가 가능합니다';
+
   const handleToggle = (id: string) => {
     const newSelected = new Set(selected);
     if (newSelected.has(id)) {
@@ -117,7 +125,6 @@ export default function MultiStopSelector({ start, end, waypoints, onOptimize }:
         {selectedCountText}. {selectionHint}
       </div>
 
-      {/* Header */
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
