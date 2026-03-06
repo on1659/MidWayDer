@@ -501,9 +501,14 @@ export default function SearchOverlay({
         {isLoading ? (
           /* 로딩 중: 취소 버튼 */
           <div className="space-y-3">
-            <div className="flex items-center justify-center gap-2 py-5 rounded-2xl font-bold text-lg"
-                 style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}>
-              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <div
+              className="flex items-center justify-center gap-2 py-5 rounded-2xl font-bold text-lg"
+              style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}
+              role="status"
+              aria-live="polite"
+              aria-label="검색 진행 중"
+            >
+              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
               <span>경로 분석 중...</span>
             </div>
             {onCancel && (

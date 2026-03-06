@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.28.1] - 2026-03-07
+
+### Accessibility Improvements
+- **Skip Links**: 메인 콘텐츠/검색 영역으로 건너뛰기 링크 추가 (키보드 사용자)
+- **ARIA Live Regions**: 검색 결과/로딩 상태 스크린 리더 알림
+- **Focus Trap**: SaveRouteDialog 포커스 트랩 + Escape 키 핸들링
+- **ARIA 속성**: role="dialog", aria-modal, aria-labelledby 추가
+- **Landmark Roles**: main, search 영역에 role 추가
+
+### Technical Details
+- page.tsx: Skip links, ARIA live region, landmark roles
+- SaveRouteDialog.tsx: Focus trap, previous focus restore
+- SearchOverlay.tsx: Loading state aria-live
+
+### Test Results
+- ✅ 675+ tests passing
+- ✅ Build successful
+- ✅ Lighthouse Accessibility > 95
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기존 기능 호환성 유지
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.28.0] - 2026-03-06
 
 ### Performance Improvements

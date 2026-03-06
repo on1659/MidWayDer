@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Save } from 'lucide-react';
 
 interface SaveRouteDialogProps {
@@ -22,6 +22,36 @@ export default function SaveRouteDialog({
 }: SaveRouteDialogProps) {
   const [name, setName] = useState(defaultName);
   const [routineType, setRoutineType] = useState<'morning-commute' | 'evening-commute' | 'weekend-trip' | ''>('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  // Focus trap & Escape key handling
+  useEffect(() => {
+    if (open) {
+      // 이전 포커스 저장
+      previousActiveElement.current = document.activeElement as HTMLElement;
+
+      // 다이얼로그로 포커스 이동
+      setTimeout(() => {
+        dialogRef.current?.focus();
+      }, 100);
+
+      // Escape 키 핸들링
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onClose();
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        // 이전 포커스 복원
+        previousActiveElement.current?.focus();
+      };
+    }
+  }, [open, onClose]);
 
   useEffect(() => {
     if (open) {
@@ -53,12 +83,17 @@ export default function SaveRouteDialog({
       {/* Dialog */}
       <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 animate-scale-in pointer-events-auto"
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dialog-title"
+          tabIndex={-1}
+          className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 animate-scale-in pointer-events-auto focus:outline-none"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>
+            <h3 id="dialog-title" className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>
               경로 저장
             </h3>
             <button

@@ -198,6 +198,36 @@ export default function HomePage() {
 
   return (
     <div className="h-dvh flex flex-col md:flex-row overflow-hidden" style={{ background: 'var(--bg-app)' }}>
+      {/* Skip Links (접근성) */}
+      <div className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9998] focus:flex focus:gap-2">
+        <a
+          href="#main-content"
+          className="skip-link inline-block px-4 py-2 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-white"
+          style={{ background: 'var(--accent)', color: 'white' }}
+        >
+          메인 콘텐츠로 건너뛰기
+        </a>
+        <a
+          href="#search-area"
+          className="skip-link inline-block px-4 py-2 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-white"
+          style={{ background: 'var(--accent)', color: 'white' }}
+        >
+          검색 영역으로 건너뛰기
+        </a>
+      </div>
+
+      {/* ARIA Live Region (검색 상태 알림) */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {isLoading && '경로를 검색하고 있습니다. 잠시만 기다려주세요.'}
+        {!isLoading && results.length > 0 && `${results.length}개의 경유지를 찾았습니다.`}
+        {error && `검색 실패: ${error}`}
+      </div>
+
       {/* Splash Screen */}
       {!appReady && (
         <div data-testid="splash-screen" className="fixed inset-0 z-[9999] flex flex-col items-center justify-center" style={{ background: 'var(--accent)' }}>
@@ -227,7 +257,7 @@ export default function HomePage() {
       />
 
       {/* ========== MAP ========== */}
-      <main className="flex-1 relative">
+      <main id="main-content" className="flex-1 relative" role="main">
         <MapContainer
           center={mapCenter}
           zoom={12}
@@ -318,7 +348,7 @@ export default function HomePage() {
         </div>
 
         {/* Mobile Search Overlay */}
-        <div className="md:hidden">
+        <div className="md:hidden" role="search" aria-label="경로 검색">
           <SearchOverlay
             open={searchOverlayOpen}
             onClose={() => setSearchOverlayOpen(false)}
