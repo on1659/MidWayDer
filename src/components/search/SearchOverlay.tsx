@@ -172,7 +172,7 @@ export default function SearchOverlay({
       <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button
           onClick={onClose}
-          className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
+          className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
           style={{ backgroundColor: 'var(--bg-hover)' }}
           aria-label="뒤로 가기"
         >
@@ -184,7 +184,7 @@ export default function SearchOverlay({
         <button
           onClick={handleVoiceSearch}
           disabled={isListening}
-          className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
+          className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
           style={{ 
             backgroundColor: isListening ? 'var(--accent)' : 'var(--bg-hover)',
             color: isListening ? 'white' : 'var(--text-strong)',
@@ -325,7 +325,7 @@ export default function SearchOverlay({
               <button
                 onClick={onGPS}
                 disabled={gpsLoading}
-                className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
+                className="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
                 style={{ background: 'var(--accent)', color: 'white' }}
                 title="현재 위치"
                 aria-label="현재 위치를 출발지로 설정"

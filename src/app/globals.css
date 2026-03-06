@@ -147,6 +147,12 @@ body {
   .space-y-mobile > * + * {
     margin-top: 20px;
   }
+
+  /* FAB 위치 조정 (하단 여백 증가) */
+  .fab-container,
+  button[class*="fixed"][class*="bottom"] {
+    bottom: 24px !important;
+  }
 }
 
 /* P0: 버튼 터치 피드백 */

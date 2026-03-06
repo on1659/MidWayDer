@@ -111,7 +111,7 @@ export default function BottomSheet({
     >
       {/* Drag handle */}
       <div
-        className="flex items-center justify-center h-11 cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-center h-14 cursor-grab active:cursor-grabbing"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -122,13 +122,13 @@ export default function BottomSheet({
       >
         <div
           className={`
-            w-12 h-1.5
+            w-14 h-2
             rounded-full
             mx-auto
             transition-all duration-200
             ${isDragging
               ? 'bg-blue-500 dark:bg-blue-400 scale-x-125'
-              : 'bg-gray-300 dark:bg-gray-600'}
+              : 'bg-gray-400 dark:bg-gray-600'}
           `}
         />
       </div>

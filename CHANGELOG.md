@@ -2,8 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
+
+## [0.23.0] - 2026-03-06
+
+### UX/UI Improvements
+- **Mobile UX Optimization**: Enhanced touch targets and interactions
+  - Increased button sizes: 48px → 56px (w-12 → w-14)
+  - Improved BottomSheet drag handle: 48px × 6px → 56px × 8px
+  - Enhanced drag area height: 44px → 56px
+  - Added FAB position adjustment (24px bottom spacing on mobile)
+
+- **Loading States Enhancement**: Better visual feedback during loading
+  - Added shimmer effect to ResultListSkeleton component
+  - Smooth gradient animation for loading placeholders
+  - Improved perceived performance
+
+- **Network Status Awareness**: Real-time connectivity feedback
+  - Created useNetworkStatus hook for online/offline detection
+  - Added slow connection warning (2G/slow-2g detection)
+  - Network status banners on mobile search bar
+  - Graceful error handling for connectivity issues
+
+### Technical Details
+- Enhanced SearchOverlay.tsx (mobile button sizes)
+- Enhanced BottomSheet.tsx (drag handle and area)
+- Enhanced ResultListSkeleton.tsx (shimmer animation)
+- Created useNetworkStatus.ts hook (new)
+- Updated globals.css (mobile touch targets, FAB positioning)
+- Updated page.tsx (network status integration)
+- Added shimmer animation to globals.css
+
+### Test Results
+- All 672 tests passing ✅
+- Zero type errors ✅
+- Zero lint errors ✅
+- Build successful ✅
+
+### Accessibility
+- Improved touch targets for mobile users (48x48px minimum)
+- Better visual feedback for network issues
+- Enhanced loading states with animations
+
+### Migration
+- **No user action required**
+- Automatic UX improvements
+- No API changes
+- No breaking changes
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (UX/UI Improvements)
+- Mobile-first optimization approach
+- Progressive enhancement for network status
+- Next focus: Accessibility improvements or feature enhancements
 
 ## [0.22.0] - 2026-03-06
 

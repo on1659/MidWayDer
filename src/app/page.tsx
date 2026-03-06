@@ -9,7 +9,7 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Search, Share2, LocateFixed, Sun, Moon, Star } from 'lucide-react';
+import { Search, Share2, LocateFixed, Sun, Moon, Star, Wifi } from 'lucide-react';
 import MapContainer from '@/components/map/MapContainer';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
@@ -63,6 +63,7 @@ import { useUserData } from './hooks/useUserData';
 import { useSortFilter } from './hooks/useSortFilter';
 import { useMapState } from './hooks/useMapState';
 import { useSearch } from './hooks/useSearch';
+import { useNetworkStatus } from './hooks/useNetworkStatus';
 import type { DetourResult } from '@/types/detour';
 import { logger } from '@/lib/logger';
 
@@ -91,6 +92,7 @@ export default function HomePage() {
   const { recentSearches, setRecentSearches, favorites, setFavorites } = useUserData();
   const { mapClickInfo, setMapClickInfo, hoveredWaypointId, setHoveredWaypointId, mapPanned, setMapPanned, mapZoomed, handleMapClick, handleMapIdle, handleMapInteraction, resetMapInteraction } = useMapState();
   const { handleSearch, handleInstantSearch, handleExpandRadius, handleCategoryChange } = useSearch({ setBottomSheetSnap, setRecentSearches, savedScrollRef });
+  const { isOnline, isSlowConnection } = useNetworkStatus();
 
   // 검색 취소 핸들러
   const handleCancelSearch = useCallback(() => {
@@ -262,6 +264,20 @@ export default function HomePage() {
 
         {/* Mobile Search Bar */}
         <div className="md:hidden absolute top-3 inset-x-3 z-30">
+          {/* Network Status Warning */}
+          {!isOnline && (
+            <div className="mb-2 px-4 py-2 text-sm text-red-700 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center gap-2">
+              <Wifi className="w-4 h-4" />
+              인터넷 연결을 확인해주세요
+            </div>
+          )}
+          {isOnline && isSlowConnection && (
+            <div className="mb-2 px-4 py-2 text-sm text-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-2">
+              <Wifi className="w-4 h-4" />
+              느린 연결 감지됨. 검색 시간이 오래 걸릴 수 있습니다.
+            </div>
+          )}
+          
           <div className="flex items-start gap-2">
             <button data-testid="open-search-overlay-btn" onClick={() => setSearchOverlayOpen(true)} className="flex-1 bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
