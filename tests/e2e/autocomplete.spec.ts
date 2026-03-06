@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const waitAppReady = async (page: Page) => {
   await page.goto('/');

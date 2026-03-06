@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-03-07
+
+### Fixed
+- **TypeScript 타입 에러 수정**: autocomplete.spec.ts
+  - Playwright `Page` 타입 import 추가
+  - `import { test, expect, type Page } from '@playwright/test'`
+
+### Technical Details
+- E2E 테스트 파일 타입 안전성 개선
+- tsc --noEmit 통과 (0 errors)
+
+### Test Results
+- ✅ 712 unit tests passing
+- ✅ 8 E2E test files
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (타입 수정만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.34.0] - 2026-03-07
 
 ### E2E Test Coverage Expansion
