@@ -3,7 +3,44 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
+
+## [0.21.1] - 2026-03-06
+
+### Added
+- **PLAN.md**: 포괄적인 개발 로드맵 문서 작성
+  - 현재 상태 평가 (v0.21.0 기준)
+  - 4개 우선순위 영역 식별 (Performance, UX/UI, Features, Tech Debt)
+  - 구체적인 작업 항목 및 예상 소요 시간
+  - 리스크 평가 및 실행 순서 제안
+
+### Changed
+- **문서화 개선**: 향후 개발 방향성 명확화
+- **프로젝트 상태 추적**: PLAN.md로 진행 상황 모니터링 가능
+
+### Technical Details
+- 모든 시스템 정상 작동 확인
+  - ✅ 672개 테스트 통과
+  - ✅ 0 린트 에러
+  - ✅ 0 타입 에러
+  - ✅ 프로덕션 배포 정상 (HTTP 200)
+- TODO.md v0.15.0 기능 모두 완료됨 (v0.20.0-0.21.0에서 구현)
+- 다음 개발 포커스: 성능 최적화, 모바일 UX, 의존성 업데이트
+
+### Documentation
+- **PLAN.md**: 개발 계획 및 로드맵
+  - Priority 1: Performance Optimization (2-3시간)
+  - Priority 2: UX/UI Improvements (3-4시간)
+  - Priority 3: Feature Enhancements (4-5시간)
+  - Priority 4: Technical Debt (2-3시간)
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (문서 추가만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 분석 및 계획 수립
+- 프로젝트가 안정적인 상태로, 새로운 기능 개발 준비 완료
 
 ## [0.21.0] - 2026-03-06
 
@@ -203,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0
 - 기존 다중 선택 기능 유지 (핀 고정, 방문 표시 등)
 - 1개 테스트 실패 (AddressInput 버튼 중복 문제) - 수정 예정
 - Phase 4 (반응형 UI) 이미 구현됨
-- Phase 5 (테스트) 통과 (75/76, 1개 실패는 사소한 UI 문제)
+- Phase 5 (테스트) 통과 (75/76, 1개 실패는 사사소한 UI 문제)
 
 ## [0.14.0] - 2026-03-05
 
