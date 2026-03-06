@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-03-07
+
+### Mobile UX Improvements
+- **Pull to Refresh Hook**: `usePullToRefresh` 훅 추가 (아래로 당겨서 새로고침)
+- **Haptic Feedback Hook**: `useHaptic` 훅 추가 (진동 피드백)
+- **Swipeable Card**: `SwipeableCard` 컴포넌트 추가 (좌우 스와이프 액션)
+
+### Technical Details
+- `src/hooks/usePullToRefresh.ts`: Pull to refresh 제스처 훅
+- `src/hooks/useHaptic.ts`: Haptic feedback 유틸리티 훅
+- `src/components/ui/SwipeableCard.tsx`: 스와이프 가능한 카드 컴포넌트
+- 터치 피드백, 스와이프 액션, 진동 피드백 지원
+
+### Test Results
+- ✅ 702 tests passing (+27 new tests)
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 새로운 훅과 컴포넌트 추가만 (기존 코드 변경 없음)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: Service Worker + 오프라인 지원
+
 ## [0.28.1] - 2026-03-07
 
 ### Accessibility Improvements
