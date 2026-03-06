@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,  // "X-Powered-By: Next.js" 헤더 제거
   reactStrictMode: true,   // 개발 중 이중 렌더링으로 side-effect 조기 감지
 
+  // 개발 서버 크로스 오리진 요청 허용 (Next.js 16)
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
+
   // Service Worker 헤더 설정
   async headers() {
     return [

@@ -1,17 +1,17 @@
 import { describe, test, expect } from 'vitest';
 import { NextRequest } from 'next/server';
-import { middleware } from '@/middleware';
+import { proxy } from '@/proxy';
 
 // NOTE: rate-limit Map은 모듈 레벨 싱글톤이므로 테스트 순서가 중요합니다.
 // 각 describe 블록은 새로운 IP를 사용합니다.
 
-describe('middleware rate-limit', () => {
+describe('proxy rate-limit', () => {
   test('30회 이내 API 요청은 허용', () => {
     for (let i = 0; i < 30; i++) {
       const req = new NextRequest('http://localhost/api/search', {
         headers: { 'x-forwarded-for': '1.2.3.4' },
       });
-      const res = middleware(req);
+      const res = proxy(req);
       expect(res.status).not.toBe(429);
     }
   });
@@ -21,7 +21,7 @@ describe('middleware rate-limit', () => {
     const req = new NextRequest('http://localhost/api/search', {
       headers: { 'x-forwarded-for': '1.2.3.4' },
     });
-    const res = middleware(req);
+    const res = proxy(req);
     expect(res.status).toBe(429);
   });
 
@@ -29,7 +29,7 @@ describe('middleware rate-limit', () => {
     const req = new NextRequest('http://localhost/', {
       headers: { 'x-forwarded-for': '5.6.7.8' },
     });
-    const res = middleware(req);
+    const res = proxy(req);
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
     expect(res.headers.get('X-Frame-Options')).toBe('DENY');
     expect(res.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
@@ -37,12 +37,12 @@ describe('middleware rate-limit', () => {
 });
 
 // ── 목표 1: sessionId 쿠키 생성 테스트 ──
-describe('middleware sessionId 쿠키', () => {
+describe('proxy sessionId 쿠키', () => {
   test('T1-1: sessionId 쿠키가 없으면 응답에 Set-Cookie 포함', () => {
     const req = new NextRequest('http://localhost/', {
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
-    const res = middleware(req);
+    const res = proxy(req);
     const cookie = res.cookies.get('sessionId');
     expect(cookie).toBeDefined();
     expect(cookie?.value).toMatch(
@@ -58,7 +58,7 @@ describe('middleware sessionId 쿠키', () => {
         'cookie': `sessionId=${existingId}`,
       },
     });
-    const res = middleware(req);
+    const res = proxy(req);
     // Set-Cookie가 없거나, 있어도 기존 값과 동일해야 함
     const cookie = res.cookies.get('sessionId');
     if (cookie) {
@@ -70,7 +70,7 @@ describe('middleware sessionId 쿠키', () => {
     const req = new NextRequest('http://localhost/api/search', {
       headers: { 'x-forwarded-for': '10.0.0.3' },
     });
-    const res = middleware(req);
+    const res = proxy(req);
     const setCookieHeader = res.headers.get('set-cookie') ?? '';
     expect(setCookieHeader).toMatch(/HttpOnly/i);
     expect(setCookieHeader).toMatch(/Max-Age=31536000/i);
@@ -78,7 +78,7 @@ describe('middleware sessionId 쿠키', () => {
 });
 
 // ── 목표 2: Rate Limiter 메모리 누수 수정 테스트 ──
-describe('middleware rate-limit 메모리 누수 수정', () => {
+describe('proxy rate-limit 메모리 누수 수정', () => {
   function makeRequest(ip: string): NextRequest {
     return new NextRequest('http://localhost/api/search', {
       headers: { 'x-forwarded-for': ip },
@@ -89,10 +89,10 @@ describe('middleware rate-limit 메모리 누수 수정', () => {
     // 별도 IP로 30회 소진
     for (let i = 0; i < 30; i++) {
       const req = makeRequest('20.0.0.1');
-      expect(middleware(req).status).not.toBe(429);
+      expect(proxy(req).status).not.toBe(429);
     }
     // 31번째 차단 확인
-    expect(middleware(makeRequest('20.0.0.1')).status).toBe(429);
+    expect(proxy(makeRequest('20.0.0.1')).status).toBe(429);
     // 이 테스트는 lazy eviction 로직이 정상 작동함을 전제로 T2-3에서 기능 무결성 확인
   });
 
@@ -100,19 +100,19 @@ describe('middleware rate-limit 메모리 누수 수정', () => {
     // rateLimitMap은 모듈 싱글톤 → 직접 접근 불가
     // 기능 정확성 검증: 새 IP는 count=1로 시작하여 정상 허용
     const req1 = makeRequest('30.0.0.1');
-    const res1 = middleware(req1);
+    const res1 = proxy(req1);
     expect(res1.status).not.toBe(429);
 
     // 연속 요청도 RATE_LIMIT 이하이면 허용
     const req2 = makeRequest('30.0.0.1');
-    const res2 = middleware(req2);
+    const res2 = proxy(req2);
     expect(res2.status).not.toBe(429);
   });
 
   test('T2-3: rate-limit 기본 동작 유지: 30회 허용 / 31회 차단', () => {
     for (let i = 0; i < 30; i++) {
-      expect(middleware(makeRequest('40.0.0.1')).status).not.toBe(429);
+      expect(proxy(makeRequest('40.0.0.1')).status).not.toBe(429);
     }
-    expect(middleware(makeRequest('40.0.0.1')).status).toBe(429);
+    expect(proxy(makeRequest('40.0.0.1')).status).toBe(429);
   });
 });

@@ -69,7 +69,8 @@ const SECURITY_HEADERS = {
   'X-DNS-Prefetch-Control': 'on',
 };
 
-export function middleware(req: NextRequest) {
+// Next.js 16: middleware → proxy
+export function proxy(req: NextRequest) {
   const res = NextResponse.next();
 
   // 1) 보안 헤더 추가 (전체 경로)

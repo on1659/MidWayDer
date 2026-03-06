@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-03-07
+
+### Next.js 16 Compatibility
+- **Middleware → Proxy Migration**: Next.js 16 deprecation 대응
+- **Cross-Origin Config**: allowedDevOrigins 설정으로 개발 서버 경고 해결
+
+### Technical Details
+- `src/middleware.ts` → `src/proxy.ts`: 파일명 변경
+- `middleware()` → `proxy()`: 함수명 변경
+- `next.config.ts`: allowedDevOrigins 추가
+
+### What Changed
+- 기존 기능 유지 (Admin 인증, Rate Limiting, SessionId, 보안 헤더)
+- E2E 테스트 deprecation 경고 제거
+- 개발 서버 크로스 오리진 경고 제거
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (파일명/함수명만 변경)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Next.js 16.1.6 호환
+
 ## [0.31.0] - 2026-03-07
 
 ### Code Quality Improvements
