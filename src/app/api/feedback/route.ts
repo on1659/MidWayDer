@@ -6,7 +6,7 @@ const feedbackSchema = z.object({
   rating: z.number().int().min(1).max(5),
   category: z.enum(['bug', 'suggestion', 'praise']),
   comment: z.string().max(1000).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
         rating: validated.rating,
         category: validated.category,
         comment: validated.comment,
-        metadata: validated.metadata,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        metadata: validated.metadata as any,
         userAgent: request.headers.get('user-agent') || undefined,
         url: request.headers.get('referer') || undefined,
       },

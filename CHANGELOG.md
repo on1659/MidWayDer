@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
+## [0.26.1] - 2026-03-06
+
+### Added
+- **Admin Dashboard**: 피드백 관리자 대시보드 구현
+  - `/admin/feedback` 페이지 (평균 평점, 총 개수, 피드백 리스트)
+  - 카테고리별 필터링 (버그/제안/칭찬)
+  - 베이직 인증 (ADMIN_PASSWORD 환경 변수)
+
+### Fixed
+- **Feedback API Tests**: mock hoisting 이슈 해결
+  - 테스트 5개 모두 통과 (mockPrisma 최상위 레벨 정의)
+- **Zod v4 Compatibility**: `z.record()` 타입 수정
+  - `z.record(z.unknown())` → `z.record(z.string(), z.unknown())`
+
+### Changed
+- **Middleware**: `/admin` 경로 인증 로직 추가
+- **Type Safety**: Prisma Json 타입 호환성 개선
+
+### Technical Details
+- src/app/admin/feedback/page.tsx (신규)
+- src/app/admin/feedback/FeedbackDashboard.tsx (신규)
+- src/middleware.ts (Admin 인증 추가)
+- src/app/api/feedback/__tests__/route.test.ts (테스트 수정)
+- src/app/api/feedback/route.ts (Zod 타입 수정)
+
+### Test Coverage
+- 671 tests passing ✅
+- Feedback API: 5 tests passing ✅
+- Build successful ✅
+
+### Migration
+- **Database**: No migration required
+- **Environment**: Optional - `ADMIN_PASSWORD` (default: admin123)
+
+### Breaking Changes
+- **없음** (기존 기능 호환)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 완료
+- User Feedback System 전체 구현 완료
+- 관리자 대시보드: http://localhost:3000/admin/feedback
+
 ## [0.26.0] - 2026-03-06
 
 ### Added

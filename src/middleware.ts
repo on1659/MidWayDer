@@ -1,5 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// ── Admin 인증 ──
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+
+function checkAdminAuth(req: NextRequest): boolean {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Basic ')) return false;
+
+  try {
+    const base64 = authHeader.split(' ')[1];
+    const decoded = Buffer.from(base64, 'base64').toString();
+    const [, password] = decoded.split(':');
+    return password === ADMIN_PASSWORD;
+  } catch {
+    return false;
+  }
+}
+
 // ── 메모리 기반 Rate Limiter ──
 // Map<ip, { count: number; resetAt: number }>
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -58,10 +75,24 @@ export function middleware(req: NextRequest) {
   // 1) 보안 헤더 추가 (전체 경로)
   Object.entries(SECURITY_HEADERS).forEach(([k, v]) => res.headers.set(k, v));
 
-  // 2) sessionId 쿠키 자동 생성
+  // 2) Admin 인증
+  if (req.nextUrl.pathname.startsWith('/admin')) {
+    if (!checkAdminAuth(req)) {
+      return new NextResponse('Unauthorized', {
+        status: 401,
+        headers: {
+          'WWW-Authenticate': 'Basic realm="Admin Area"',
+          ...SECURITY_HEADERS,
+        },
+      });
+    }
+    return res; // 인증 성공 → 계속 진행
+  }
+
+  // 3) sessionId 쿠키 자동 생성
   ensureSessionId(req, res);
 
-  // 3) API 라우트 rate-limit
+  // 4) API 라우트 rate-limit
   if (req.nextUrl.pathname.startsWith('/api/')) {
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
