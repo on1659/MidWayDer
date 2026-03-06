@@ -132,7 +132,7 @@ describe('Feedback API', () => {
 
       const req = new NextRequest('http://localhost/api/feedback?category=bug');
       const res = await GET(req);
-      const json = await res.json();
+      const _json = await res.json();
 
       expect(res.status).toBe(200);
       expect(mockPrisma.feedback.findMany).toHaveBeenCalledWith(

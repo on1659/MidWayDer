@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { Star, Share2 } from 'lucide-react';
 
 interface SwipeableCardProps {

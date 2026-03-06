@@ -170,6 +170,7 @@ export default function AddressInput({
           aria-label={label || placeholder}
           aria-describedby={hintId}
           aria-autocomplete="list"
+          aria-controls="address-listbox"
           aria-expanded={isOpen}
           aria-activedescendant={activeIndex >= 0 ? `result-${activeIndex}` : undefined}
           className="w-full px-4 py-3.5 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
@@ -217,6 +218,7 @@ export default function AddressInput({
 
       {isOpen && results.length > 0 && (
         <div
+          id="address-listbox"
           className="absolute top-full left-0 right-0 mt-1 border rounded-2xl shadow-xl overflow-hidden z-50 max-h-[260px] overflow-y-auto"
           role="listbox"
           aria-label="검색 결과"

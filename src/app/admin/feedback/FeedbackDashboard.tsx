@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Star, Bug, Lightbulb, ThumbsUp, RefreshCw } from 'lucide-react';
 
 interface Feedback {
@@ -31,7 +31,7 @@ export function FeedbackDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFeedbacks = async () => {
+  const fetchFeedbacks = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -47,11 +47,11 @@ export function FeedbackDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category]);
 
   useEffect(() => {
     fetchFeedbacks();
-  }, [category]);
+  }, [fetchFeedbacks]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

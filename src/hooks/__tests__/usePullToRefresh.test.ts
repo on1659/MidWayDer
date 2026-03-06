@@ -7,14 +7,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { usePullToRefresh } from '../usePullToRefresh';
 
 describe('usePullToRefresh', () => {
-  let onRefresh: ReturnType<typeof vi.fn>;
+  let onRefresh: () => void | Promise<void>;
 
   beforeEach(() => {
-    onRefresh = vi.fn().mockResolvedValue(undefined);
+    onRefresh = vi.fn().mockResolvedValue(undefined) as () => void | Promise<void>;
   });
 
   afterEach(() => {

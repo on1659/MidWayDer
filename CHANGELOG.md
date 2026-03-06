@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-03-07
+
+### Code Quality Improvements
+- **ESLint Warnings Fixed**: 6개 워닝 해결로 0 warnings 달성
+- **TypeScript Errors Fixed**: 2개 타입 에러 해결로 0 errors 달성
+- **Accessibility Improved**: AddressInput에 ARIA 속성 추가 (aria-controls)
+
+### Technical Details
+- `FeedbackDashboard.tsx`: useEffect 의존성 수정 (useCallback 적용)
+- `route.test.ts`: 사용하지 않는 변수 처리 (_json으로 변경)
+- `MapContainer.test.tsx`: 미사용 import 제거, 타입 수정
+- `AddressInput.tsx`: aria-controls 속성 추가, listbox id 추가
+- `SwipeableCard.tsx`: 미사용 import 제거
+- `usePullToRefresh.test.ts`: 미사용 import 제거, 타입 캐스팅 수정
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 코드 품질 개선만 (기능 변경 없음)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.30.0] - 2026-03-07
 
 ### Offline Support

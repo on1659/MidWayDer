@@ -2,10 +2,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import MapContainer from '../MapContainer';
-import { getMapProvider } from '@/lib/map-provider';
 
 // Types
-import type { Coordinates, Route, DetourResult } from '@/types';
+import type { Coordinates, Route } from '@/types/location';
+import type { DetourResult } from '@/types/detour';
 
 // Mock map provider
 vi.mock('@/lib/map-provider', () => ({
@@ -19,7 +19,7 @@ const defaultProps = {
   center: { lat: 37.5663, lng: 126.9779 } as Coordinates,
   zoom: 15,
   originalRoute: null as Route | null,
-  detourRoute: null as Route | null,
+  detourRoute: null as { toWaypoint: Route; fromWaypoint: Route } | null,
   waypoints: [] as DetourResult[],
   selectedWaypointId: null as string | null,
   hoveredWaypointId: null as string | null,
