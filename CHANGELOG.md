@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-03-07
+
+### Offline Support
+- **Service Worker**: 수동 구현으로 오프라인 캐싱 지원
+- **Offline Fallback Page**: 네트워크 실패 시 오프라인 안내 페이지 표시
+- **Network Status Hook**: `useOnlineStatus` 훅으로 온라인/오프라인 상태 추적
+- **Offline Banner**: 오프라인 상태 시 상단에 빨간 배너 표시
+
+### Technical Details
+- `public/sw.js`: Service Worker (정적 자산 캐싱, 네트워크 우선 전략)
+- `public/offline.html`: 오프라인 폴백 페이지
+- `src/hooks/useOnlineStatus.ts`: 네트워크 상태 추적 훅
+- `src/components/ui/OfflineBanner.tsx`: 오프라인 상태 배너
+- `src/components/ServiceWorkerRegister.tsx`: Service Worker 등록 컴포넌트
+- `next.config.ts`: Service Worker 헤더 설정
+
+### Test Results
+- ✅ 715 tests passing (+13 new tests)
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint errors (6 warnings)
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- Service Worker 자동 등록
+- 오프라인 시 자동으로 폴백 페이지 표시
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- PWA 안정성 향상
+
 ## [0.29.0] - 2026-03-07
 
 ### Mobile UX Improvements

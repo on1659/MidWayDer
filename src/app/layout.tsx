@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import './globals.css';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 // Re-export reportWebVitals for Next.js automatic collection
 export { reportWebVitals } from '@/lib/monitoring/performance';
@@ -48,6 +50,8 @@ export default function RootLayout({
 })();`}</Script>
       </head>
       <body className="antialiased">
+        <ServiceWorkerRegister />
+        <OfflineBanner />
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
