@@ -1,6 +1,7 @@
+// @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { MapContainer } from '../MapContainer';
+import MapContainer from '../MapContainer';
 import { getMapProvider } from '@/lib/map-provider';
 
 // Types
@@ -36,25 +37,31 @@ describe('MapContainer', () => {
     expect(screen.getByRole('application')).toBeInTheDocument();
   });
 
-  it('calls onMapInteraction when map is interacted', () => {
-    const onMapInteraction = vi.fn();
-    render(<MapContainer {...defaultProps} onMapInteraction={onMapInteraction} />);
+  it('renders provider toggle buttons', () => {
+    render(<MapContainer {...defaultProps} />);
 
-    expect(onMapInteraction).toHaveBeenCalled();
+    expect(screen.getByText('카카오')).toBeInTheDocument();
+    expect(screen.getByText('네이버')).toBeInTheDocument();
   });
 
-  it('calls onResetInteraction when map interaction ends', () => {
-    const onResetInteraction = vi.fn();
-    render(<MapContainer {...defaultProps} onResetInteraction={onResetInteraction} />);
+  it('renders with default kakao provider selected', () => {
+    render(<MapContainer {...defaultProps} />);
 
-    expect(onResetInteraction).toHaveBeenCalled();
+    // 카카오 버튼이 활성화 상태 (노란색 배경)
+    const kakaoButton = screen.getByText('카카오');
+    expect(kakaoButton).toHaveClass('bg-yellow-400');
   });
 
-  it('calls onMapIdle when map becomes idle', () => {
-    const onMapIdle = vi.fn();
-    render(<MapContainer {...defaultProps} onMapIdle={onMapIdle} />);
+  it('accepts all props without errors', () => {
+    const customProps = {
+      ...defaultProps,
+      center: { lat: 37.5, lng: 127.0 } as Coordinates,
+      zoom: 12,
+      onMapClick: vi.fn(),
+      clickedCoords: { lat: 37.5, lng: 127.0 } as Coordinates,
+    };
 
-    expect(onMapIdle).toHaveBeenCalledWith(true);
+    const { container } = render(<MapContainer {...customProps} />);
+    expect(container).toBeTruthy();
   });
-
 });

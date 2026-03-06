@@ -1,6 +1,6 @@
 {
   "name": "midwayder",
-  "version": "0.27.1"
+  "version": "0.27.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
