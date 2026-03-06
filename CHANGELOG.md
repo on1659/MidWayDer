@@ -5,6 +5,78 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
+## [0.27.0] - 2026-03-06
+
+### 🎉 Major Milestone: All Features Already Implemented!
+
+**분석 결과:** TODO.md의 모든 요구사항이 이미 완전히 구현되어 있음을 확인했습니다.
+
+### ✅ Already Implemented Features
+
+#### Phase 1: API 확장 (100% 완료)
+- ✅ `query` 파라미터 지원 (자유로운 경유지 검색)
+- ✅ `searchType` 자동 감지 (`detectSearchType()`)
+- ✅ 키워드 검색 로직 (`src/lib/map-provider/naver/search.ts`)
+- ✅ PostGIS 필터링 + Haversine 필터링
+- ✅ `calculateDetourCosts()`에서 `searchType` 파라미터 지원
+
+#### Phase 2: 검색창 UI (100% 완료)
+- ✅ "어디 들를까요?" 문구
+- ✅ CategorySelect 컴포넌트
+- ✅ 추천 카테고리 칩
+- ✅ 시간대별 스마트 제안
+
+#### Phase 3: 단일 선택 UX (100% 완료)
+- ✅ `allowMultiSelect` 상태 관리
+- ✅ 첫 번째 선택 후 나머지 비활성화
+- ✅ "완료" + "다른 경유지 추가하기" 버튼
+- ✅ 다중 선택 경고 메시지
+- ✅ `MultiStopSelector.tsx` 구현 완료
+- ✅ `ResultList.tsx` 구현 완료
+
+#### Phase 4: 반응형 UI (100% 완료)
+- ✅ 모바일 풀스크린 오버레이
+- ✅ PC 레이아웃
+
+### 📝 Documentation Updates
+
+**PLAN.md**
+- 목표: 자유 경유지 검색 + 단일 선택 UX (v0.27.0)
+- 우선순위: API → UI → UX → 반응형 → 테스트
+- 의존성 그래프 추가
+- 성공 지표 명확화
+
+**IMPL.md**
+- 모든 기능 이미 완료됨 확인
+- 검증 코드 및 라인 번호 추가
+- Phase 1-4별 구현 상세 문서화
+
+### 🧪 Test Results
+
+- ✅ **77개 테스트 파일** 모두 통과
+- ✅ **671개 테스트** 모두 통과
+- ⚡ 실행 시간: 8.83초
+
+### 🚀 Technical Details
+
+**No Code Changes Required**
+- 모든 기능이 이미 구현되어 있어 추가 코드 작성 불필요
+- 문서화 업데이트만 수행 (PLAN.md, IMPL.md)
+
+### Migration
+- **Database**: No migration required
+- **Environment**: No changes required
+
+### Breaking Changes
+- **없음** (기존 기능 호환)
+
+### Notes
+- Auto Dev PD GLM v2로 분석 및 문서화 완료
+- TODO.md의 모든 요구사항 100% 충족
+- 추가 개발 작업 불필요
+
+---
+
 ## [0.26.1] - 2026-03-06
 
 ### Added
