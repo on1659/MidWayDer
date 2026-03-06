@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
+## [0.25.0] - 2026-03-06
+
+### Code Quality Improvements
+- **Type Safety Enhancement**: Replaced `any` types with proper TypeScript types
+  - ErrorBoundary: Added Sentry interface type definitions
+  - naver/client: Added NaverRequestConfig interface for timer tracking
+  - monitoring/performance: Added WindowWithSentry interface for Sentry integration
+
+- **Lint Warnings Fixed**: All 9 warnings resolved
+  - ErrorBoundary.tsx: 2 `any` types → proper Sentry types
+  - naver/client.ts: 3 `any` types + 2 unused variables → NaverRequestConfig interface
+  - monitoring/performance.ts: 2 `any` types → WindowWithSentry interface
+
+### Technical Details
+- Updated src/components/ui/ErrorBoundary.tsx (Sentry type safety)
+- Updated src/lib/map-provider/naver/client.ts (timer tracking type safety)
+- Updated src/lib/monitoring/performance.ts (Sentry type safety)
+
+### Code Quality
+- **0 errors, 0 warnings** (was 9 warnings)
+- Type-safe Sentry integration (supports both installed and non-installed environments)
+- Type-safe Axios request/response interceptors
+- Removed unused variables (duration in API timing)
+
+### Test Results
+- All 672 tests passing ✅
+- Zero type errors ✅
+- Zero lint warnings ✅
+- Build successful ✅
+
+### Migration
+- **No user action required**
+- Automatic type safety improvements
+- No API changes
+- No breaking changes
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (Code Quality Improvements)
+- Sentry works in both installed and non-installed environments
+- Type definitions maintain backward compatibility
+- Next focus: Performance monitoring enhancements or UX improvements
+
 ## [0.24.0] - 2026-03-06
 
 ### Error Resilience & Performance Monitoring

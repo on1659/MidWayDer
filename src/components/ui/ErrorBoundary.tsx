@@ -3,6 +3,15 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
+// Sentry 타입 정의 (설치되지 않은 환경 지원)
+interface SentryInterface {
+  captureException: (error: Error, options?: { contexts?: { react?: { componentStack?: string } } }) => void;
+}
+
+interface WindowWithSentry extends Window {
+  Sentry?: SentryInterface;
+}
+
 interface Props {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -38,11 +47,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
     this.props.onError?.(error, errorInfo);
     
     // Send to Sentry (if available)
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureException(error, { 
+    if (typeof window !== 'undefined' && (window as WindowWithSentry).Sentry) {
+      (window as WindowWithSentry).Sentry!.captureException(error, { 
         contexts: { 
           react: { 
-            componentStack: errorInfo.componentStack 
+            componentStack: errorInfo.componentStack ?? undefined
           } 
         } 
       });

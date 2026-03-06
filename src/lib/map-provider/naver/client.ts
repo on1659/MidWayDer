@@ -9,6 +9,15 @@ import { logger } from '@/lib/logger';
 import { startTimer } from '@/lib/monitoring/performance';
 
 // ========================
+// 타입 정의
+// ========================
+
+/** Performance tracking을 위한 확장된 Axios config */
+interface NaverRequestConfig extends InternalAxiosRequestConfig {
+  _timerStart?: number;
+}
+
+// ========================
 // 상수
 // ========================
 
@@ -46,7 +55,7 @@ naverMapsClient.interceptors.request.use((config) => {
   config.headers['X-NCP-APIGW-API-KEY'] = process.env.NAVER_MAPS_CLIENT_SECRET || '';
 
   // Performance tracking: start timer
-  (config as any)._timerStart = Date.now();
+  (config as NaverRequestConfig)._timerStart = Date.now();
 
   return config;
 });
@@ -55,9 +64,8 @@ naverMapsClient.interceptors.request.use((config) => {
 naverMapsClient.interceptors.response.use(
   (response) => {
     // Performance tracking: record API duration
-    const startTime = (response.config as any)?._timerStart;
+    const startTime = (response.config as NaverRequestConfig)?._timerStart;
     if (startTime) {
-      const duration = Date.now() - startTime;
       const endpoint = response.config.url?.split('?')[0]?.replace('/map-', '') || 'unknown';
       startTimer(`api_naver_${endpoint}`)();
     }
@@ -65,9 +73,8 @@ naverMapsClient.interceptors.response.use(
   },
   (error) => {
     // Performance tracking: record failed API duration
-    const startTime = (error.config as any)?._timerStart;
+    const startTime = (error.config as NaverRequestConfig)?._timerStart;
     if (startTime) {
-      const duration = Date.now() - startTime;
       const endpoint = error.config?.url?.split('?')[0]?.replace('/map-', '') || 'unknown';
       startTimer(`api_naver_${endpoint}_failed`)();
     }

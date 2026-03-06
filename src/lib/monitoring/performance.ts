@@ -13,6 +13,15 @@ interface PerformanceMetric {
   category: 'web-vital' | 'custom';
 }
 
+// Sentry 타입 정의 (설치되지 않은 환경 지원)
+interface SentryInterface {
+  addBreadcrumb: (breadcrumb: { category: string; message: string; level: string }) => void;
+}
+
+interface WindowWithSentry extends Window {
+  Sentry?: SentryInterface;
+}
+
 // Store metrics in memory (for development)
 const metrics: PerformanceMetric[] = [];
 
@@ -37,8 +46,8 @@ export function reportWebVitals(metric: { name: string; value: number; id: strin
   });
 
   // Send to Sentry (if available and in production)
-  if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && (window as any).Sentry) {
-    (window as any).Sentry.addBreadcrumb({
+  if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && (window as WindowWithSentry).Sentry) {
+    (window as WindowWithSentry).Sentry!.addBreadcrumb({
       category: 'web-vitals',
       message: `${name}: ${value}`,
       level: 'info',
