@@ -301,6 +301,117 @@ describe('POST /api/search', () => {
   });
 });
 
+// ========== 키워드 검색 테스트 (v0.20.0) ==========
+
+describe('POST /api/search - Keyword Search', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(loadSearchCache).mockReturnValue(null);
+    vi.mocked(getDirectionsProvider).mockResolvedValue({
+      getRoute: vi.fn().mockResolvedValue(MOCK_ROUTE),
+    } as any);
+    vi.mocked(calculateDetourCosts).mockResolvedValue({
+      results: [MOCK_DETOUR_RESULT],
+      totalCandidates: 10,
+      apiCallsUsed: 5,
+    });
+    vi.mocked(calculatePersonalizationScores).mockResolvedValue([]);
+    vi.mocked(hashRoute).mockReturnValue('test-route-hash');
+  });
+
+  it('TC-9: 키워드 검색 (query=홍대입구역) → 200 + results 반환', async () => {
+    const req = new NextRequest('http://localhost/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
+        end: { coordinates: { lat: 37.4979, lng: 127.0276 } },
+        query: '홍대입구역',
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(json.data.results).toBeDefined();
+    expect(json.data.results.length).toBeGreaterThan(0);
+    expect(calculateDetourCosts).toHaveBeenCalledWith(
+      expect.anything(),
+      '홍대입구역',
+      expect.anything(),
+      'keyword' // searchType 자동 감지
+    );
+  });
+
+  it('TC-10: 검색 타입 자동 감지 (category vs keyword)', async () => {
+    // 카테고리 검색
+    const catReq = new NextRequest('http://localhost/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
+        end: { coordinates: { lat: 37.4979, lng: 127.0276 } },
+        category: '다이소',
+      }),
+    });
+
+    vi.mocked(calculateDetourCosts).mockResolvedValue({
+      results: [MOCK_DETOUR_RESULT],
+      totalCandidates: 10,
+      apiCallsUsed: 5,
+    });
+
+    const catRes = await POST(catReq);
+    const catJson = await catRes.json();
+
+    expect(catRes.status).toBe(200);
+    expect(catJson.success).toBe(true);
+    expect(calculateDetourCosts).toHaveBeenCalledWith(
+      expect.anything(),
+      '다이소',
+      expect.anything(),
+      'category'
+    );
+
+    // 키워드 검색
+    vi.clearAllMocks();
+    vi.mocked(loadSearchCache).mockReturnValue(null);
+    vi.mocked(getDirectionsProvider).mockResolvedValue({
+      getRoute: vi.fn().mockResolvedValue(MOCK_ROUTE),
+    } as any);
+    vi.mocked(calculateDetourCosts).mockResolvedValue({
+      results: [MOCK_DETOUR_RESULT],
+      totalCandidates: 10,
+      apiCallsUsed: 5,
+    });
+    vi.mocked(calculatePersonalizationScores).mockResolvedValue([]);
+
+    const kwReq = new NextRequest('http://localhost/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
+        end: { coordinates: { lat: 37.4979, lng: 127.0276 } },
+        query: '이태원 맛집',
+      }),
+    });
+
+    const kwRes = await POST(kwReq);
+    const kwJson = await kwRes.json();
+
+    expect(kwRes.status).toBe(200);
+    expect(kwJson.success).toBe(true);
+    expect(calculateDetourCosts).toHaveBeenCalledWith(
+      expect.anything(),
+      '이태원 맛집',
+      expect.anything(),
+      'keyword'
+    );
+  });
+});
+
 // ========== 버그 수정 검증 테스트 (v0.7.2) ==========
 
 describe('shouldDropShortestRoute — duration ratio 0 나누기 방지', () => {

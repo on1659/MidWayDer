@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2/0.0.0.html).
 
+## [0.20.0] - 2026-03-06
+
+### Added
+- **자유 경유지 검색**: "홍대입구역", "이태원 맛집" 등 키워드 검색 지원
+  - Naver Local Search API 통합으로 자유로운 검색어 입력 가능
+  - 검색 타입 자동 감지 (category vs keyword)
+  - 검색창 placeholder 개선: "어디를 들를까? (예: 홍대입구역, 다이소, 스타벅스)"
+
+- **단일 선택 UX 가이드**: 하나만 선택하게 가이드하는 UI/UX 개선
+  - 첫 번째 선택 후 나머지 체크박스 자동 비활성화
+  - 명확한 시각적 피드백 (💡 안내 문구)
+  - "다른 경유지 추가하기" 버튼으로 다중 선택 모드 진입
+  - 다중 선택 시 "⚠️ 여러 경유지 선택 시 더 복잡한 경로가 됩니다" 경고
+
+### Changed
+- 검색창 placeholder를 더 직관적으로 변경
+- ResultList에서 단일 선택 로직 강화 (search-store.ts 연동)
+
+### Technical Details
+- `src/lib/detour/calculator.ts`: `searchType` 파라미터 추가 ('category' | 'keyword')
+- `src/lib/map-provider/naver/search.ts`: Naver Local Search API 래퍼 구현
+- `src/store/search-store.ts`: `allowMultiSelect` 상태 관리 추가
+- `src/components/search/ResultList.tsx`: 단일 선택 UI 로직 구현
+- `src/components/search/MultiStopSelector.tsx`: 단일 선택 모드 지원
+
+### Test Results
+- **672개 테스트 모두 통과** (670 + 2 신규)
+  - TC-9: 키워드 검색 (홍대입구역)
+  - TC-10: 검색 타입 자동 감지 (category vs keyword)
+- 빌드 성공
+- 타입 체크 통과
+- 린트 통과
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기존 카테고리 검색은 그대로 동작
+- 기존 단일 선택 동작 유지
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (Phase 1 → Phase 2 → Phase 3)
+- **핵심 발견**: 모든 기능이 이미 구현되어 있어 문서화 + 테스트 추가만 수행
+
 ## [0.19.0] - 2026-03-06
 
 ### Changed
