@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-03-07
+
+### Dependencies
+- **React**: 19.2.3 → 19.2.4 (patch)
+- **React-DOM**: 19.2.3 → 19.2.4 (patch)
+- **Lucide React**: 0.563.0 → 0.577.0 (minor)
+
+### Technical Details
+- React 19.2.4 보안 패치 및 안정성 개선 적용
+- Lucide 아이콘 라이브러리 최신화 (새로운 아이콘 추가)
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- 기능 변경 없음 (의존성 업데이트만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.32.0] - 2026-03-07
 
 ### Next.js 16 Compatibility
