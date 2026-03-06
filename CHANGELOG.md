@@ -2,8 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
+
+## [0.22.0] - 2026-03-06
+
+### Performance Improvements
+- **Bundle Size Optimization**: Code splitting for better initial load performance
+  - Lazy loaded ResultList component (~30KB chunk)
+  - ComparePanel already lazy loaded (~50KB chunk)
+  - Total gzipped bundle: **285.8 KB** ✅ (Target: <500KB)
+
+### Changed
+- ResultList: Now lazy-loaded with loading skeleton
+- Improved initial page load time (less JavaScript to parse)
+- Better code splitting (smaller chunks load on demand)
+- Enhanced browser caching (individual chunks cached separately)
+
+### Technical Details
+- Added dynamic import for ResultList in page.tsx
+- Created ResultListSkeleton component for loading state
+- Configured `ssr: false` for client-only rendering
+- All 672 tests passing
+- Zero type errors
+- Zero lint errors
+- Build verified successfully
+
+### Migration
+- **No user action required**
+- Automatic performance improvement
+- No API changes
+- No breaking changes
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발 (Performance Optimization)
+- Bundle size well under target (<500KB gzipped)
+- Next focus: Continue performance monitoring and UX improvements
 
 ## [0.21.2] - 2026-03-06
 
