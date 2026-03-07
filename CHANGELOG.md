@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.54.0] - 2026-03-08
+
+### Code Quality
+- **TypeScript 타입 에러 수정**: search-cache.test.ts 3개 에러 해결 → 0 errors
+  - MockPlace → MockDetourResult로 타입 확장
+  - Place 필수 속성 추가 (id, name, category, address, coordinates)
+  - Route 필수 속성 추가 (start, end, distance, duration, path)
+  - createMockResult() 팩토리 함수 추가
+
+### Technical Details
+- `src/lib/cache/__tests__/search-cache.test.ts`:
+  - MockDetourResult 인터페이스 정의 (DetourResult 필수 속성 모두 포함)
+  - createMockResult() 유틸리티 함수로 테스트 데이터 생성 일관화
+
+### Test Results
+- ✅ 728 tests passing (유지)
+- ✅ 0 TypeScript errors (3 → 0)
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (테스트 타입만 수정, 런타임 동작 동일)
+
 ## [0.53.0] - 2026-03-08
 
 ### Features

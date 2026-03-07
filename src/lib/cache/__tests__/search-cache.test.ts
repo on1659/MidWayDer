@@ -5,9 +5,44 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db, generateCacheKey, getCachedSearchNew, setCachedSearchNew, cleanupExpiredCache, clearAllCache } from '../search-cache';
 
-// 테스트용 최소 타입
-interface MockPlace {
-  place: { id: string; name?: string };
+// 테스트용 DetourResult mock (DetourResult 필수 속성 모두 포함)
+interface MockDetourResult {
+  place: {
+    id: string;
+    name: string;
+    category: string;
+    address: string;
+    coordinates: { lat: number; lng: number };
+  };
+  detourCost: { distance: number; duration: number; costScore: number };
+  routes: {
+    original: { start: { lat: number; lng: number }; end: { lat: number; lng: number }; distance: number; duration: number; path: never[] };
+    toWaypoint: { start: { lat: number; lng: number }; end: { lat: number; lng: number }; distance: number; duration: number; path: never[] };
+    fromWaypoint: { start: { lat: number; lng: number }; end: { lat: number; lng: number }; distance: number; duration: number; path: never[] };
+  };
+  proximityScore: number;
+  finalScore: number;
+}
+
+// 편의 함수: 최소 mock 데이터 생성
+function createMockResult(id: string, name?: string): MockDetourResult {
+  return {
+    place: {
+      id,
+      name: name ?? 'Test Place',
+      category: 'test',
+      address: 'Test Address',
+      coordinates: { lat: 0, lng: 0 }
+    },
+    detourCost: { distance: 0, duration: 0, costScore: 0 },
+    routes: {
+      original: { start: { lat: 0, lng: 0 }, end: { lat: 0, lng: 0 }, distance: 0, duration: 0, path: [] },
+      toWaypoint: { start: { lat: 0, lng: 0 }, end: { lat: 0, lng: 0 }, distance: 0, duration: 0, path: [] },
+      fromWaypoint: { start: { lat: 0, lng: 0 }, end: { lat: 0, lng: 0 }, distance: 0, duration: 0, path: [] }
+    },
+    proximityScore: 0,
+    finalScore: 0
+  };
 }
 
 describe('SearchCache', () => {
@@ -43,8 +78,8 @@ describe('SearchCache', () => {
         end: { lat: 37.6, lng: 127.1 },
         category: '다이소'
       };
-      const results: MockPlace[] = [
-        { place: { id: '1', name: '다이소 강남점' } }
+      const results: MockDetourResult[] = [
+        createMockResult('1', '다이소 강남점')
       ];
 
       await setCachedSearchNew(key, query, results, 1000);
@@ -62,7 +97,7 @@ describe('SearchCache', () => {
         end: { lat: 2, lng: 2 },
         category: 'test'
       };
-      const results: MockPlace[] = [];
+      const results: MockDetourResult[] = [];
 
       await setCachedSearchNew(key, query, results, 1); // 1ms TTL
 
@@ -82,7 +117,7 @@ describe('SearchCache', () => {
       };
 
       for (const key of keys) {
-        await setCachedSearchNew(key, query, [{ place: { id: key } }] as MockPlace[]);
+        await setCachedSearchNew(key, query, [createMockResult(key)]);
       }
 
       for (const key of keys) {
