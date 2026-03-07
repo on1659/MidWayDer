@@ -10,7 +10,25 @@
 import Dexie, { Table } from 'dexie';
 import type { DetourResult } from '@/types/detour';
 import type { SearchWaypointsResponse } from '@/types/api';
+import type { Route } from '@/types/location';
 import { logger } from '@/lib/logger';
+
+// 기존 API 호환용 캐시 키 타입
+interface LegacyCacheKey {
+  start: { coordinates: { lat: number; lng: number } };
+  end: { coordinates: { lat: number; lng: number } };
+  category: string;
+  bufferDistance?: number;
+}
+
+// 기존 API 호환용 캐시 값 타입
+interface LegacyCacheValue {
+  originalRoute: Route;
+  results: DetourResult[];
+  totalCandidates: number;
+  apiCallsUsed: number;
+  timestamp?: number;
+}
 
 export interface SearchCache {
   id?: number;
@@ -21,7 +39,7 @@ export interface SearchCache {
     category: string;
   };
   results: DetourResult[];
-  originalRoute?: any;
+  originalRoute?: Route;
   totalCandidates?: number;
   apiCallsUsed?: number;
   timestamp: number;
@@ -225,8 +243,8 @@ export async function getCacheStats(): Promise<{
  * 기존 API 호환용 - 캐시 저장 (search API route에서 사용)
  */
 export const saveSearchCache = (
-  key: { start: { coordinates: any }; end: { coordinates: any }; category: string; bufferDistance?: number },
-  value: any
+  key: LegacyCacheKey,
+  value: LegacyCacheValue
 ): void => {
   if (typeof window === 'undefined') return;
 
@@ -252,8 +270,8 @@ export const saveSearchCache = (
  * 기존 API 호환용 - 캐시 조회 (search API route에서 사용)
  */
 export const loadSearchCache = (
-  key: { start: { coordinates: any }; end: { coordinates: any }; category: string; bufferDistance?: number }
-): any | null => {
+  key: LegacyCacheKey
+): LegacyCacheValue | null => {
   if (typeof window === 'undefined') return null;
 
   try {

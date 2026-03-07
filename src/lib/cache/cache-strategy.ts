@@ -9,6 +9,13 @@ import type { DetourResult } from '@/types/detour';
 import type { Location } from '@/types/location';
 import { logger } from '@/lib/logger';
 
+// 캐시 쿼리 타입 (SearchCache.query와 일치)
+interface CacheQuery {
+  start: { lat: number; lng: number; address?: string };
+  end: { lat: number; lng: number; address?: string };
+  category: string;
+}
+
 export interface CacheStrategyResult {
   results: DetourResult[];
   fromCache: boolean;
@@ -105,7 +112,7 @@ export class CacheStrategy {
 
   private async updateCacheInBackground(
     key: string,
-    query: any,
+    query: CacheQuery,
     fetchFn: () => Promise<DetourResult[]>
   ): Promise<void> {
     try {

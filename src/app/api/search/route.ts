@@ -27,6 +27,12 @@ type TaggedDetourResult = DetourResult & {
   personalScore?: number;
   popularityScore?: number;
 };
+
+// 개인화가 적용된 결과 타입 (캐시된 DetourResult 확장)
+interface PersonalizedDetourResult extends DetourResult {
+  personalScore: number;
+  popularityScore: number;
+}
 import { prisma } from '@/lib/db/prisma';
 import { hashRoute } from '@/lib/utils/route-hash';
 import { calculatePersonalizationScores, type PersonalizationScore } from '@/lib/personalization/scorer';
@@ -127,7 +133,7 @@ export async function POST(request: NextRequest) {
       const routeHash = hashRoute(startCoords, endCoords);
       const maxResults = options?.maxResults ?? 10;
 
-      const placeIds = cached.results.map((r: any) => r.place.id);
+      const placeIds = cached.results.map((r: DetourResult) => r.place.id);
       const personalizationScores = await Promise.race([
         calculatePersonalizationScores(sessionId, routeHash, placeIds),
         new Promise<PersonalizationScore[]>((_, reject) =>
@@ -138,7 +144,7 @@ export async function POST(request: NextRequest) {
       const scoreMap = new Map(personalizationScores.map(p => [p.placeId, p]));
 
       const personalizedResults = cached.results
-        .map((result: any) => {
+        .map((result: DetourResult): PersonalizedDetourResult => {
           const pScore = scoreMap.get(result.place.id);
           return {
             ...result,
@@ -149,7 +155,7 @@ export async function POST(request: NextRequest) {
             )),
           };
         })
-        .sort((a: any, b: any) => b.finalScore - a.finalScore)
+        .sort((a: PersonalizedDetourResult, b: PersonalizedDetourResult) => b.finalScore - a.finalScore)
         .slice(0, maxResults);
 
       return NextResponse.json({

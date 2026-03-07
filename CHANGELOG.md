@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.52.0] - 2026-03-08
+
+### Code Quality
+- **ESLint 경고 해결**: 21개 `@typescript-eslint/no-explicit-any` 경고 → 0개
+  - `src/app/api/search/route.ts`: CachedDetourResult → DetourResult 사용
+  - `src/lib/cache/cache-strategy.ts`: CacheQuery 타입 정의
+  - `src/lib/cache/search-cache.ts`: LegacyCacheKey, LegacyCacheValue 타입 정의
+  - `src/lib/cache/__tests__/cache-strategy.test.ts`: MockSearchResult 타입 사용
+  - `src/lib/cache/__tests__/search-cache.test.ts`: MockPlace 타입 사용
+
+### Technical Details
+- **신규 타입 정의**:
+  - `PersonalizedDetourResult`: DetourResult 확장 (personalScore, popularityScore 추가)
+  - `CacheQuery`: 캐시 쿼리 타입 (SearchCache.query와 일치)
+  - `LegacyCacheKey`, `LegacyCacheValue`: 기존 API 호환용 캐시 타입
+  - `MockSearchResult`, `MockPlace`: 테스트용 mock 타입
+
+### Test Results
+- ✅ 719 tests passing (유지)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings (21 → 0)
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (타입만 추가, 런타임 동작 동일)
+
 ## [0.51.0] - 2026-03-07
 
 ### Features

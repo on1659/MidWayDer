@@ -5,6 +5,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db, generateCacheKey, getCachedSearchNew, setCachedSearchNew, cleanupExpiredCache, clearAllCache } from '../search-cache';
 
+// 테스트용 최소 타입
+interface MockPlace {
+  place: { id: string; name?: string };
+}
+
 describe('SearchCache', () => {
   beforeEach(async () => {
     await db.searches.clear();
@@ -38,9 +43,9 @@ describe('SearchCache', () => {
         end: { lat: 37.6, lng: 127.1 },
         category: '다이소'
       };
-      const results = [
+      const results: MockPlace[] = [
         { place: { id: '1', name: '다이소 강남점' } }
-      ] as any;
+      ];
 
       await setCachedSearchNew(key, query, results, 1000);
       const cached = await getCachedSearchNew(key);
@@ -57,7 +62,7 @@ describe('SearchCache', () => {
         end: { lat: 2, lng: 2 },
         category: 'test'
       };
-      const results = [] as any;
+      const results: MockPlace[] = [];
 
       await setCachedSearchNew(key, query, results, 1); // 1ms TTL
 
@@ -77,7 +82,7 @@ describe('SearchCache', () => {
       };
 
       for (const key of keys) {
-        await setCachedSearchNew(key, query, [{ place: { id: key } }] as any);
+        await setCachedSearchNew(key, query, [{ place: { id: key } }] as MockPlace[]);
       }
 
       for (const key of keys) {
