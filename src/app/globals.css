@@ -64,6 +64,42 @@ body {
   background: var(--bg-main);
 }
 
+/* ========== 다크모드 전환 애니메이션 (v0.44.0) ========== */
+html {
+  transition: background-color 0.3s ease;
+}
+
+/* 선택적 전환 적용 - 성능 최적화 */
+.card,
+.panel,
+.button,
+input,
+select,
+textarea,
+[class*="bg-white"],
+[class*="bg-gray-50"],
+[class*="bg-gray-100"],
+[class*="bg-blue-"],
+[class*="text-gray-"],
+[class*="border-gray-"] {
+  transition: background-color 0.2s ease-out,
+              border-color 0.2s ease-out,
+              color 0.2s ease-out;
+}
+
+/* 지도 및 무거운 요소는 전환 제외 (성능) */
+#kakao-map,
+#kakao-map *,
+#map,
+#map *,
+canvas,
+img,
+video,
+.marker,
+.overlay {
+  transition: none !important;
+}
+
 /* Bottom Sheet drag handle */
 .bottom-sheet-handle {
   width: 36px;

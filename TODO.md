@@ -1,5 +1,19 @@
 # MidWayDer TODO
 
+## v0.44.0 - Dark Mode Enhancement ✅ COMPLETE (2026-03-07)
+
+### Priority 1: Dark Mode Improvements ✅
+- [x] 전환 애니메이션 추가 (0.2-0.3s ease-out)
+- [x] CSS 변수 체계화 (이미 완료됨)
+- [x] 누락된 Tailwind 오버라이드 추가 (15개)
+- [x] 지도 전환 제외 (성능 최적화)
+
+### Test Results ✅
+- [x] 712 tests passing
+- [x] 0 TypeScript errors
+- [x] 0 ESLint warnings
+- [x] Build successful
+
 ## v0.43.0 - Performance Optimization ✅ COMPLETE (2026-03-07)
 
 ### Priority 1: Font Optimization ✅

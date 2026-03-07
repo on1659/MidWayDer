@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.44.0] - 2026-03-07
+
+### Dark Mode Enhancement
+- **다크모드 전환 애니메이션**: 부드러운 테마 전환 (0.2-0.3s ease-out)
+  - 선택적 전환 적용으로 성능 최적화
+  - 지도 및 무거운 요소는 전환 제외 (canvas, img, video, markers)
+
+- **Tailwind 다크모드 오버라이드 확장**:
+  - divide-gray-200, ring-gray-200 지원
+  - text-gray-600/800/900 색상 오버라이드
+  - border-gray-200/300 색상 오버라이드
+  - hover/active 상태 개선 (bg-gray-200/300, bg-blue-50/100)
+
+### Technical Details
+- `src/app/globals.css`:
+  - html 요소에 전환 애니메이션 추가 (background-color 0.3s)
+  - 선택적 전환 적용 (.card, .panel, input, [class*="bg-gray-"] 등)
+  - 지도 요소 전환 제외 (#kakao-map, canvas, img, video)
+
+- `src/app/theme.css`:
+  - 누락된 Tailwind 오버라이드 15개 추가
+  - 일관된 다크모드 스타일링 보장
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (다크모드 개선만, 기능 변경 없음)
+
 ## [0.43.0] - 2026-03-07
 
 ### Performance Optimization

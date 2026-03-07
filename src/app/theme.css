@@ -150,3 +150,32 @@
 .theme-dark .hover\:bg-gray-50:hover { background-color: var(--bg-surface-muted) !important; }
 .theme-dark .hover\:bg-gray-100:hover { background-color: var(--border-soft) !important; }
 .theme-dark .active\:bg-gray-100:active { background-color: var(--border-soft) !important; }
+
+/* ========== 추가 다크모드 오버라이드 (v0.44.0) ========== */
+
+/* Divide */
+.theme-dark .divide-gray-200 > * + * { border-color: var(--border-soft) !important; }
+
+/* Ring */
+.theme-dark .ring-gray-200 { --tw-ring-color: var(--border-soft) !important; }
+
+/* Shadows */
+.theme-dark .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.theme-dark .shadow-md { box-shadow: var(--shadow-md) !important; }
+
+/* Button states */
+.theme-dark .hover\:bg-blue-50:hover { background-color: var(--blue-50) !important; }
+.theme-dark .active\:bg-blue-100:active { background-color: var(--blue-100) !important; }
+
+/* Additional text colors */
+.theme-dark .text-gray-600 { color: var(--text-secondary) !important; }
+.theme-dark .text-gray-800 { color: var(--text-primary) !important; }
+.theme-dark .text-gray-900 { color: var(--text-strong) !important; }
+
+/* Additional border colors */
+.theme-dark .border-gray-200 { border-color: var(--border-soft) !important; }
+.theme-dark .border-gray-300 { border-color: var(--border-strong) !important; }
+
+/* Hover states for gray backgrounds */
+.theme-dark .hover\:bg-gray-200:hover { background-color: var(--border-soft) !important; }
+.theme-dark .hover\:bg-gray-300:hover { background-color: var(--border-strong) !important; }
