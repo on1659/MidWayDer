@@ -116,7 +116,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
           {isClosest && currentDistKm !== null && (
             <span
               className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: '#dcfce7', color: '#15803d' }}
+              style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
               title="현재 내 위치에서 가장 가까운 곳"
             >
               📍근접
@@ -135,7 +135,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
               return (
                 <span
                   className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fbbf24' }}
+                  style={{ background: 'var(--yellow-100)', color: 'var(--yellow-700)', border: '1px solid var(--yellow-600)' }}
                 >
                   ⚠️{minsUntilClose}분
                 </span>
@@ -150,7 +150,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
           >
             <Star
               className="w-4 h-4"
-              fill={favPlaces.has(result.place.id) ? '#f59e0b' : 'none'}
+              fill={favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'none'}
               style={{ color: favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
             />
           </button>
@@ -168,7 +168,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
             title={isVisited ? '방문 표시 해제' : '방문했어요'}
           >
             {isVisited
-              ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+              ? <CheckCircle className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
               : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             }
           </button>

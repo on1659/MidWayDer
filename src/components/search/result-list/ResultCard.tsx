@@ -125,7 +125,7 @@ export const ResultCard = React.memo(function ResultCard({
       {isVisited && (
         <div
           className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none"
-          style={{ background: '#d1fae5', color: '#065f46' }}
+          style={{ background: 'var(--green-100)', color: 'var(--green-700)' }}
         >
           <CheckCircle className="w-3 h-3" />
           방문함{visitedAt ? ` (${getVisitDateLabel(visitedAt)})` : ''}
@@ -563,7 +563,7 @@ export const ResultCard = React.memo(function ResultCard({
                   maxLength={200}
                   rows={2}
                   className="w-full px-3 py-2 text-sm rounded-xl resize-none outline-none focus:ring-2 transition-all"
-                  style={{ background: '#fef9c3', border: '1.5px solid #fde047', color: 'var(--text-primary)' }}
+                  style={{ background: 'var(--yellow-100)', border: '1.5px solid var(--yellow-600)', color: 'var(--text-primary)' }}
                   autoFocus
                 />
                 <div className="flex gap-2 justify-end">
@@ -577,7 +577,7 @@ export const ResultCard = React.memo(function ResultCard({
                   <button
                     onClick={(e) => onSaveMemo(e, result.place.id)}
                     className="px-3 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95"
-                    style={{ background: '#fbbf24', color: 'white' }}
+                    style={{ background: 'var(--yellow-600)', color: 'white' }}
                   >
                     저장
                   </button>
@@ -586,7 +586,7 @@ export const ResultCard = React.memo(function ResultCard({
             ) : memoMap.has(result.place.id) ? (
               <div
                 className="mt-2 flex items-start gap-2 px-2.5 py-2 rounded-xl"
-                style={{ background: '#fef9c3', border: '1px solid #fde047', color: '#92400e' }}
+                style={{ background: 'var(--yellow-100)', border: '1px solid var(--yellow-600)', color: 'var(--yellow-600)' }}
               >
                 <span className="text-sm shrink-0">📝</span>
                 <p className="text-[12px] flex-1 leading-snug break-words">{memoMap.get(result.place.id)}</p>
@@ -633,20 +633,22 @@ export const ResultCard = React.memo(function ResultCard({
           <div className="flex flex-col gap-1.5 shrink-0 self-start">
             <button
               onClick={(e) => onToggleFav(e, result)}
-              className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+              className="p-3 md:p-2 rounded-lg transition-colors active:scale-95"
+              style={{ background: 'transparent' }}
               title={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 추가'}
               aria-label={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 추가'}
               aria-pressed={favPlaces.has(result.place.id)}
             >
               <Star
                 className="w-5 h-5 md:w-4 md:h-4"
-                fill={favPlaces.has(result.place.id) ? '#f59e0b' : 'none'}
+                fill={favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'none'}
                 style={{ color: favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
               />
             </button>
             <button
               onClick={(e) => onCopyAddress(e, result)}
-              className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+              className="p-3 md:p-2 rounded-lg transition-colors active:scale-95"
+              style={{ background: 'transparent' }}
               title="주소 복사"
               aria-label="주소 복사"
             >
@@ -661,7 +663,8 @@ export const ResultCard = React.memo(function ResultCard({
                 e.stopPropagation();
                 onSetOverflowMenu(overflowMenuId === result.place.id ? null : result.place.id);
               }}
-              className="p-3 md:p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+              className="p-3 md:p-2 rounded-lg transition-colors active:scale-95"
+              style={{ background: 'transparent' }}
               title="더 보기"
               aria-label="더 많은 옵션"
             >
@@ -679,7 +682,8 @@ export const ResultCard = React.memo(function ResultCard({
                 {result.place.phone && (
                   <button
                     onClick={(e) => { e.stopPropagation(); window.open(`tel:${result.place.phone}`); }}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                    className="p-2 rounded-lg transition-colors active:scale-95"
+                    style={{ background: 'transparent' }}
                     title={`전화: ${result.place.phone}`}
                     aria-label={`${result.place.name}에 전화하기`}
                   >
@@ -688,7 +692,8 @@ export const ResultCard = React.memo(function ResultCard({
                 )}
                 <button
                   onClick={(e) => onShare(e, result)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  className="p-2 rounded-lg transition-colors active:scale-95"
+                  style={{ background: 'transparent' }}
                   title="공유하기"
                   aria-label="공유하기"
                 >
@@ -700,18 +705,20 @@ export const ResultCard = React.memo(function ResultCard({
                 </button>
                 <button
                   onClick={(e) => onVisitToggle(e, result)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  className="p-2 rounded-lg transition-colors active:scale-95"
+                  style={{ background: 'transparent' }}
                   title={isVisited ? '방문 표시 해제' : '방문했어요'}
                   aria-label={isVisited ? '방문 완료 취소' : '방문 완료 표시'}
                 >
                   {isVisited
-                    ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                    ? <CheckCircle className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
                     : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   }
                 </button>
                 <button
                   onClick={(e) => onTogglePin(e, result)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  className="p-2 rounded-lg transition-colors active:scale-95"
+                  style={{ background: 'transparent' }}
                   title={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '상단에 고정'}
                   aria-label={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '핀으로 고정'}
                   aria-pressed={pinnedIds.has(result.place.id)}
@@ -724,13 +731,14 @@ export const ResultCard = React.memo(function ResultCard({
                 </button>
                 <button
                   onClick={(e) => onEditMemo(e, result.place.id)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                  className="p-2 rounded-lg transition-colors active:scale-95"
+                  style={{ background: 'transparent' }}
                   title={memoMap.has(result.place.id) ? '메모 수정' : '메모 추가'}
                   aria-label="경유지 메모 편집"
                 >
                   <Pencil
                     className="w-4 h-4"
-                    style={{ color: memoMap.has(result.place.id) ? '#d97706' : 'var(--text-muted)' }}
+                    style={{ color: memoMap.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
                   />
                 </button>
               </div>
