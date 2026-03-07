@@ -1,10 +1,16 @@
 /**
  * CategorySelect - 가로 스크롤 파스텔 칩 + 직접 입력
+ *
+ * 미리 정의된 카테고리 칩과 사용자 직접 입력을 지원하는 카테고리 선택 컴포넌트.
+ * React.memo로 최적화되어 불필요한 리렌더링을 방지합니다.
+ *
+ * @param selected - 현재 선택된 카테고리 쿼리
+ * @param onChange - 카테고리 변경 시 호출되는 콜백
  */
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const CUSTOM_CATEGORIES_KEY = 'midwayder_custom_categories';
 
@@ -30,7 +36,9 @@ function saveCustomCategory(category: string): void {
 }
 
 interface CategorySelectProps {
+  /** 현재 선택된 카테고리 쿼리 */
   selected: string;
+  /** 카테고리 변경 시 호출되는 콜백 */
   onChange: (category: string) => void;
 }
 
@@ -45,7 +53,7 @@ const categories = [
   { name: '휴게소', emoji: '🛣️', query: '휴게소', bg: 'var(--gray-100)', activeBg: 'var(--gray-600)' },
 ];
 
-export default function CategorySelect({ selected, onChange }: CategorySelectProps) {
+const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) => {
   const [isInputMode, setIsInputMode] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
@@ -173,4 +181,12 @@ export default function CategorySelect({ selected, onChange }: CategorySelectPro
       )}
     </div>
   );
-}
+};
+
+/**
+ * React.memo로 최적화된 CategorySelect 컴포넌트
+ * selected와 onChange props가 변경될 때만 리렌더링됩니다.
+ */
+const CategorySelect = React.memo(CategorySelectComponent);
+
+export default CategorySelect;

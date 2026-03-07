@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-03-07
+
+### Performance
+- **CategorySelect Optimization**: Added React.memo to prevent unnecessary re-renders
+
+### Code Quality
+- Added JSDoc documentation to CategorySelect component
+- Enhanced type documentation for props
+
+### Technical Details
+- `src/components/search/CategorySelect.tsx`:
+  - Wrapped with React.memo for better performance
+  - Added comprehensive JSDoc comments
+  - No functional changes
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Breaking Changes
+- **없음** (성능 최적화만, 기능 변경 없음)
+
 ## [0.38.0] - 2026-03-07
 
 ### Bug Fixes
