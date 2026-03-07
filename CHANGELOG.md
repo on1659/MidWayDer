@@ -2,10 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
 
 ## [Unreleased]
+
+## [0.51.0] - 2026-03-07
+
+### Features
+- **캐시 UI 통합**: v0.50.0에서 구현한 캐시 시스템을 UI에 통합
+  - CacheStatus 컴포넌트를 ResultList에 추가
+  - 오프라인 상태에서 캐시 사용 표시
+  - 온라인 상태에서 캐시 크기 표시
+  - SearchOverlay에 캐시 삭제 버튼 추가
+
+### Technical Details
+- **수정 파일**:
+  - `src/store/cache-store.ts`: cacheSize 상태 추가
+  - `src/components/search/CacheStatus.tsx`: UI 개선 (온라인/오프라인 구분)
+  - `src/components/search/ResultList.tsx`: CacheStatus 컴포넌트 통합
+  - `src/components/search/SearchOverlay.tsx`: 캐시 관리 버튼 추가
+
+### Test Results
+- ✅ 719 tests passing (유지)
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+
+### Breaking Changes
+- **없음** (기존 기능에 영향 없음)
 
 ## [0.50.0] - 2026-03-07
 

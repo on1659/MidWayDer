@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star } from 'lucide-react';
+import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star, Trash2 } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
@@ -15,6 +15,8 @@ import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useSearchStore } from '@/store/search-store';
+import { useCacheStore } from '@/store/cache-store';
+import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -77,17 +79,28 @@ export default function SearchOverlay({
     detour: '최적 경유지 계산 중...',
   };
 
+  // 캐시 상태 (v0.51.0)
+  const { cacheSize, setCacheSize } = useCacheStore();
+
   useEffect(() => {
     if (open) {
       setRecentSearches(getRecentSearches());
       setPlaceFavorites(getPlaceFavorites());
+      // 캐시 크기 로드
+      getCacheStats().then((stats) => setCacheSize(stats.size));
     }
-  }, [open]);
+  }, [open, setCacheSize]);
 
   const handlePlaceFavDelete = (placeId: string) => {
     removePlaceFavorite(placeId);
     setPlaceFavorites(getPlaceFavorites());
   };
+
+  // 캐시 삭제 핸들러 (v0.51.0)
+  const handleClearCache = useCallback(async () => {
+    await clearAllCache();
+    setCacheSize(0);
+  }, [setCacheSize]);
 
   // Esc 키로 닫기
   useEffect(() => {
@@ -563,6 +576,19 @@ export default function SearchOverlay({
             style={{ background: canSearch ? 'var(--accent)' : undefined }}
           >
             경유지 찾기 🔍
+          </button>
+        )}
+
+        {/* 캐시 관리 (v0.51.0) */}
+        {cacheSize > 0 && (
+          <button
+            onClick={handleClearCache}
+            className="w-full mt-2 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95"
+            style={{ color: 'var(--text-muted)', background: 'var(--bg-surface-muted)' }}
+            aria-label="캐시 삭제"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>캐시 삭제 ({cacheSize}개)</span>
           </button>
         )}
       </div>

@@ -30,6 +30,7 @@ import { CompactCard } from './result-list/CompactCard';
 import { RelatedCategories } from './result-list/RelatedCategories';
 import { StickyBar } from './result-list/StickyBar';
 import { EmptyState } from './result-list/EmptyState';
+import { CacheStatus } from './CacheStatus';
 
 // 훅
 import { useFilters } from './result-list/hooks/useFilters';
@@ -674,6 +675,9 @@ export default function ResultList({
           onQuickGo={handleQuickGo}
           currentCategory={currentCategory}
         />
+
+        {/* 캐시 상태 표시 */}
+        <CacheStatus />
 
         <CategoryChips
           currentCategory={currentCategory}
