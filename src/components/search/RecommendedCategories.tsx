@@ -12,7 +12,7 @@ interface Props {
 export function RecommendedCategories({ onCategorySelect, maxItems = 5 }: Props) {
   const categoryUsage = useSearchHistoryStore((state) => state.categoryUsage);
 
-  // 성능 최적화: categoryUsage가 변경될 때만 재계산
+  // 성능 최적화: maxItems가 변경될 때만 재계산
   const frequentCategories = useMemo(() => {
     try {
       return getRecommendedCategories({ maxResults: maxItems });
@@ -20,7 +20,7 @@ export function RecommendedCategories({ onCategorySelect, maxItems = 5 }: Props)
       console.error('Failed to get recommended categories:', error);
       return [];
     }
-  }, [categoryUsage, maxItems]);
+  }, [maxItems]);
 
   // 시간대별 추천 (1분마다 업데이트되도록 시간 의존성 추가 가능)
   const timeBasedCategories = useMemo(() => {

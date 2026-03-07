@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.47.0] - 2026-03-07
+
+### Code Quality Improvements
+- **ESLint 에러/경고 해결**: 1 error, 3 warnings → 0 errors, 0 warnings
+  - SearchOverlay: useCallback 조건부 호출 문제 해결 (React Hook 규칙 준수)
+  - SearchOverlay: useSearchHistoryStore 미사용 import 제거
+  - search-history-store: CategoryUsage 미사용 import 제거
+  - RecommendedCategories: useMemo 불필요한 의존성 제거
+
+### Technical Details
+- `src/components/search/SearchOverlay.tsx`:
+  - handleCategorySelect useCallback을 조건문 앞으로 이동 (React Hook 규칙 준수)
+  - useSearchHistoryStore import 제거 (미사용)
+- `src/store/search-history-store.ts`:
+  - CategoryUsage import 제거 (미사용)
+- `src/components/search/RecommendedCategories.tsx`:
+  - useMemo 의존성에서 categoryUsage 제거 (불필요한 의존성)
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (코드 품질 개선만, 기능 변경 없음)
+
 ## [0.46.0] - 2026-03-07
 
 ### Personalized Recommendation System

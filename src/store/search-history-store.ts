@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { SearchHistoryState, SearchHistoryItem, CategoryUsage } from '@/types/search-history';
+import type { SearchHistoryState, SearchHistoryItem } from '@/types/search-history';
 
 const MAX_ITEMS = 100;
 

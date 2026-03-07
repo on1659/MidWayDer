@@ -15,7 +15,6 @@ import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useSearchStore } from '@/store/search-store';
-import { useSearchHistoryStore } from '@/store/search-history-store';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -103,6 +102,11 @@ export default function SearchOverlay({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 
+  // 카테고리 선택 핸들러 (useCallback으로 최적화)
+  const handleCategorySelect = useCallback((selectedCategory: string) => {
+    onCategoryChange(selectedCategory);
+  }, [onCategoryChange]);
+
   if (!open) return null;
 
   const handleSearch = () => {
@@ -132,11 +136,6 @@ export default function SearchOverlay({
     removeRecentSearch(id);
     setRecentSearches(getRecentSearches());
   };
-
-  // 카테고리 선택 핸들러 (useCallback으로 최적화)
-  const handleCategorySelect = useCallback((selectedCategory: string) => {
-    onCategoryChange(selectedCategory);
-  }, [onCategoryChange]);
 
   const handleVoiceSearch = async () => {
     setIsListening(true);
