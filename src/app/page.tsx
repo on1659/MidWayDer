@@ -279,7 +279,13 @@ export default function HomePage() {
         )}
 
         {/* GPS Button */}
-        <button onClick={handleGPS} disabled={gpsLoading} className="absolute bottom-24 right-4 z-20 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50" title="현재 위치">
+        <button
+          onClick={handleGPS}
+          disabled={gpsLoading}
+          className="absolute bottom-24 right-4 z-20 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50"
+          title="현재 위치"
+          aria-label="현재 위치로 이동"
+        >
           <LocateFixed className={`w-8 h-8 ${gpsLoading ? 'animate-pulse' : ''}`} style={{ color: 'var(--accent)' }} />
         </button>
 
@@ -413,7 +419,13 @@ export default function HomePage() {
                     <div className="flex items-center gap-2">
                       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{totalCandidates}개 중 추천</p>
                       {isCached && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}>⚡ 캐시</span>}
-                      <button onClick={handleShare} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"><Share2 className="w-4 h-4" style={{ color: 'var(--accent)' }} /></button>
+                      <button
+                        onClick={handleShare}
+                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                        aria-label="경로 공유"
+                      >
+                        <Share2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+                      </button>
                     </div>
                   </div>
                   {originalRoute && <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>기본 경로{' '}<span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{(originalRoute.distance / 1000).toFixed(1)}km · {Math.round(originalRoute.duration / 60)}분</span></p>}

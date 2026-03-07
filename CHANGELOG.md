@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.45.0] - 2026-03-07
+
+### Accessibility Enhancement
+- **ARIA 속성 보완**: WCAG 2.1 AA 준수 강화
+  - 검색 컨테이너에 `role="search"` 추가 (SearchOverlay)
+  - 버튼 `aria-label` 추가 (GPS, Share)
+  - 동적 콘텐츠 알림 유지 (aria-live)
+
+- **스크린 리더 지원**:
+  - 스크린 리더 전용 클래스 추가 (.sr-only, .sr-only-focusable)
+  - 접근성 향상을 위한 CSS 유틸리티 추가
+
+- **기존 접근성 기능 유지**:
+  - 포커스 스타일 (:focus-visible) - v0.40.0에서 이미 구현
+  - ARIA Live Region - 이미 구현됨
+  - ResultList role/list - 이미 구현됨
+
+### Technical Details
+- `src/components/search/SearchOverlay.tsx`:
+  - role="search", aria-label="경유지 검색" 추가
+
+- `src/app/page.tsx`:
+  - GPS 버튼 aria-label="현재 위치로 이동" 추가
+  - Share 버튼 aria-label="경로 공유" 추가
+
+- `src/app/globals.css`:
+  - .sr-only 클래스 추가 (스크린 리더 전용 텍스트)
+  - .sr-only-focusable 클래스 추가 (포커스 시 표시)
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (접근성 개선만, 기능 변경 없음)
+
 ## [0.44.0] - 2026-03-07
 
 ### Dark Mode Enhancement

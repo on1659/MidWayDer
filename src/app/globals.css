@@ -437,6 +437,31 @@ a:focus-visible,
 @media (hover: none) {
   /* 모바일: active 효과 */
   .result-card-hover:active {
+
+/* ========== 접근성: 스크린 리더 전용 클래스 (v0.45.0) ========== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
     transform: scale(0.98);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.1s ease, box-shadow 0.1s ease;

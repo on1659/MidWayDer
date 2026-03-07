@@ -176,7 +176,12 @@ export default function SearchOverlay({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col animate-slide-up" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div
+      className="fixed inset-0 z-50 flex flex-col animate-slide-up"
+      style={{ backgroundColor: 'var(--bg-primary)' }}
+      role="search"
+      aria-label="경유지 검색"
+    >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button
