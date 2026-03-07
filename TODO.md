@@ -1,128 +1,143 @@
 # MidWayDer TODO
 
-## v0.46.0 - Personalized Recommendation System ✅ COMPLETE (2026-03-07)
+## 완료된 버전 (v0.41.0 ~ v0.54.0)
 
-### Priority 1: 검색 히스토리 기반 추천 ✅
-- [x] SearchHistoryStore (Zustand + localStorage)
-- [x] 카테고리별 사용 빈도 추적
-- [x] 최대 100개 히스토리 유지
-- [x] 빈도 기반 점수 계산
+### v0.54.0 - TypeScript 타입 에러 수정 ✅ (2026-03-08)
+- [x] search-cache.test.ts 타입 에러 3개 해결
+- [x] 728 tests passing
+- [x] 0 TypeScript errors
 
-### Priority 2: 추천 알고리즘 구현 ✅
-- [x] 빈도 점수 (0-40 points)
-- [x] 최신성 점수 (0-30 points)
-- [x] 시간대 점수 (0-30 points)
-- [x] 최종 추천 점수 (0-100 points)
+### v0.53.0 - 설정 페이지 및 캐시 관리 ✅ (2026-03-08)
+- [x] /settings 라우트 추가
+- [x] CacheSettings 컴포넌트 (IndexedDB 기반)
+- [x] ConfirmDialog 컴포넌트
+- [x] useCacheStats 훅
+- [x] 728 tests passing
 
-### Priority 3: UI 통합 ✅
+### v0.52.0 - ESLint 경고 해결 ✅ (2026-03-08)
+- [x] 21개 `@typescript-eslint/no-explicit-any` 경고 → 0개
+- [x] 타입 안전성 강화
+- [x] 719 tests passing
+
+### v0.51.0 - 캐시 UI 통합 ✅ (2026-03-07)
+- [x] CacheStatus 컴포넌트를 ResultList에 추가
+- [x] 오프라인/온라인 상태 구분
+- [x] 캐시 크기 표시
+- [x] 719 tests passing
+
+### v0.50.0 - 오프라인 검색 캐시 ✅ (2026-03-07)
+- [x] Dexie.js 도입 (IndexedDB 래퍼)
+- [x] 최근 검색 결과 자동 캐시 (24시간 TTL)
+- [x] 오프라인 상태에서 캐시된 결과 조회
+- [x] Cache-First 전략
+- [x] 719 tests passing (+8)
+
+### v0.49.0 - LocaleContext ESLint 에러 수정 ✅ (2026-03-07)
+- [x] useState lazy initialization
+- [x] useEffect 내부 setState 호출 제거
+- [x] 720 tests passing
+
+### v0.48.0 - 다국어 지원 (i18n) ✅ (2026-03-07)
+- [x] Context API 기반 경량 i18n 구현
+- [x] LocaleContext + useLocale 훅
+- [x] localStorage 언어 설정 저장
+- [x] 브라우저 언어 자동 감지
+- [x] LanguageSelector 컴포넌트
+- [x] 한국어/영어 번역 (70+ keys)
+- [x] 720 tests passing (+8)
+
+### v0.47.0 - 코드 품질 개선 ✅ (2026-03-07)
+- [x] ESLint 에러/경고 4개 → 0개
+- [x] SearchOverlay useCallback 조건부 호출 문제 해결
+- [x] 미사용 import 제거
+- [x] 712 tests passing
+
+### v0.46.0 - 개인화 추천 시스템 ✅ (2026-03-07)
+- [x] 검색 히스토리 기반 추천
+- [x] 빈도/최신성/시간대 점수 계산
 - [x] "자주 찾는 카테고리" 섹션
-- [x] "지금 이런 곳 어때요?" 섹션
-- [x] 개인화된 정렬
 - [x] 추천 배지 표시
-
-### Test Results ✅
 - [x] 712 tests passing
-- [x] 0 TypeScript errors
-- [x] 0 ESLint warnings
-- [x] Build successful
 
-## v0.45.0 - Accessibility Enhancement ✅ COMPLETE (2026-03-07)
-
-### Priority 1: ARIA 속성 보완 ✅
-- [x] 검색 컨테이너 role="search" 추가
-- [x] 버튼 aria-label 추가 (GPS, Share)
-- [x] 동적 콘텐츠 aria-live 유지
-
-### Priority 2: 스크린 리더 지원 ✅
-- [x] .sr-only 클래스 추가
-- [x] .sr-only-focusable 클래스 추가
-
-### Test Results ✅
+### v0.45.0 - 접근성 강화 ✅ (2026-03-07)
+- [x] ARIA 속성 보완 (role="search", aria-label)
+- [x] 스크린 리더 지원 (.sr-only)
 - [x] 712 tests passing
-- [x] 0 TypeScript errors
-- [x] 0 ESLint warnings
-- [x] Build successful
 
-## v0.44.0 - Dark Mode Enhancement ✅ COMPLETE (2026-03-07)
-
-### Priority 1: Dark Mode Improvements ✅
+### v0.44.0 - 다크 모드 개선 ✅ (2026-03-07)
 - [x] 전환 애니메이션 추가 (0.2-0.3s ease-out)
-- [x] CSS 변수 체계화 (이미 완료됨)
-- [x] 누락된 Tailwind 오버라이드 추가 (15개)
-- [x] 지도 전환 제외 (성능 최적화)
-
-### Test Results ✅
+- [x] CSS 변수 체계화
+- [x] Tailwind 오버라이드 15개 추가
 - [x] 712 tests passing
-- [x] 0 TypeScript errors
-- [x] 0 ESLint warnings
-- [x] Build successful
 
-## v0.43.0 - Performance Optimization ✅ COMPLETE (2026-03-07)
-
-### Priority 1: Font Optimization ✅
+### v0.43.0 - 폰트/아이콘 최적화 ✅ (2026-03-07)
 - [x] next/font 적용 (Noto Sans KR)
-- [x] display: swap 설정
-- [x] preload 활성화
-
-### Priority 2: Icon Optimization ✅
 - [x] SVG 아이콘 추가 (manifest)
 - [x] iOS PWA 메타 태그 개선
-- [x] Service Worker 캐시 업데이트
-
-### Test Results ✅
 - [x] 712 tests passing
-- [x] 0 TypeScript errors
-- [x] 0 ESLint warnings
-- [x] Build successful
 
-## v0.42.0 - PWA Support ✅ COMPLETE (2026-03-07)
-
-### Priority 1: Service Worker ✅
+### v0.42.0 - PWA 지원 ✅ (2026-03-07)
 - [x] Service Worker 구현 (sw.js)
-- [x] 오프라인 캐싱 전략 수립
-- [x] 캐시 버전 관리
-
-### Priority 2: Manifest & Icons ✅
-- [x] manifest.json 검토 및 최적화
-- [x] 아이콘 세트 생성 (192x192, 512x512)
-- [x] SVG 아이콘 추가
-
-### Priority 3: Offline Support ✅
 - [x] 오프라인 페이지 구현
-- [x] 오프라인 감지 및 알림
-- [ ] 백그라운드 동기화 (선택 - Future)
+- [x] 홈 화면 설치 배너
+- [x] 712 tests passing
 
-### Priority 4: Installation ✅
-- [x] 홈 화면 설치 배너 (beforeinstallprompt)
-- [x] 설치 유도 UI
-- [x] 설치 완료 추적
+### v0.41.0 - SEO 최적화 ✅ (2026-03-07)
+- [x] Meta tags, Open Graph, Twitter Cards
+- [x] sitemap.xml, robots.txt
+- [x] Web Vitals 추적
+- [x] 712 tests passing
 
-## v0.41.0 - SEO Optimization ✅ COMPLETE (2026-03-07)
+---
 
-### Priority 1: SEO Core ✅
-- [x] Meta tags 추가 (title, description, keywords)
-- [x] Open Graph tags 추가 (Facebook, LinkedIn)
-- [x] Twitter Cards 추가
-- [x] Canonical URLs 설정
-- [x] robots.txt 최적화
-- [x] sitemap.xml 생성
+## 다음 버전 계획
 
-### Priority 2: Performance & Monitoring ✅
-- [x] Web Vitals 추적 추가
-- [x] Lighthouse 점수 확인 및 개선
+### v0.55.0 - 문서화 정리 (2026-03-08) 🚧 IN PROGRESS
+- [x] TODO.md 정리 (완료된 항목 제거)
+- [ ] README.md 업데이트 (v0.54.0 기능 반영)
+- [ ] CHANGELOG.md 최신화
+- [ ] package.json 버전 업데이트 (0.54.0 → 0.55.0)
 
-### Priority 3: Documentation ✅
-- [x] CHANGELOG.md 업데이트
-- [ ] README.md SEO 섹션 추가 (optional)
+### v0.56.0 - 성능 모니터링 강화
+- [ ] Web Vitals 대시보드 연동 (Vercel Analytics)
+- [ ] 커스텀 성능 메트릭 (검색 응답 시간, 지도 렌더링)
+- [ ] Sentry 활성화 (에러 추적)
+- [ ] 성능 리포트 페이지 (/admin/performance)
 
-## Future Versions
+### v0.57.0 - 푸시 알림 (선택)
+- [ ] PWA 푸시 알림 구현
+- [ ] 알림 권한 요청 UI
+- [ ] 알림 구독 관리 (Prisma 모델)
+- [ ] 알림 전송 API
 
-### v0.44.0 - User Experience
-- [ ] 개인화 추천 시스템 강화
-- [ ] 다국어 지원 (i18n)
-- [ ] 다크 모드 개선
+### v0.58.0 - 백그라운드 동기화 (선택)
+- [ ] Service Worker 백그라운드 동기화
+- [ ] 오프라인 검색 큐 (IndexedDB)
+- [ ] 동기화 상태 표시 UI
+- [ ] 충돌 해결 전략
 
-### v0.45.0 - Advanced Features
-- [ ] 백그라운드 동기화
-- [ ] 푸시 알림
-- [ ] 오프라인 검색 캐시
+---
+
+## 장기 로드맵
+
+### v0.60.0 - 고급 기능
+- [ ] 경로 저장/공유 기능 강화
+- [ ] 커스텀 카테고리 추가
+- [ ] 즐겨찾기 기능
+- [ ] 검색 필터 고급 옵션
+
+### v0.70.0 - 협업 기능
+- [ ] 그룹 경로 계획
+- [ ] 실시간 위치 공유
+- [ ] 투표 기능 (경유지 선택)
+
+### v0.80.0 - AI 기능
+- [ ] AI 기반 경유지 추천
+- [ ] 자연어 검색 ("맛있는 거 먹고 싶어")
+- [ ] 음성 인터페이스
+
+---
+
+**마지막 업데이트:** 2026-03-08
+**현재 버전:** v0.54.0
+**다음 버전:** v0.55.0 (문서화 정리)

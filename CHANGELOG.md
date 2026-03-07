@@ -2,10 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0-0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0-0.html).
 
 ## [Unreleased]
+
+## [0.55.0] - 2026-03-08
+
+### Documentation
+- **TODO.md 정리**: 완료된 항목 제거 (v0.41.0~v0.54.0)
+- **TODO.md 로드맵 추가**: v0.56.0~v0.58.0 계획 수립
+- **README.md 업데이트**: 최신 기능 섹션 추가
+  - 다국어 지원 (v0.48.0+)
+  - 오프라인 지원 (v0.50.0+)
+  - 개인화 추천 (v0.46.0+)
+  - 접근성 (v0.45.0+)
+  - PWA 지원 (v0.42.0+)
+
+### Changed
+- TODO.md 구조 개선 (완료된 버전 → 다음 버전 계획)
+- README.md "주요 기능" 섹션 확장 (3개 → 8개)
+
+### Test Results
+- ✅ 728 tests passing (유지)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (문서화만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- v0.56.0에서 성능 모니터링 강화 예정
 
 ## [0.54.0] - 2026-03-08
 
