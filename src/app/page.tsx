@@ -9,7 +9,8 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Search, Share2, LocateFixed, Sun, Moon, Star, Wifi } from 'lucide-react';
+import { Search, Share2, LocateFixed, Sun, Moon, Star, Wifi, Settings } from 'lucide-react';
+import Link from 'next/link';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import MapContainer from '@/components/map/MapContainer';
 import SearchOverlay from '@/components/search/SearchOverlay';
@@ -278,6 +279,16 @@ export default function HomePage() {
             }}
           >🔄 이 지역 재검색</button>
         )}
+
+        {/* Settings Button */}
+        <Link
+          href="/settings"
+          className="absolute bottom-44 right-4 z-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50"
+          title="설정"
+          aria-label="설정"
+        >
+          <Settings className="w-6 h-6" style={{ color: 'var(--accent)' }} />
+        </Link>
 
         {/* GPS Button */}
         <button

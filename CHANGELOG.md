@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.53.0] - 2026-03-08
+
+### Features
+- **설정 페이지**: `/settings` 라우트 추가
+  - 캐시 관리 기능 (캐시 크기, 삭제, 통계)
+  - CacheSettings 컴포넌트 (IndexedDB 기반)
+  - ConfirmDialog 컴포넌트 (삭제 확인 다이얼로그)
+  - useCacheStats 훅 (캐시 통계 조회)
+  - 설정 진입점 (헤더 Settings 아이콘)
+
+### Technical Details
+- `src/app/settings/page.tsx`: 설정 페이지 (신규)
+- `src/components/settings/CacheSettings.tsx`: 캐시 관리 컴포넌트 (신규)
+- `src/components/ui/ConfirmDialog.tsx`: 확인 다이얼로그 (신규)
+- `src/hooks/useCacheStats.ts`: 캐시 통계 훅 (신규)
+- `src/app/page.tsx`: Settings 아이콘 추가 (수정)
+
+### Test Results
+- ✅ 728 tests passing (+9 from v0.52.0)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
 ## [0.52.0] - 2026-03-08
 
 ### Code Quality
