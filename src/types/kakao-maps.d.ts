@@ -45,6 +45,7 @@ declare namespace kakao {
       setMap(map: Map | null): void;
       setPosition(latlng: LatLng): void;
       getPosition(): LatLng;
+      setImage(image: MarkerImage): void;
     }
 
     class InfoWindow {
@@ -67,6 +68,14 @@ declare namespace kakao {
       constructor(x: number, y: number);
     }
 
+    class MarkerImage {
+      constructor(
+        src: string,
+        size: Size,
+        options?: MarkerImageOptions
+      );
+    }
+
     namespace event {
       function addListener(
         target: Map | Marker | CustomOverlay,
@@ -76,7 +85,7 @@ declare namespace kakao {
       function removeListener(
         target: Map | Marker | CustomOverlay,
         type: string,
-        handler: (e: unknown) => void
+        handler?: (e: unknown) => void
       ): void;
     }
 
@@ -176,12 +185,6 @@ declare namespace kakao {
       opacity?: number;
       altitude?: number;
       range?: number;
-    }
-
-    interface MarkerImage {
-      src: string;
-      size: Size;
-      options?: MarkerImageOptions;
     }
 
     interface MarkerImageOptions {

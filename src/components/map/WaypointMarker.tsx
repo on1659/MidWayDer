@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { DetourResult } from '@/types/detour';
 
 interface WaypointMarkerProps {
@@ -31,12 +31,12 @@ export default function WaypointMarker({
   const markersRef = useRef<naver.maps.Marker[]>([]);
   const clustererRef = useRef<naver.maps.MarkerClustering | null>(null);
   const infoWindowRef = useRef<naver.maps.InfoWindow | null>(null);
-  const [clustererLoaded, setClustererLoaded] = useState(false);
+  const clustererLoadedRef = useRef(false);
 
   // MarkerClustering 라이브러리 로드
   useEffect(() => {
     if (window.naver?.maps?.MarkerClustering) {
-      setClustererLoaded(true);
+      clustererLoadedRef.current = true;
       return;
     }
 
@@ -44,7 +44,7 @@ export default function WaypointMarker({
     script.src = 'https://navermaps.github.io/maps.js.ncp/docs/tutorial-code/clusterer/MarkerClustering.js';
     script.async = true;
     script.onload = () => {
-      setClustererLoaded(true);
+      clustererLoadedRef.current = true;
     };
     script.onerror = () => {
       console.warn('Failed to load Naver MarkerClustering library');
@@ -178,7 +178,7 @@ export default function WaypointMarker({
     markersRef.current = markers;
 
     // MarkerClustering 사용 (라이브러리가 로드된 경우)
-    if (clustererLoaded && window.naver?.maps?.MarkerClustering) {
+    if (clustererLoadedRef.current && window.naver?.maps?.MarkerClustering) {
       const clusterer = new window.naver.maps.MarkerClustering({
         minClusterSize: 2,
         maxZoom: 12,
@@ -223,7 +223,7 @@ export default function WaypointMarker({
         infoWindowRef.current.close();
       }
     };
-  }, [map, waypoints, selectedId, onMarkerClick, clustererLoaded]);
+  }, [map, waypoints, selectedId, onMarkerClick]);
 
   return null;
 }

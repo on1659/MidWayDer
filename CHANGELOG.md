@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-03-07
+
+### Bug Fixes
+- **TypeScript 타입 에러 수정**: KakaoWaypointMarker.tsx에서 발생하던 9개 타입 에러 해결
+  - `removeListener` 핸들러 인자 선택적으로 변경 (호환성)
+  - `MarkerImage` 클래스 생성자 추가 (interface → class)
+  - `Marker.setImage()` 메서드 타입 추가
+- **ESLint 에러 수정**: WaypointMarker.tsx에서 setState 동기 호출 제거
+  - `clustererLoaded` state → ref로 변경 (불필요한 리렌더링 방지)
+
+### Technical Details
+- `src/types/kakao-maps.d.ts`:
+  - `event.removeListener()` handler 인자 optional로 변경
+  - `MarkerImage` class constructor 추가 (기존 interface 제거)
+  - `Marker.setImage()` 메서드 추가
+- `src/components/map/WaypointMarker.tsx`:
+  - `useState` → `useRef`로 변경 (clustererLoadedRef)
+  - ESLint react-hooks/set-state-in-effect 규칙 준수
+
+### Test Results
+- ✅ 712 unit tests passing
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings/errors
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (타입/린트 에러만 수정, 기능 변경 없음)
+
 ## [0.37.0] - 2026-03-07
 
 ### Performance & UX Improvements
