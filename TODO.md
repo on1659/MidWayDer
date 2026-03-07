@@ -1,5 +1,22 @@
 # MidWayDer TODO
 
+## v0.45.0 - Accessibility Enhancement ✅ COMPLETE (2026-03-07)
+
+### Priority 1: ARIA 속성 보완 ✅
+- [x] 검색 컨테이너 role="search" 추가
+- [x] 버튼 aria-label 추가 (GPS, Share)
+- [x] 동적 콘텐츠 aria-live 유지
+
+### Priority 2: 스크린 리더 지원 ✅
+- [x] .sr-only 클래스 추가
+- [x] .sr-only-focusable 클래스 추가
+
+### Test Results ✅
+- [x] 712 tests passing
+- [x] 0 TypeScript errors
+- [x] 0 ESLint warnings
+- [x] Build successful
+
 ## v0.44.0 - Dark Mode Enhancement ✅ COMPLETE (2026-03-07)
 
 ### Priority 1: Dark Mode Improvements ✅
