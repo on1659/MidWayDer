@@ -1,0 +1,80 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "close": "Close",
+    "cancel": "Cancel"
+  },
+  "search": {
+    "startPlaceholder": "Enter start point",
+    "endPlaceholder": "Enter destination",
+    "categoryPlaceholder": "Select category",
+    "button": "Search",
+    "searching": "Searching...",
+    "noResults": "No results found",
+    "useGps": "Use current location",
+    "swapLocations": "Swap start/end"
+  },
+  "categories": {
+    "all": "All",
+    "daiso": "Daiso",
+    "starbucks": "Starbucks",
+    "ediya": "Ediya",
+    "cu": "CU",
+    "gs25": "GS25",
+    "emart24": "emart24"
+  },
+  "results": {
+    "title": "Recommended Stops",
+    "sortBy": "Sort by:",
+    "sortDetour": "Detour distance",
+    "sortScore": "Recommendation",
+    "detour": "+{distance}m, +{duration}min",
+    "proximity": "Proximity: {score}pts",
+    "noResults": "No {category} stores on your route",
+    "viewRoute": "View Route",
+    "openMap": "Open in Map",
+    "share": "Share",
+    "navigate": "Navigate",
+    "recentSearches": "Recent Searches",
+    "clearRecent": "Clear"
+  },
+  "recommendation": {
+    "frequentCategories": "Frequent Categories",
+    "suggestionTitle": "How about these places?",
+    "badge": "Recommended"
+  },
+  "map": {
+    "start": "Start",
+    "end": "End",
+    "waypoint": "Stop",
+    "originalRoute": "Original Route",
+    "detourRoute": "Detour Route",
+    "km": "{value}km",
+    "m": "{value}m",
+    "min": "{value}min"
+  },
+  "errors": {
+    "networkError": "Please check your network connection",
+    "locationError": "Unable to get your location",
+    "routeError": "Route not found",
+    "apiError": "A temporary error occurred. Please try again later"
+  },
+  "offline": {
+    "title": "You're offline",
+    "message": "Please check your internet connection",
+    "retry": "Retry"
+  },
+  "install": {
+    "title": "Install App",
+    "message": "Add to home screen to use like an app",
+    "install": "Install",
+    "later": "Later"
+  },
+  "language": {
+    "selector": "Language",
+    "ko": "한국어",
+    "en": "English"
+  }
+}

@@ -10,6 +10,7 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Search, Share2, LocateFixed, Sun, Moon, Star, Wifi } from 'lucide-react';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import MapContainer from '@/components/map/MapContainer';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import BottomSheet from '@/components/ui/BottomSheet';
@@ -341,6 +342,7 @@ export default function HomePage() {
             <button onClick={toggleTheme} aria-label="테마 변경" className="w-12 h-12 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
+            <LanguageSelector />
           </div>
         </div>
 

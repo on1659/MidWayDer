@@ -1,0 +1,80 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "retry": "다시 시도",
+    "close": "닫기",
+    "cancel": "취소"
+  },
+  "search": {
+    "startPlaceholder": "출발지를 입력하세요",
+    "endPlaceholder": "도착지를 입력하세요",
+    "categoryPlaceholder": "카테고리 선택",
+    "button": "검색",
+    "searching": "검색 중...",
+    "noResults": "검색 결과가 없습니다",
+    "useGps": "현재 위치 사용",
+    "swapLocations": "출발/도착 교체"
+  },
+  "categories": {
+    "all": "전체",
+    "daiso": "다이소",
+    "starbucks": "스타벅스",
+    "ediya": "이디야",
+    "cu": "CU",
+    "gs25": "GS25",
+    "emart24": "이마트24"
+  },
+  "results": {
+    "title": "추천 경유지",
+    "sortBy": "정렬:",
+    "sortDetour": "이탈 거리순",
+    "sortScore": "추천순",
+    "detour": "+{distance}m, +{duration}분",
+    "proximity": "근접도: {score}점",
+    "noResults": "경로상에 {category} 매장이 없습니다",
+    "viewRoute": "경로 보기",
+    "openMap": "지도에서 보기",
+    "share": "공유",
+    "navigate": "네비 연결",
+    "recentSearches": "최근 검색",
+    "clearRecent": "지우기"
+  },
+  "recommendation": {
+    "frequentCategories": "자주 찾는 카테고리",
+    "suggestionTitle": "지금 이런 곳 어때요?",
+    "badge": "추천"
+  },
+  "map": {
+    "start": "출발",
+    "end": "도착",
+    "waypoint": "경유지",
+    "originalRoute": "원본 경로",
+    "detourRoute": "경유 경로",
+    "km": "{value}km",
+    "m": "{value}m",
+    "min": "{value}분"
+  },
+  "errors": {
+    "networkError": "네트워크 연결을 확인해주세요",
+    "locationError": "위치를 가져올 수 없습니다",
+    "routeError": "경로를 찾을 수 없습니다",
+    "apiError": "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요"
+  },
+  "offline": {
+    "title": "오프라인 상태입니다",
+    "message": "인터넷 연결을 확인해주세요",
+    "retry": "다시 시도"
+  },
+  "install": {
+    "title": "앱으로 설치하기",
+    "message": "홈 화면에 추가하여 앱처럼 사용하세요",
+    "install": "설치",
+    "later": "나중에"
+  },
+  "language": {
+    "selector": "언어",
+    "ko": "한국어",
+    "en": "English"
+  }
+}

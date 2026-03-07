@@ -7,6 +7,7 @@
 
 import { useCallback } from 'react';
 import { Share2, X, Sun, Moon, Star, ArrowUpDown } from 'lucide-react';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { logger } from '@/lib/logger';
 import AddressInput from '@/components/search/AddressInput';
 import CategorySelect from '@/components/search/CategorySelect';
@@ -133,6 +134,7 @@ export default function DesktopSidePanel({
           <button onClick={toggleTheme} aria-label="테마 변경" className="w-9 h-9 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}>
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+          <LanguageSelector />
         </div>
       </header>
 

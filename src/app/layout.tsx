@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { InstallBanner } from '@/components/ui/InstallBanner';
+import { Providers } from '@/components/Providers';
 
 // Font optimization: Noto Sans KR with display: swap
 const notoSansKR = Noto_Sans_KR({
@@ -107,12 +108,14 @@ export default function RootLayout({
 })();`}</Script>
       </head>
       <body className="antialiased font-sans">
-        <ServiceWorkerRegister />
-        <OfflineBanner />
-        <InstallBanner />
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
+        <Providers>
+          <ServiceWorkerRegister />
+          <OfflineBanner />
+          <InstallBanner />
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </Providers>
       </body>
     </html>
   );

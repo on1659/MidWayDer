@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.48.0] - 2026-03-07
+
+### i18n (Internationalization) Support
+- **다국어 지원 추가**: 한국어/영어 UI 전환 기능
+  - Context API 기반 경량 i18n 구현 (번들 크기 절감)
+  - LocaleContext + useLocale 훅
+  - localStorage 언어 설정 저장
+  - 브라우저 언어 자동 감지
+
+- **LanguageSelector 컴포넌트**: 
+  - 모바일/데스크톱 UI에 언어 전환 버튼 추가
+  - 한국어 ↔ English 토글
+  - Globe 아이콘 사용 (Lucide React)
+
+- **번역 파일 구조**:
+  - `src/locales/ko.json`: 한국어 번역 (70+ keys)
+  - `src/locales/en.json`: 영어 번역 (70+ keys)
+  - 카테고리별 구조화 (common, search, results, map, errors 등)
+
+- **번역 기능**:
+  - 파라미터 인터폴레이션 지원 (예: "+{distance}m, +{duration}분")
+  - Fallback to key (번역 누락 시 키 표시)
+
+### Technical Details
+- `src/contexts/LocaleContext.tsx`: LocaleProvider + useLocale 훅
+- `src/lib/i18n/translations.ts`: translate 함수, isValidLocale, getAvailableLocales
+- `src/components/Providers.tsx`: 클라이언트 프로바이더 래퍼
+- `src/components/ui/LanguageSelector.tsx`: 언어 선택 컴포넌트
+- `src/__tests__/i18n.test.ts`: i18n 테스트 (8개 추가)
+
+### Test Results
+- ✅ 720 tests passing (+8 from v0.47.0)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (기존 기능 호환, 새 기능 추가만)
+
 ## [0.47.0] - 2026-03-07
 
 ### Code Quality Improvements
