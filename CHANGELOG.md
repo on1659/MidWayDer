@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-03-07
+
+### Accessibility
+- **ResultList**: Added aria-busy attribute for loading state
+- **Error Messages**: Added role="alert" and aria-live="polite" for error announcements
+- **Focus Indicators**: Improved focus-visible outline (3px solid, 2px offset)
+
+### UX
+- **Touch Feedback**: Added active state feedback for cards (scale 0.98 on mobile)
+- **Hover Effects**: Improved hover state for cards (shadow + translate on desktop)
+
+### Technical Details
+- `src/components/search/ResultList.tsx`:
+  - Added aria-busy={isLoading} to result list container
+  - Wrapped error fallback with role="alert" and aria-live="polite"
+- `src/app/globals.css`:
+  - Added :focus-visible styles for better keyboard navigation
+  - Added .result-card-hover:hover and :active styles for touch feedback
+  - Used @media (hover: hover/none) to differentiate desktop/mobile
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Breaking Changes
+- **없음** (접근성/UX 개선만, 기능 변경 없음)
+
 ## [0.39.0] - 2026-03-07
 
 ### Performance

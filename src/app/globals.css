@@ -374,3 +374,36 @@ a:focus-visible,
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
+
+/* ========== 접근성: 키보드 포커스 표시기 개선 (v0.40.0) ========== */
+:focus-visible {
+  outline: 3px solid var(--kakao-primary, #3274F9);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 터치 디바이스에서는 focus-visible만 적용 */
+@media (hover: none) {
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* ========== UX: 터치 피드백 개선 (v0.40.0) ========== */
+@media (hover: hover) {
+  /* 데스크톱: hover 효과 */
+  .result-card-hover:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+}
+
+@media (hover: none) {
+  /* 모바일: active 효과 */
+  .result-card-hover:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+}
+

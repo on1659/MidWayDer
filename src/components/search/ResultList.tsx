@@ -624,7 +624,7 @@ export default function ResultList({
   }
 
   // ── Render: Error ──
-  if (error) return <ErrorFallback error={error} onRetry={onRetry} compact />;
+  if (error) return <div role="alert" aria-live="polite"><ErrorFallback error={error} onRetry={onRetry} compact /></div>;
 
   // ── Render: Empty ──
   if (results.length === 0) {
@@ -649,7 +649,7 @@ export default function ResultList({
         {a11yMessage}
       </div>
 
-      <div className="space-y-3" ref={listRef} tabIndex={-1} style={{ outline: 'none' }} role="list" aria-label={`${currentCategory} 검색 결과 ${results.length}개`}>
+      <div className="space-y-3" ref={listRef} tabIndex={-1} style={{ outline: 'none' }} role="list" aria-label={`${currentCategory} 검색 결과 ${results.length}개`} aria-busy={isLoading}>
 
         <ResultHeader
           ref={summaryHeaderRef}
