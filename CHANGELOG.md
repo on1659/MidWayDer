@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.0] - 2026-03-08
+
+### Features
+- **백그라운드 동기화**: Service Worker Background Sync API 구현
+  - 오프라인 상태에서 검색 요청 큐에 저장
+  - 네트워크 복구 시 자동 동기화
+  - Chrome/Edge 지원 (Safari/Firefox는 기존 캐시 동작 유지)
+- **동기화 큐 (IndexedDB)**: Dexie.js 기반 큐 관리
+  - sync-queue.ts: 검색/피드백/경로 요청 큐
+  - 재시도 로직 (최대 3회)
+  - 실패 항목 추적
+- **동기화 상태 UI**: SyncStatus 컴포넌트
+  - 오프라인/동기화 중/대기 항목 표시
+  - 동기화 완료 알림
+  - 설정 페이지 통합 (SyncSettings)
+- **동기화 설정 페이지**: /settings
+  - 네트워크 상태 표시
+  - 큐 통계 (대기/완료/실패)
+  - 수동 동기화 버튼
+  - 완료 항목 정리 기능
+- **충돌 해결 전략**: conflict-resolver.ts
+  - 서버 데이터 우선 전략
+  - 타임스탬프 기반 충돌 감지
+
+### Technical Details
+- `public/sw.js`: 백그라운드 동기화 이벤트 추가
+- `src/lib/cache/sync-queue.ts`: 동기화 큐 DB (신규)
+- `src/lib/cache/conflict-resolver.ts`: 충돌 해결 (신규)
+- `src/hooks/useSyncStatus.ts`: 동기화 상태 훅 (신규)
+- `src/components/ui/SyncStatus.tsx`: 상태 표시 컴포넌트 (신규)
+- `src/components/settings/SyncSettings.tsx`: 설정 섹션 (신규)
+- `src/app/settings/page.tsx`: SyncSettings 추가
+
+### Test Results
+- ✅ 745 tests passing (+17 new)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Browser Compatibility
+- ✅ Chrome/Edge: 백그라운드 동기화 지원
+- ⚠️ Safari/Firefox: 기존 캐시 동작만 지원 (에러 없음)
+
 ## [0.56.0] - 2026-03-08
 
 ### Features
