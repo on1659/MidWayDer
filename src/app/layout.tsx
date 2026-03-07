@@ -4,6 +4,7 @@ import './globals.css';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { InstallBanner } from '@/components/ui/InstallBanner';
 
 // Re-export reportWebVitals for Next.js automatic collection
 export { reportWebVitals } from '@/lib/monitoring/performance';
@@ -96,6 +97,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ServiceWorkerRegister />
         <OfflineBanner />
+        <InstallBanner />
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

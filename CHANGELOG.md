@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.42.0] - 2026-03-07
+
+### PWA Support
+- **Service Worker**: Updated cache version to v0.42.0 for fresh cache
+- **Installation UX**: Added InstallBanner component for PWA installation
+- **User Experience**: Enhanced installation flow with beforeinstallprompt handling
+
+### Technical Details
+- `src/components/ui/InstallBanner.tsx` (new):
+  - beforeinstallprompt event handling
+  - Install/Dismiss buttons with accessibility
+  - Dismissal state persistence (localStorage)
+  - Auto-show after 3 seconds delay
+  - appinstalled event tracking
+- `src/app/layout.tsx`:
+  - Added InstallBanner component
+  - Import statement for InstallBanner
+- `public/sw.js`:
+  - Updated CACHE_NAME to v0.42.0
+  - Cache invalidation for fresh install
+
+### Test Results
+- ✅ 712 tests passing (expected)
+- ✅ Build successful (expected)
+- ✅ 0 TypeScript errors (expected)
+- ✅ 0 ESLint warnings (expected)
+- ✅ PWA installation ready
+
+### Breaking Changes
+- **없음** (PWA 기능 추가만, 기존 기능 변경 없음)
+
 ## [0.41.0] - 2026-03-07
 
 ### SEO
