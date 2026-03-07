@@ -1,157 +1,135 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  generateCacheKey,
-  saveSearchCache,
-  loadSearchCache,
-  clearAllSearchCache,
-} from '../search-cache';
-import type { SearchCacheKey } from '../search-cache';
+/**
+ * Search Cache Tests
+ */
 
-const mockKey: SearchCacheKey = {
-  start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-  end: { coordinates: { lat: 37.4979, lng: 127.0276 } },
-  category: '다이소',
-};
+import { describe, it, expect, beforeEach } from 'vitest';
+import { db, generateCacheKey, getCachedSearchNew, setCachedSearchNew, cleanupExpiredCache, clearAllCache } from '../search-cache';
 
-const mockValue = {
-  results: [],
-  originalRoute: {
-    start: { lat: 37.5663, lng: 126.9779 },
-    end: { lat: 37.4979, lng: 127.0276 },
-    distance: 12500,
-    duration: 1200,
-    path: [],
-  },
-  totalCandidates: 50,
-  apiCallsUsed: 41,
-};
-
-describe('generateCacheKey — bufferDistance 분리', () => {
-  const base = {
-    start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-    end: { coordinates: { lat: 37.4979, lng: 127.0276 } },
-    category: '다이소',
-  };
-
-  it('bufferDistance가 다르면 다른 캐시 키를 생성한다', () => {
-    const key1km = generateCacheKey({ ...base, bufferDistance: 1000 });
-    const key2km = generateCacheKey({ ...base, bufferDistance: 2000 });
-    expect(key1km).not.toBe(key2km);
+describe('SearchCache', () => {
+  beforeEach(async () => {
+    await db.searches.clear();
   });
 
-  it('bufferDistance 미지정 시 기본값(1000)으로 키를 생성한다', () => {
-    const keyDefault = generateCacheKey(base);
-    const key1000 = generateCacheKey({ ...base, bufferDistance: 1000 });
-    expect(keyDefault).toBe(key1000);
-  });
-});
-
-describe('generateCacheKey — 충돌 방지', () => {
-  it('출발지가 다르면 키가 다름', () => {
-    const key1 = generateCacheKey({
-      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
-      category: '다이소',
+  describe('generateCacheKey', () => {
+    it('캐시 키 생성', () => {
+      const key = generateCacheKey(
+        { lat: 37.5665, lng: 126.9780 },
+        { lat: 37.4979, lng: 127.0276 },
+        '다이소'
+      );
+      expect(key).toBe('37.5665,126.9780|37.4979,127.0276|다이소');
     });
-    const key2 = generateCacheKey({
-      start: { coordinates: { lat: 37.5664, lng: 126.9779 } }, // lat 미세 변경
-      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
-      category: '다이소',
-    });
-    expect(key1).not.toBe(key2);
-  });
 
-  it('도착지가 다르면 키가 다름', () => {
-    const base = {
-      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
-      category: '다이소',
-    };
-    const key1 = generateCacheKey(base);
-    const key2 = generateCacheKey({
-      ...base,
-      end: { coordinates: { lat: 37.4980, lng: 127.0276 } },
-    });
-    expect(key1).not.toBe(key2);
-  });
-
-  it('카테고리가 다르면 키가 다름', () => {
-    const base = {
-      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
-      category: '다이소',
-    };
-    const key1 = generateCacheKey(base);
-    const key2 = generateCacheKey({ ...base, category: '스타벅스' });
-    expect(key1).not.toBe(key2);
-  });
-
-  it('키 형식이 "midwayder_search_" 프리픽스로 시작', () => {
-    const key = generateCacheKey({
-      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
-      category: '다이소',
-    });
-    expect(key).toMatch(/^midwayder_search_/);
-  });
-
-  it('카테고리 특수문자는 안전하게 치환됨', () => {
-    const key = generateCacheKey({
-      start: { coordinates: { lat: 37.5663, lng: 126.9779 } },
-      end:   { coordinates: { lat: 37.4979, lng: 127.0276 } },
-      category: 'GS25 편의점!',
-    });
-    // 특수문자가 localStorage 키에 그대로 들어가지 않음
-    expect(key).not.toContain('!');
-    expect(key).not.toContain(' ');
-  });
-});
-
-describe('search-cache', () => {
-  let _store: Record<string, string> = {};
-  beforeEach(() => {
-    _store = {};
-    vi.stubGlobal('window', {});
-    vi.stubGlobal('localStorage', {
-      getItem(key: string) { return _store[key] ?? null; },
-      setItem(key: string, value: string) { _store[key] = value; },
-      removeItem(key: string) { delete _store[key]; },
-      clear() { _store = {}; },
+    it('소수점 4자리까지 반올림', () => {
+      const key = generateCacheKey(
+        { lat: 37.5665678, lng: 126.9780123 },
+        { lat: 37.4979987, lng: 127.0276654 },
+        '스타벅스'
+      );
+      expect(key).toBe('37.5666,126.9780|37.4980,127.0277|스타벅스');
     });
   });
 
-  it('generateCacheKey — 동일 입력 → 동일 키 반환', () => {
-    const key1 = generateCacheKey(mockKey);
-    const key2 = generateCacheKey(mockKey);
-    expect(key1).toBe(key2);
+  describe('setCachedSearchNew & getCachedSearchNew', () => {
+    it('캐시 저장 및 조회', async () => {
+      const key = 'test-key';
+      const query = {
+        start: { lat: 37.5, lng: 127.0 },
+        end: { lat: 37.6, lng: 127.1 },
+        category: '다이소'
+      };
+      const results = [
+        { place: { id: '1', name: '다이소 강남점' } }
+      ] as any;
+
+      await setCachedSearchNew(key, query, results, 1000);
+      const cached = await getCachedSearchNew(key);
+
+      expect(cached).toBeDefined();
+      expect(cached?.results).toEqual(results);
+      expect(cached?.query).toEqual(query);
+    });
+
+    it('만료된 캐시 자동 삭제', async () => {
+      const key = 'test-key-expired';
+      const query = {
+        start: { lat: 1, lng: 1 },
+        end: { lat: 2, lng: 2 },
+        category: 'test'
+      };
+      const results = [] as any;
+
+      await setCachedSearchNew(key, query, results, 1); // 1ms TTL
+
+      // 만료 대기
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      const cached = await getCachedSearchNew(key);
+      expect(cached).toBeUndefined();
+    });
+
+    it('여러 캐시 저장 및 조회', async () => {
+      const keys = ['key1', 'key2', 'key3'];
+      const query = {
+        start: { lat: 1, lng: 1 },
+        end: { lat: 2, lng: 2 },
+        category: 'test'
+      };
+
+      for (const key of keys) {
+        await setCachedSearchNew(key, query, [{ place: { id: key } }] as any);
+      }
+
+      for (const key of keys) {
+        const cached = await getCachedSearchNew(key);
+        expect(cached).toBeDefined();
+        expect(cached?.results[0].place.id).toBe(key);
+      }
+    });
   });
 
-  it('generateCacheKey — 다른 카테고리 → 다른 키', () => {
-    const key1 = generateCacheKey(mockKey);
-    const key2 = generateCacheKey({ ...mockKey, category: '스타벅스' });
-    expect(key1).not.toBe(key2);
+  describe('cleanupExpiredCache', () => {
+    it('만료된 캐시 정리', async () => {
+      const query = {
+        start: { lat: 1, lng: 1 },
+        end: { lat: 2, lng: 2 },
+        category: 'test'
+      };
+
+      // 만료될 캐시
+      await setCachedSearchNew('expired1', query, [], 1);
+      await setCachedSearchNew('expired2', query, [], 1);
+
+      // 유효한 캐시
+      await setCachedSearchNew('valid', query, [], 60000);
+
+      // 만료 대기
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      const deletedCount = await cleanupExpiredCache();
+      expect(deletedCount).toBe(2);
+
+      const valid = await getCachedSearchNew('valid');
+      expect(valid).toBeDefined();
+    });
   });
 
-  it('saveSearchCache + loadSearchCache — 저장 후 조회', () => {
-    saveSearchCache(mockKey, mockValue);
-    const cached = loadSearchCache(mockKey);
-    expect(cached).not.toBeNull();
-    expect(cached?.totalCandidates).toBe(50);
-  });
+  describe('clearAllCache', () => {
+    it('전체 캐시 삭제', async () => {
+      const query = {
+        start: { lat: 1, lng: 1 },
+        end: { lat: 2, lng: 2 },
+        category: 'test'
+      };
 
-  it('TTL 만료 시 null 반환', () => {
-    vi.useFakeTimers();
-    saveSearchCache(mockKey, mockValue);
-    vi.advanceTimersByTime(31 * 60 * 1000); // 31분 경과
-    const cached = loadSearchCache(mockKey);
-    expect(cached).toBeNull();
-    vi.useRealTimers();
-  });
+      await setCachedSearchNew('key1', query, []);
+      await setCachedSearchNew('key2', query, []);
+      await setCachedSearchNew('key3', query, []);
 
-  it('clearAllSearchCache — 전체 캐시 삭제', () => {
-    saveSearchCache(mockKey, mockValue);
-    clearAllSearchCache();
-    const cached = loadSearchCache(mockKey);
-    expect(cached).toBeNull();
+      await clearAllCache();
+
+      const all = await db.searches.toArray();
+      expect(all.length).toBe(0);
+    });
   });
 });

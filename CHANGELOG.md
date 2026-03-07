@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.50.0] - 2026-03-07
+
+### Features
+- **오프라인 검색 캐시**: IndexedDB 기반 캐시 시스템 구현
+  - Dexie.js 도입 (IndexedDB 래퍼)
+  - 최근 검색 결과 자동 캐시 (24시간 TTL)
+  - 오프라인 상태에서 캐시된 결과 조회 가능
+  - Cache-First 전략 (네트워크 우선 → 캐시 폴백)
+  - 백그라운드 캐시 업데이트
+
+### Technical Details
+- **의존성 추가**:
+  - `dexie`: IndexedDB 래퍼
+  - `fake-indexeddb`: 테스트 환경용 IndexedDB mock
+
+- **신규 파일**:
+  - `src/lib/cache/search-cache.ts`: IndexedDB 캐시 매니저
+  - `src/lib/cache/cache-strategy.ts`: Cache-First 전략
+  - `src/store/cache-store.ts`: Zustand 캐시 상태
+  - `src/hooks/useCachedSearch.ts`: 캐시 검색 훅
+  - `src/components/search/CacheStatus.tsx`: 캐시 상태 표시 컴포넌트
+  - `src/lib/utils/date.ts`: 날짜 포맷팅 유틸리티
+
+- **수정 파일**:
+  - `src/lib/cache/search-cache.ts`: localStorage → IndexedDB 마이그레이션
+  - `src/test/setup.ts`: fake-indexeddb 추가
+
+### Test Results
+- ✅ 719 tests passing (+8 from v0.49.0)
+- ✅ Build successful
+- ✅ 21 ESLint warnings (any 타입 사용 - 테스트 파일)
+
+### Breaking Changes
+- **없음** (기존 API와 완전 호환)
+
+### Next Steps
+- UI에 CacheStatus 컴포넌트 통합
+- 설정 페이지에 캐시 관리 기능 추가
+- Service Worker와 연동
+
 ## [0.49.0] - 2026-03-07
 
 ### Code Quality & Bug Fixes

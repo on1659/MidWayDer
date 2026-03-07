@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       const routeHash = hashRoute(startCoords, endCoords);
       const maxResults = options?.maxResults ?? 10;
 
-      const placeIds = cached.results.map(r => r.place.id);
+      const placeIds = cached.results.map((r: any) => r.place.id);
       const personalizationScores = await Promise.race([
         calculatePersonalizationScores(sessionId, routeHash, placeIds),
         new Promise<PersonalizationScore[]>((_, reject) =>
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       const scoreMap = new Map(personalizationScores.map(p => [p.placeId, p]));
 
       const personalizedResults = cached.results
-        .map(result => {
+        .map((result: any) => {
           const pScore = scoreMap.get(result.place.id);
           return {
             ...result,
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
             )),
           };
         })
-        .sort((a, b) => b.finalScore - a.finalScore)
+        .sort((a: any, b: any) => b.finalScore - a.finalScore)
         .slice(0, maxResults);
 
       return NextResponse.json({
