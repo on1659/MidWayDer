@@ -226,6 +226,47 @@ declare namespace kakao {
     }
 
     function load(callback: () => void): void;
+
+    // MarkerClusterer for clustering markers
+    class MarkerClusterer {
+      constructor(options: MarkerClustererOptions);
+      addMarkers(markers: Marker[]): void;
+      removeMarkers(markers: Marker[]): void;
+      clear(): void;
+      setMap(map: Map | null): void;
+      getClusters(): Cluster[];
+      getTotal(): number;
+    }
+
+    interface MarkerClustererOptions {
+      map: Map;
+      markers?: Marker[];
+      averageCenter?: boolean;
+      minLevel?: number;
+      calculator?: number[];
+      styles?: ClusterStyle[];
+      disableClickZoom?: boolean;
+      gridSize?: number;
+    }
+
+    class Cluster {
+      getCenter(): LatLng;
+      getSize(): number;
+      getMarkers(): Marker[];
+    }
+
+    interface ClusterStyle {
+      width?: string;
+      height?: string;
+      background?: string;
+      borderRadius?: string;
+      color?: string;
+      textAlign?: string;
+      lineHeight?: string;
+      fontWeight?: string;
+      boxShadow?: string;
+      border?: string;
+    }
   }
 }
 

@@ -113,6 +113,45 @@ declare namespace naver {
       bottom?: number;
       left?: number;
     }
+
+    // MarkerClustering for clustering markers
+    class MarkerClustering {
+      constructor(options: MarkerClusteringOptions);
+      addMarkers(markers: Marker[]): void;
+      removeMarkers(markers: Marker[]): void;
+      clear(): void;
+      setMap(map: Map | null): void;
+      getClusters(): Cluster[];
+    }
+
+    interface MarkerClusteringOptions {
+      minClusterSize?: number;
+      maxZoom?: number;
+      map: Map;
+      markers: Marker[];
+      disableClickZoom?: boolean;
+      styles?: ClusterStyle[];
+      gridSize?: number;
+    }
+
+    class Cluster {
+      getCenter(): LatLng;
+      getSize(): number;
+      getMarkers(): Marker[];
+    }
+
+    interface ClusterStyle {
+      width?: string;
+      height?: string;
+      background?: string;
+      borderRadius?: string;
+      color?: string;
+      textAlign?: string;
+      lineHeight?: string;
+      fontWeight?: string;
+      border?: string;
+      boxShadow?: string;
+    }
   }
 }
 

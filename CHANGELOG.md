@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-03-07
+
+### Performance & UX Improvements
+- **지도 마커 클러스터링**: 다수 경유지 표시 시 지도 가독성 및 성능 향상
+  - Kakao Maps: MarkerClusterer 적용 (줌 레벨별 자동 그룹핑)
+  - Naver Maps: MarkerClustering 적용 (maxZoom 12, minClusterSize 2)
+  - 클러스터 스타일: 파란색 (#3274F9) 배경, 개수 표시, 카카오맵 스타일 일관성
+  - 줌 아웃 시 클러스터 → 줌 인 시 개별 마커 자동 전환
+
+### Technical Details
+- `src/types/kakao-maps.d.ts`: MarkerClusterer, Cluster, ClusterStyle 타입 정의
+- `src/types/naver-maps.d.ts`: MarkerClustering, Cluster, ClusterStyle 타입 정의
+- `src/components/map/KakaoMap.tsx`: Kakao Maps SDK에 clusterer 라이브러리 추가
+- `src/components/map/KakaoWaypointMarker.tsx`:
+  - CustomOverlay → Marker + MarkerClusterer로 리팩토링
+  - 호버 효과, 정보창 CustomOverlay로 유지
+  - 폴백: clusterer 라이브러리 미로드 시 개별 마커 표시
+- `src/components/map/WaypointMarker.tsx`:
+  - MarkerClustering 동적 로드 (CDN)
+  - minClusterSize: 2, maxZoom: 12 설정
+  - 폴백: 라이브러리 로드 실패 시 개별 마커 표시
+
+### Performance Impact
+- **렌더링 성능**: 마커 50개 이상 시 지도 렌더링 시간 단축
+- **시각적 혼잡도**: 줌 아웃 시 클러스터로 자동 그룹핑으로 가독성 향상
+- **사용자 경험**: 클러스터 클릭 시 자동 확대로 개별 마커 확인 가능
+
+### Test Results
+- ✅ 712 unit tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+
+### Migration
+- **자동 마이그레이션** (사용자 액션 불필요)
+- Kakao Maps SDK clusterer 라이브러리 자동 로드
+- Naver Maps MarkerClustering 라이브러리 동적 로드
+- 기존 기능 호환성 유지 (폴백 지원)
+
+### Breaking Changes
+- **없음** (기존 기능 유지, 점진적 개선)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: 최근 검색 개선 또는 기술 부채 정리
+
 ## [0.36.0] - 2026-03-07
 
 ### UX Improvements

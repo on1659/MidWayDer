@@ -2,6 +2,7 @@
  * KakaoWaypointMarker - 경유지 마커 컴포넌트 (Kakao Maps)
  *
  * 검색 결과 경유지들을 지도에 마커로 표시합니다.
+ * MarkerClusterer를 사용하여 다수 마커 시 클러스터링합니다.
  * 클릭 시 정보창을 표시하고 선택할 수 있습니다.
  */
 
@@ -26,15 +27,13 @@ export default function KakaoWaypointMarker({
   hoveredId,
   onMarkerClick,
 }: KakaoWaypointMarkerProps) {
-  const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
+  const markersRef = useRef<kakao.maps.Marker[]>([]);
+  const clustererRef = useRef<kakao.maps.MarkerClusterer | null>(null);
   const infoOverlayRef = useRef<kakao.maps.CustomOverlay | null>(null);
   const onMarkerClickRef = useRef(onMarkerClick);
   const mapClickHandlerRef = useRef<(() => void) | null>(null);
-  // 마커 inner 엘리먼트 ref (호버 동기화용)
-  const markerInnersRef = useRef<Map<string, HTMLDivElement>>(new Map());
-  // hover 팝업 닫기 타이머 (mouseleave 300ms 딜레이)
+  const markerWaypointMapRef = useRef<Map<kakao.maps.Marker, DetourResult>>(new Map());
   const hoverCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // 클릭으로 열린 팝업의 placeId (hover close 보호용)
   const clickedOpenIdRef = useRef<string | null>(null);
 
   // 최신 콜백 유지
@@ -50,13 +49,113 @@ export default function KakaoWaypointMarker({
     }
   }, []);
 
+  // 정보창 표시 함수
+  const showInfoWindow = useCallback((waypoint: DetourResult) => {
+    if (!map) return;
+    
+    closeInfoWindow();
+
+    const detourDistance = (waypoint.detourCost.distance / 1000).toFixed(1);
+    const detourTime = Math.round(waypoint.detourCost.duration / 60);
+
+    const infoContent = document.createElement('div');
+    infoContent.style.cssText = `
+      position: relative;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      padding: 14px 16px;
+      min-width: 200px;
+      max-width: 260px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 50px;
+      pointer-events: auto;
+      cursor: default;
+    `;
+
+    const safeName = escapeHtml(waypoint.place.name);
+    const safeAddress = escapeHtml(waypoint.place.roadAddress || waypoint.place.address);
+
+    infoContent.innerHTML = `
+      <div style="position: relative;">
+        <h4 style="
+          margin: 0 0 6px 0;
+          font-size: 15px;
+          font-weight: 700;
+          color: #1a1a1a;
+        ">${safeName}</h4>
+        <p style="
+          margin: 0 0 10px 0;
+          font-size: 12px;
+          color: #666;
+          line-height: 1.4;
+        ">${safeAddress}</p>
+        <div style="
+          display: flex;
+          gap: 8px;
+          font-size: 12px;
+          font-weight: 600;
+        ">
+          <span style="background: #EBF5FF; color: #3274F9; padding: 2px 8px; border-radius: 10px;">+${detourDistance}km</span>
+          <span style="background: #FFF7ED; color: #C2410C; padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
+          <span style="background: #DCFCE7; color: #16A34A; padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
+        </div>
+        <div style="
+          position: absolute;
+          bottom: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 10px solid transparent;
+          border-right: 10px solid transparent;
+          border-top: 10px solid white;
+        "></div>
+      </div>
+    `;
+
+    infoContent.addEventListener('click', (e) => e.stopPropagation());
+
+    const infoOverlay = new window.kakao.maps.CustomOverlay({
+      position: new window.kakao.maps.LatLng(
+        waypoint.place.coordinates.lat,
+        waypoint.place.coordinates.lng
+      ),
+      content: infoContent,
+      xAnchor: 0.5,
+      yAnchor: 1,
+      zIndex: 2000,
+      clickable: true,
+    });
+
+    infoOverlay.setMap(map);
+    infoOverlayRef.current = infoOverlay;
+  }, [map, closeInfoWindow]);
+
   useEffect(() => {
     if (!map || !window.kakao) return;
 
-    // 기존 오버레이 제거
-    overlaysRef.current.forEach((overlay) => overlay.setMap(null));
-    overlaysRef.current = [];
-    markerInnersRef.current = new Map();
+    // MarkerClusterer 라이브러리 확인
+    if (!window.kakao.maps.MarkerClusterer) {
+      console.warn('Kakao MarkerClusterer not loaded, falling back to individual markers');
+    }
+
+    // 기존 클러스터러 제거
+    if (clustererRef.current) {
+      clustererRef.current.clear();
+      clustererRef.current.setMap(null);
+      clustererRef.current = null;
+    }
+
+    // 기존 마커 제거
+    markersRef.current.forEach((marker) => {
+      marker.setMap(null);
+      kakao.maps.event.removeListener(marker, 'click');
+      kakao.maps.event.removeListener(marker, 'mouseover');
+      kakao.maps.event.removeListener(marker, 'mouseout');
+    });
+    markersRef.current = [];
+    markerWaypointMapRef.current = new Map();
     closeInfoWindow();
 
     // 기존 지도 클릭 핸들러 제거
@@ -76,72 +175,67 @@ export default function KakaoWaypointMarker({
     kakao.maps.event.addListener(map, 'click', mapClickHandler);
 
     // 마커 생성
+    const markers: kakao.maps.Marker[] = [];
     waypoints.forEach((waypoint, index) => {
       const isSelected = selectedId === waypoint.place.id;
 
-      const markerContent = document.createElement('div');
-      markerContent.style.cssText = `
-        position: relative;
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        pointer-events: auto;
-        z-index: ${isSelected ? 1000 : 100};
+      // 마커 이미지 생성 (번호 표시)
+      const markerImageContent = `
+        <div style="
+          width: 40px;
+          height: 40px;
+          background-color: ${isSelected ? '#16A34A' : '#3274F9'};
+          border: 3px solid white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 15px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+          transition: transform 0.15s ease;
+        ">${index + 1}</div>
       `;
 
-      const markerInner = document.createElement('div');
-      markerInner.style.cssText = `
-        width: 40px;
-        height: 40px;
-        background-color: ${isSelected ? 'var(--green-600)' : 'var(--accent)'};
-        border: 3px solid white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-        pointer-events: none;
-        transition: transform 0.15s ease;
-      `;
-      markerInner.textContent = String(index + 1);
-      markerContent.appendChild(markerInner);
-      // 호버 동기화용 ref 저장
-      markerInnersRef.current.set(waypoint.place.id, markerInner);
+      const markerImage = new window.kakao.maps.MarkerImage(
+        'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(markerImageContent))),
+        new window.kakao.maps.Size(40, 40),
+        { offset: new window.kakao.maps.Point(20, 20) }
+      );
 
-      const overlay = new window.kakao.maps.CustomOverlay({
+      const marker = new window.kakao.maps.Marker({
         position: new window.kakao.maps.LatLng(
           waypoint.place.coordinates.lat,
           waypoint.place.coordinates.lng
         ),
-        content: markerContent,
-        xAnchor: 0.5,
-        yAnchor: 0.5,
+        image: markerImage,
+        title: waypoint.place.name,
         zIndex: isSelected ? 1000 : 100,
-        clickable: true,
       });
 
-      overlay.setMap(map);
-      overlaysRef.current.push(overlay);
+      markerWaypointMapRef.current.set(marker, waypoint);
 
-      // 호버 효과 + hover 팝업 표시
-      markerContent.addEventListener('mouseenter', () => {
-        markerInner.style.transform = 'scale(1.15)';
-        // 진행 중인 hover 닫기 타이머 취소
+      // 클릭 이벤트
+      kakao.maps.event.addListener(marker, 'click', () => {
+        clickedOpenIdRef.current = waypoint.place.id;
+        onMarkerClickRef.current(waypoint);
+        showInfoWindow(waypoint);
+      });
+
+      // 호버 이벤트 (mouseenter)
+      kakao.maps.event.addListener(marker, 'mouseover', () => {
         if (hoverCloseTimeoutRef.current) {
           clearTimeout(hoverCloseTimeoutRef.current);
           hoverCloseTimeoutRef.current = null;
         }
-        // 클릭으로 열린 팝업이 없을 때만 hover 팝업 표시
         if (clickedOpenIdRef.current === null) {
           showInfoWindow(waypoint);
         }
       });
-      markerContent.addEventListener('mouseleave', () => {
-        markerInner.style.transform = 'scale(1)';
-        // 클릭으로 열린 팝업이 아닌 경우 300ms 후 닫기
+
+      // 호버 이벤트 (mouseleave)
+      kakao.maps.event.addListener(marker, 'mouseout', () => {
         if (clickedOpenIdRef.current !== waypoint.place.id) {
           hoverCloseTimeoutRef.current = setTimeout(() => {
             closeInfoWindow();
@@ -150,94 +244,40 @@ export default function KakaoWaypointMarker({
         }
       });
 
-      // 클릭 이벤트 — stopPropagation으로 지도 클릭 전파 방지
-      markerContent.addEventListener('click', (e) => {
-        e.stopPropagation();
-        clickedOpenIdRef.current = waypoint.place.id;
-        onMarkerClickRef.current(waypoint);
-        showInfoWindow(waypoint);
-      });
+      markers.push(marker);
     });
 
-    function showInfoWindow(waypoint: DetourResult) {
-      closeInfoWindow();
+    markersRef.current = markers;
 
-      const detourDistance = (waypoint.detourCost.distance / 1000).toFixed(1);
-      const detourTime = Math.round(waypoint.detourCost.duration / 60);
-
-      const infoContent = document.createElement('div');
-      infoContent.style.cssText = `
-        position: relative;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-        padding: 14px 16px;
-        min-width: 200px;
-        max-width: 260px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        margin-bottom: 50px;
-        pointer-events: auto;
-        cursor: default;
-      `;
-
-      const safeName = escapeHtml(waypoint.place.name);
-      const safeAddress = escapeHtml(waypoint.place.roadAddress || waypoint.place.address);
-
-      infoContent.innerHTML = `
-        <div style="position: relative;">
-          <h4 style="
-            margin: 0 0 6px 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
-          ">${safeName}</h4>
-          <p style="
-            margin: 0 0 10px 0;
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.4;
-          ">${safeAddress}</p>
-          <div style="
-            display: flex;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 600;
-          ">
-            <span style="background: var(--blue-50); color: var(--accent); padding: 2px 8px; border-radius: 10px;">+${detourDistance}km</span>
-            <span style="background: #FFF7ED; color: var(--orange-700); padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
-            <span style="background: var(--green-200); color: var(--green-500); padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
-          </div>
-          <div style="
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 10px solid white;
-          "></div>
-        </div>
-      `;
-
-      // 정보창 클릭 시 지도로 전파 방지
-      infoContent.addEventListener('click', (e) => e.stopPropagation());
-
-      const infoOverlay = new window.kakao.maps.CustomOverlay({
-        position: new window.kakao.maps.LatLng(
-          waypoint.place.coordinates.lat,
-          waypoint.place.coordinates.lng
-        ),
-        content: infoContent,
-        xAnchor: 0.5,
-        yAnchor: 1,
-        zIndex: 2000,
-        clickable: true,
+    // MarkerClusterer 사용 (라이브러리가 로드된 경우)
+    if (window.kakao.maps.MarkerClusterer) {
+      const clusterer = new window.kakao.maps.MarkerClusterer({
+        map: map,
+        markers: markers,
+        averageCenter: true,
+        minLevel: 10,
+        calculator: [10, 30, 50],
+        styles: [
+          {
+            width: '40px',
+            height: '40px',
+            background: '#3274F9',
+            borderRadius: '50%',
+            color: '#fff',
+            textAlign: 'center',
+            lineHeight: '41px',
+            fontWeight: 'bold',
+            border: '2px solid white',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+          },
+        ],
+        disableClickZoom: false,
       });
 
-      infoOverlay.setMap(map);
-      infoOverlayRef.current = infoOverlay;
+      clustererRef.current = clusterer;
+    } else {
+      // 폴백: 개별 마커 표시
+      markers.forEach((marker) => marker.setMap(map));
     }
 
     return () => {
@@ -246,33 +286,70 @@ export default function KakaoWaypointMarker({
         hoverCloseTimeoutRef.current = null;
       }
       clickedOpenIdRef.current = null;
-      overlaysRef.current.forEach((overlay) => overlay.setMap(null));
-      overlaysRef.current = [];
+
+      if (clustererRef.current) {
+        clustererRef.current.clear();
+        clustererRef.current.setMap(null);
+        clustererRef.current = null;
+      }
+
+      markersRef.current.forEach((marker) => {
+        marker.setMap(null);
+        kakao.maps.event.removeListener(marker, 'click');
+        kakao.maps.event.removeListener(marker, 'mouseover');
+        kakao.maps.event.removeListener(marker, 'mouseout');
+      });
+      markersRef.current = [];
+      markerWaypointMapRef.current = new Map();
       closeInfoWindow();
+
       if (mapClickHandlerRef.current) {
         kakao.maps.event.removeListener(map, 'click', mapClickHandlerRef.current);
         mapClickHandlerRef.current = null;
       }
     };
-  }, [map, waypoints, selectedId, closeInfoWindow]);
+  }, [map, waypoints, selectedId, closeInfoWindow, showInfoWindow]);
 
-  // 호버 동기화: hoveredId 변경 시 마커 스타일만 업데이트 (마커 재생성 없음)
+  // 호버 동기화: hoveredId 변경 시 마커 업데이트
   useEffect(() => {
-    markerInnersRef.current.forEach((el, id) => {
-      const isSelected = selectedId === id;
-      const isHovered = hoveredId === id;
-      if (isSelected) {
-        el.style.transform = 'scale(1)';
-        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
-      } else if (isHovered) {
-        el.style.transform = 'scale(1.25)';
-        el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.45)';
-      } else {
-        el.style.transform = 'scale(1)';
-        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35)';
-      }
+    markersRef.current.forEach((marker) => {
+      const waypoint = markerWaypointMapRef.current.get(marker);
+      if (!waypoint) return;
+
+      const isSelected = selectedId === waypoint.place.id;
+      const isHovered = hoveredId === waypoint.place.id;
+
+      // 마커 이미지 업데이트
+      const index = waypoints.findIndex((w) => w.place.id === waypoint.place.id);
+      const scale = isSelected ? 1 : isHovered ? 1.25 : 1;
+      const markerImageContent = `
+        <div style="
+          width: 40px;
+          height: 40px;
+          background-color: ${isSelected ? '#16A34A' : '#3274F9'};
+          border: 3px solid white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 15px;
+          box-shadow: 0 ${isHovered ? '6px 18px' : '2px 8px'} rgba(0,0,0,${isHovered ? '0.45' : '0.35'});
+          transition: transform 0.15s ease;
+          transform: scale(${scale});
+        ">${index + 1}</div>
+      `;
+
+      const markerImage = new window.kakao.maps.MarkerImage(
+        'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(markerImageContent))),
+        new window.kakao.maps.Size(40, 40),
+        { offset: new window.kakao.maps.Point(20, 20) }
+      );
+
+      marker.setImage(markerImage);
     });
-  }, [hoveredId, selectedId]);
+  }, [hoveredId, selectedId, waypoints]);
 
   return null;
 }
