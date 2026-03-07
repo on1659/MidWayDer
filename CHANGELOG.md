@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.43.0] - 2026-03-07
+
+### Performance Optimization
+- **Font Optimization**: Added next/font for Noto Sans KR with display: swap
+  - Preload enabled for faster initial render
+  - CSS variable --font-noto-sans-kr for consistent typography
+  - Fallback to system fonts for resilience
+
+- **Icon Optimization**: Enhanced manifest icons
+  - Added SVG icon for scalable display
+  - Improved apple-touch-icon meta tags
+  - Added apple-mobile-web-app-status-bar-style
+
+### Technical Details
+- `src/app/layout.tsx`:
+  - Added Noto_Sans_KR from next/font/google
+  - Updated html tag with font variable class
+  - Added SVG favicon link
+  - Enhanced iOS PWA meta tags
+- `src/app/globals.css`:
+  - Updated body font-family to use CSS variable
+  - Maintained fallback to system fonts
+- `public/manifest.json`:
+  - Added SVG icon as first option for modern browsers
+  - Kept PNG icons for compatibility
+
+### Test Results
+- ✅ 712 tests passing (expected)
+- ✅ Build successful (expected)
+- ✅ 0 TypeScript errors (expected)
+- ✅ 0 ESLint warnings (expected)
+
+### Breaking Changes
+- **없음** (성능 최적화만, 기능 변경 없음)
+
 ## [0.42.0] - 2026-03-07
 
 ### PWA Support

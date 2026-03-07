@@ -1,10 +1,20 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import { Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { InstallBanner } from '@/components/ui/InstallBanner';
+
+// Font optimization: Noto Sans KR with display: swap
+const notoSansKR = Noto_Sans_KR({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-noto-sans-kr',
+  preload: true,
+});
 
 // Re-export reportWebVitals for Next.js automatic collection
 export { reportWebVitals } from '@/lib/monitoring/performance';
@@ -78,12 +88,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={notoSansKR.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6c9cff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
+        <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <Script
           id="theme-init"
           strategy="beforeInteractive"
@@ -94,7 +106,7 @@ export default function RootLayout({
   } catch {}
 })();`}</Script>
       </head>
-      <body className="antialiased">
+      <body className="antialiased font-sans">
         <ServiceWorkerRegister />
         <OfflineBanner />
         <InstallBanner />
