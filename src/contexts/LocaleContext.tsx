@@ -13,7 +13,6 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   ReactNode,
 } from 'react';
@@ -48,29 +47,28 @@ export function LocaleProvider({
   children,
   defaultLocale = 'ko',
 }: LocaleProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  // Hydrate locale from localStorage on mount
-  useEffect(() => {
+  // Initialize locale with lazy initialization to avoid useEffect setState
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    // SSR safety check
+    if (typeof window === 'undefined') return defaultLocale;
+    
     // Check localStorage first
     const savedLocale = localStorage.getItem(STORAGE_KEY);
     if (savedLocale && isValidLocale(savedLocale)) {
-      setLocaleState(savedLocale);
-    } else {
-      // Fallback to browser language
-      const browserLang = navigator.language.split('-')[0];
-      if (isValidLocale(browserLang)) {
-        setLocaleState(browserLang);
-      }
+      return savedLocale;
     }
-    setIsHydrated(true);
-  }, []);
+    
+    // Fallback to browser language
+    const browserLang = navigator.language.split('-')[0];
+    return isValidLocale(browserLang) ? browserLang : defaultLocale;
+  });
 
   // Persist locale changes to localStorage
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem(STORAGE_KEY, newLocale);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, newLocale);
+    }
   }, []);
 
   // Translation function
@@ -80,11 +78,6 @@ export function LocaleProvider({
     },
     [locale]
   );
-
-  // Prevent hydration mismatch by not rendering until hydrated
-  if (!isHydrated) {
-    return null;
-  }
 
   return (
     <LocaleContext.Provider

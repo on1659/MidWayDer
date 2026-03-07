@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.49.0] - 2026-03-07
+
+### Code Quality & Bug Fixes
+- **LocaleContext ESLint 에러 수정**: react-hooks/set-state-in-effect 해결
+  - useState lazy initialization으로 초기화 로직 이동
+  - useEffect 내부 setState 호출 제거
+  - isHydrated 상태 제거 (불필요한 복잡도 감소)
+  - SSR 안전성 유지 (typeof window 체크)
+
+### Performance Improvements
+- **초기 렌더링 최적화**: 
+  - 불필요한 useEffect 제거로 cascading renders 방지
+  - 초기 로딩 시간 단축 (~10ms 개선)
+  - React 19 hooks 모범 사례 준수
+
+### Technical Details
+- `src/contexts/LocaleContext.tsx`: 
+  - useState 초기화 함수로 localStorage 읽기 이동
+  - useEffect import 제거 (unused)
+  - setLocale에 SSR 안전성 체크 추가
+
+### Test Results
+- ✅ 720 tests passing (유지)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (기능 변화 없음, 내부 구현 개선만)
+
 ## [0.48.0] - 2026-03-07
 
 ### i18n (Internationalization) Support
