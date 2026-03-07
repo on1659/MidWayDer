@@ -4,16 +4,18 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
+import { RecommendedCategories } from './RecommendedCategories';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 import { getSavedLocationByLabel } from '@/lib/smart-location';
 import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice-search';
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useSearchStore } from '@/store/search-store';
+import { useSearchHistoryStore } from '@/store/search-history-store';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -130,6 +132,11 @@ export default function SearchOverlay({
     removeRecentSearch(id);
     setRecentSearches(getRecentSearches());
   };
+
+  // 카테고리 선택 핸들러 (useCallback으로 최적화)
+  const handleCategorySelect = useCallback((selectedCategory: string) => {
+    onCategoryChange(selectedCategory);
+  }, [onCategoryChange]);
 
   const handleVoiceSearch = async () => {
     setIsListening(true);
@@ -409,6 +416,17 @@ export default function SearchOverlay({
             </div>
           );
         })()}
+
+        {/* 추천 카테고리 섹션 (카테고리 선택 전에 표시) */}
+        {!category && (
+          <div className="mb-4">
+            <RecommendedCategories
+              onCategorySelect={handleCategorySelect}
+              maxItems={5}
+            />
+          </div>
+        )}
+
         <p className="text-sm font-semibold mb-2.5" style={{ color: 'var(--text-primary)' }}>어디 들를까요?</p>
         <CategorySelect selected={category} onChange={onCategoryChange} />
       </div>

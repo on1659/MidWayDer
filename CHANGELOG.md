@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.46.0] - 2026-03-07
+
+### Personalized Recommendation System
+- **검색 히스토리 기반 추천**: 사용자별 맞춤 카테고리 추천
+  - SearchHistoryStore (Zustand + localStorage)
+  - 카테고리별 사용 빈도 추적 (최대 100개 히스토리)
+  - 빈도 기반 점수 계산 (0-40 points)
+
+- **추천 알고리즘 구현**:
+  - 빈도 점수: 사용 횟수 기반 (0-40 points)
+  - 최신성 점수: 마지막 사용 시간 기반 (0-30 points)
+  - 시간대 점수: 현재 시간대별 추천 (0-30 points)
+  - 최종 추천 점수: 0-100 points
+
+- **UI 개선**:
+  - "🔥 자주 찾는 카테고리" 섹션 추가
+  - "⏰ 지금 이런 곳 어때요?" 시간대별 추천
+  - 개인화된 카테고리 정렬
+  - 추천 배지 표시 (⭐ 50점 이상)
+
+### Technical Details
+- `src/types/search-history.ts`: 검색 히스토리 타입 정의
+- `src/types/recommendation.ts`: 추천 시스템 타입 정의
+- `src/store/search-history-store.ts`: Zustand 스토어 (localStorage persist)
+- `src/lib/recommendation/scorer.ts`: 추천 점수 계산 로직
+- `src/lib/recommendation/recommender.ts`: 추천 카테고리 조회
+- `src/components/search/RecommendedCategories.tsx`: 추천 UI 컴포넌트
+- `src/components/search/SearchOverlay.tsx`: 추천 섹션 통합
+
+### Privacy & Performance
+- **로컬 저장만**: 개인정보 서버 전송 없음
+- **성능 최적화**: useMemo, useCallback 활용
+- **에러 처리**: localStorage 실패 시 조용히 처리
+- **프로그레시브 강화**: 히스토리 없어도 기본 동작
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (기능 추가만, 기존 동작 유지)
+
 ## [0.45.0] - 2026-03-07
 
 ### Accessibility Enhancement

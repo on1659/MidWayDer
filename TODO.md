@@ -1,5 +1,31 @@
 # MidWayDer TODO
 
+## v0.46.0 - Personalized Recommendation System ✅ COMPLETE (2026-03-07)
+
+### Priority 1: 검색 히스토리 기반 추천 ✅
+- [x] SearchHistoryStore (Zustand + localStorage)
+- [x] 카테고리별 사용 빈도 추적
+- [x] 최대 100개 히스토리 유지
+- [x] 빈도 기반 점수 계산
+
+### Priority 2: 추천 알고리즘 구현 ✅
+- [x] 빈도 점수 (0-40 points)
+- [x] 최신성 점수 (0-30 points)
+- [x] 시간대 점수 (0-30 points)
+- [x] 최종 추천 점수 (0-100 points)
+
+### Priority 3: UI 통합 ✅
+- [x] "자주 찾는 카테고리" 섹션
+- [x] "지금 이런 곳 어때요?" 섹션
+- [x] 개인화된 정렬
+- [x] 추천 배지 표시
+
+### Test Results ✅
+- [x] 712 tests passing
+- [x] 0 TypeScript errors
+- [x] 0 ESLint warnings
+- [x] Build successful
+
 ## v0.45.0 - Accessibility Enhancement ✅ COMPLETE (2026-03-07)
 
 ### Priority 1: ARIA 속성 보완 ✅
