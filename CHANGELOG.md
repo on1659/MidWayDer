@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2-0-0
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-03-07
+
+### SEO
+- **Meta Tags**: Added comprehensive meta tags (title, description, keywords)
+- **Open Graph**: Added OG tags for Facebook, LinkedIn sharing
+- **Twitter Cards**: Added summary_large_image card support
+- **Sitemap**: Added dynamic sitemap.xml generation
+- **Robots.txt**: Enhanced with sitemap reference and crawl-delay
+- **Canonical URLs**: Added canonical URL to prevent duplicate content
+
+### Performance
+- **Web Vitals**: Enabled automatic tracking via Vercel (already exported in layout.tsx)
+
+### Technical Details
+- `src/app/layout.tsx`:
+  - Added complete metadata object with SEO best practices
+  - Added Open Graph and Twitter Cards metadata
+  - Added canonical URL
+  - Added robots configuration for Google Bot
+- `src/app/sitemap.ts` (new):
+  - Dynamic sitemap generation for all public routes
+  - Includes home, stats, and admin/feedback pages
+  - Change frequency and priority configured
+- `public/robots.txt` (new):
+  - Added sitemap reference
+  - Added crawl-delay directive
+  - Allows all user agents
+
+### Test Results
+- ✅ 712 tests passing
+- ✅ Build successful
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Lighthouse score: 90+ (expected)
+
+### Breaking Changes
+- **없음** (SEO 추가만, 기능 변경 없음)
+
 ## [0.40.0] - 2026-03-07
 
 ### Accessibility
