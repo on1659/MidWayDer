@@ -1,6 +1,6 @@
 {
   "name": "midwayder",
-  "version": "0.55.0",
+  "version": "0.56.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -21,6 +21,8 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@sentry/nextjs": "^10.42.0",
+    "@vercel/analytics": "^1.6.1",
     "axios": "^1.13.4",
     "dexie": "^4.3.0",
     "dotenv": "^17.2.3",

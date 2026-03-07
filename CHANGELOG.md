@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.56.0] - 2026-03-08
+
+### Features
+- **Vercel Analytics 연동**: @vercel/analytics 패키지 추가
+  - Web Vitals 자동 수집
+  - layout.tsx에 Analytics 컴포넌트 추가
+- **성능 메트릭 수집 훅**: usePerformanceMetrics
+  - 검색 API 응답 시간 측정
+  - 지도 렌더링 시간 측정
+  - 커스텀 메트릭 기록
+  - Web Vital 기록
+- **성능 리포트 페이지**: /admin/performance
+  - Web Vitals 대시보드 (LCP, FID, CLS, TTFB)
+  - 검색 성능 통계
+  - 에러 요약
+- **Sentry 준비**: @sentry/nextjs 패키지 설치
+  - 클라이언트/서버 설정 파일 준비 (주석 처리)
+  - DSN 설정 시 활성화 가능
+
+### Technical Details
+- `src/app/layout.tsx`: Analytics 컴포넌트 추가
+- `src/hooks/usePerformanceMetrics.ts`: 성능 측정 훅 (신규)
+- `src/app/admin/performance/page.tsx`: 성능 대시보드 (신규)
+- `package.json`: @vercel/analytics, @sentry/nextjs 추가
+
+### Test Results
+- ✅ 728 tests passing (유지)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Notes
+- Sentry 활성화하려면 NEXT_PUBLIC_SENTRY_DSN 환경 변수 설정 필요
+- Vercel Analytics는 배포 후 자동으로 작동
+
 ## [0.55.0] - 2026-03-08
 
 ### Documentation

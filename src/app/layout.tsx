@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Noto_Sans_KR } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
@@ -116,6 +117,7 @@ export default function RootLayout({
             {children}
           </ErrorBoundary>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
