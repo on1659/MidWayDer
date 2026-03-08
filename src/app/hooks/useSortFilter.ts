@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { DetourResult } from '@/types/detour';
 import { getMinutesUntilClose, getBusinessStatus } from '@/lib/business-hours';
+import { useSearchStore } from '@/store/search-store';
 
 type SortBy = 'score' | 'distance' | 'duration' | 'closing';
 
@@ -18,6 +19,7 @@ interface UseSortFilterReturn {
 export function useSortFilter(results: DetourResult[]): UseSortFilterReturn {
   const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'shortest' | 'fastest'>('all');
   const [sortBy, setSortBy] = useState<SortBy>('score');
+  const { filters } = useSearchStore();
 
   // sortBy localStorage 복원
   useEffect(() => {
@@ -38,18 +40,25 @@ export function useSortFilter(results: DetourResult[]): UseSortFilterReturn {
   }, [sortBy]);
 
   const { filteredResults, routeTypeCounts } = useMemo(() => {
+    // 1. 거리 필터 적용 (v0.61.0)
+    const distanceFiltered = filters.maxDetourDistance
+      ? results.filter((r) => r.detourCost.distance <= (filters.maxDetourDistance ?? Infinity))
+      : results;
+
+    // 2. 경로 타입 필터 적용
     const counts = {
-      all: results.length,
-      shortest: results.filter((r) => r.routeType === 'shortest').length,
-      fastest: results.filter((r) => r.routeType === 'fastest').length,
+      all: distanceFiltered.length,
+      shortest: distanceFiltered.filter((r) => r.routeType === 'shortest').length,
+      fastest: distanceFiltered.filter((r) => r.routeType === 'fastest').length,
     };
 
-    const filtered =
+    const routeTypeFiltered =
       routeTypeFilter === 'all'
-        ? results
-        : results.filter((r) => r.routeType === routeTypeFilter);
+        ? distanceFiltered
+        : distanceFiltered.filter((r) => r.routeType === routeTypeFilter);
 
-    const sorted = [...filtered].sort((a, b) => {
+    // 3. 정렬 적용
+    const sorted = [...routeTypeFiltered].sort((a, b) => {
       switch (sortBy) {
         case 'distance':
           return a.detourCost.distance - b.detourCost.distance;
@@ -73,7 +82,7 @@ export function useSortFilter(results: DetourResult[]): UseSortFilterReturn {
     });
 
     return { filteredResults: sorted, routeTypeCounts: counts };
-  }, [results, routeTypeFilter, sortBy]);
+  }, [results, routeTypeFilter, sortBy, filters.maxDetourDistance]);
 
   return { routeTypeFilter, setRouteTypeFilter, sortBy, setSortBy, filteredResults, routeTypeCounts };
 }

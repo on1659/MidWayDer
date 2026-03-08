@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.61.0] - 2026-03-08
+
+### Features
+- **검색 필터**: 이탈 거리 필터링 기능
+  - FilterChips 컴포넌트 (500m, 1km, 2km, 5km, 전체)
+  - SearchFilters 타입 정의 (search-store.ts)
+  - useSortFilter 훅에 거리 필터 로직 통합
+- **커스텀 카테고리**: 사용자 정의 카테고리 관리
+  - CustomCategoryStore (localStorage 기반)
+  - CustomCategorySettings 컴포넌트 (설정 페이지)
+  - 아이콘/색상/키워드 커스터마이징
+
+### Technical Details
+- `src/store/search-store.ts`: SearchFilters 상태 및 액션 추가
+- `src/components/search/FilterChips.tsx`: 필터 UI (신규)
+- `src/store/custom-category-store.ts`: 카테고리 스토어 (신규)
+- `src/components/settings/CustomCategorySettings.tsx`: 카테고리 관리 UI (신규)
+- `src/app/hooks/useSortFilter.ts`: 거리 필터링 로직 통합
+- `src/app/page.tsx`: FilterChips 컴포넌트 추가
+- `src/app/settings/page.tsx`: CustomCategorySettings 컴포넌트 추가
+
+### Test Results
+- ✅ 762 tests passing (기존 테스트 모두 통과)
+- ✅ 4 TypeScript errors (기존 bookmarks test 파일, 변경 없음)
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- v0.62.0 예정: 경로 저장/공유 강화 (Prisma 마이그레이션 필요)
+
 ## [0.60.0] - 2026-03-08
 
 ### Features

@@ -18,6 +18,7 @@ import BottomSheet from '@/components/ui/BottomSheet';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
+import { FilterChips } from '@/components/search/FilterChips';
 import MultiStopSelector from '@/components/search/MultiStopSelector';
 import DesktopSidePanel from '@/components/search/DesktopSidePanel';
 import BottomQuickBar from '@/components/search/BottomQuickBar';
@@ -444,6 +445,7 @@ export default function HomePage() {
                   {originalRoute && <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>기본 경로{' '}<span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{(originalRoute.distance / 1000).toFixed(1)}km · {Math.round(originalRoute.duration / 60)}분</span></p>}
                   <div className="mb-3"><RouteTypeFilter selected={routeTypeFilter} onChange={setRouteTypeFilter} counts={routeTypeCounts} /></div>
                   <div className="mb-3"><SortFilter selected={sortBy} onChange={setSortBy} /></div>
+                  {hasSearched && results.length > 0 && <div className="mb-3"><FilterChips /></div>}
                 </>
               )}
               {results.length >= 2 && start?.coordinates && end?.coordinates && (

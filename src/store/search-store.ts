@@ -13,6 +13,12 @@ import { hashRoute } from '@/lib/utils/route-hash';
 import type { Coordinates } from '@/types/location';
 import { logger } from '@/lib/logger';
 
+// 검색 필터 타입 (v0.61.0)
+export interface SearchFilters {
+  /** 최대 이탈 거리 (미터) | null = 전체 */
+  maxDetourDistance: number | null;
+}
+
 interface SearchState {
   /** 선택된 카테고리 */
   category: string;
@@ -43,6 +49,10 @@ interface SearchState {
   /** 검색 단계 (로딩 메시지용) */
   searchPhase: 'idle' | 'route' | 'places' | 'detour';
 
+  // === 검색 필터 (v0.61.0) ===
+  /** 활성 필터 */
+  filters: SearchFilters;
+
   // Actions
   /** 카테고리 변경 */
   setCategory: (category: string) => void;
@@ -62,6 +72,14 @@ interface SearchState {
   enableMultiSelect: () => void;
   /** 선택 초기화 */
   resetSelection: () => void;
+
+  // === 필터 액션 (v0.61.0) ===
+  /** 필터 설정 */
+  setFilters: (filters: Partial<SearchFilters>) => void;
+  /** 필터 초기화 */
+  resetFilters: () => void;
+  /** 필터링된 결과 반환 */
+  getFilteredResults: () => DetourResult[];
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
@@ -81,6 +99,11 @@ export const useSearchStore = create<SearchState>((set, get) => ({
 
   // 검색 진행 상태 초기값
   searchPhase: 'idle',
+
+  // 필터 초기 상태
+  filters: {
+    maxDetourDistance: null,
+  },
 
   setCategory: (category) => set({ category }),
 
@@ -298,4 +321,29 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       selectedPlaces: new Set(),
       allowMultiSelect: false,
     }),
+
+  // === 필터 액션 (v0.61.0) ===
+  setFilters: (newFilters) =>
+    set((state) => ({
+      filters: { ...state.filters, ...newFilters },
+    })),
+
+  resetFilters: () =>
+    set({
+      filters: {
+        maxDetourDistance: null,
+      },
+    }),
+
+  getFilteredResults: () => {
+    const { results, filters } = get();
+
+    if (!filters.maxDetourDistance) {
+      return results;
+    }
+
+    return results.filter(
+      (result) => result.detourCost.distance <= (filters.maxDetourDistance ?? Infinity)
+    );
+  },
 }));

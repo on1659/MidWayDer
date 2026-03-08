@@ -5,6 +5,7 @@
 import { CacheSettings } from '@/components/settings/CacheSettings';
 import { SyncSettings } from '@/components/settings/SyncSettings';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
+import { CustomCategorySettings } from '@/components/settings/CustomCategorySettings';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,6 +29,7 @@ export default function SettingsPage() {
 
         {/* Settings Content */}
         <div className="space-y-6">
+          <CustomCategorySettings />
           <NotificationSettings />
           <SyncSettings />
           <CacheSettings />
