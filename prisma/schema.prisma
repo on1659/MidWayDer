@@ -156,3 +156,23 @@ model Bookmark {
   @@index([sessionId])
   @@index([createdAt])
 }
+
+model SavedRoute {
+  id           String    @id @default(cuid())
+  sessionId    String
+  name         String
+  startAddress String
+  endAddress   String
+  startCoords  Json      // { lat: number, lng: number }
+  endCoords    Json      // { lat: number, lng: number }
+  category     String?
+  routeHash    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastUsedAt   DateTime? @default(now())
+
+  @@unique([sessionId, routeHash])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([lastUsedAt])
+}

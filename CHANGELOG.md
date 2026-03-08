@@ -2,10 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepajournal.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0-0.html).
 
 ## [Unreleased]
+
+## [0.62.0] - 2026-03-08
+
+### Features
+- **경로 저장 강화**: 저장된 경로 관리 시스템 구현
+  - SavedRoute Prisma 모델 추가 (sessionId, name, start/end, coords, category, routeHash)
+  - `/api/routes` CRUD API 구현 (GET 목록, POST 저장)
+  - `/api/routes/[id]` API 구현 (GET 조회, PATCH 이름 변경, DELETE 삭제)
+  - SavedRouteStore (Zustand) 구현
+  - SavedRoutesList 컴포넌트 (저장된 경로 목록)
+  - SavedRouteCard 컴포넌트 (개별 경로 카드)
+  - RouteNameDialog 컴포넌트 (경로 이름 입력/수정)
+  - QRCodeShare 컴포넌트 (QR 코드 공유)
+
+### Technical Details
+- `prisma/schema.prisma`: SavedRoute 모델 추가
+- `src/types/saved-route.ts`: 타입 정의 (신규)
+- `src/store/saved-route-store.ts`: Zustand 스토어 (신규)
+- `src/app/api/routes/route.ts`: API 라우트 (신규)
+- `src/app/api/routes/[id]/route.ts`: 단일 경로 API (신규)
+- `src/components/saved-routes/`: UI 컴포넌트 4개 (신규)
+- `package.json`: qrcode, @types/qrcode 추가
+
+### Test Results
+- ✅ 766 tests passing (+4 from v0.61.0)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: UI 통합 (메인 페이지, SearchOverlay)
 
 ## [0.61.0] - 2026-03-08
 

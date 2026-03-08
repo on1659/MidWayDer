@@ -131,10 +131,17 @@
 - [x] 카테고리 아이콘/색상/키워드 커스터마이징
 - [x] 762 tests passing
 
-### v0.62.0 - 경로 저장 강화 (다음)
-- [ ] SavedRoute Prisma 모델 추가
-- [ ] 저장된 경로 관리 (목록, 삭제, 이름 변경)
-- [ ] QR 코드 공유 옵션
+### v0.62.0 - 경로 저장 강화 ✅ (2026-03-08)
+- [x] SavedRoute Prisma 모델 추가
+- [x] `/api/routes` CRUD API 구현
+- [x] SavedRouteStore (Zustand)
+- [x] UI 컴포넌트 (SavedRoutesList, SavedRouteCard, RouteNameDialog, QRCodeShare)
+- [x] 766 tests passing (+4)
+
+### v0.63.0 - UI 통합 (다음)
+- [ ] 메인 페이지에 "경로 저장" 버튼 추가
+- [ ] SearchOverlay에 저장된 경로 섹션 추가
+- [ ] QR 코드 공유 기능 활성화
 
 ---
 
