@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPin, Trash2, Edit2 } from 'lucide-react';
+import { MapPin, Trash2, Edit2, Share2 } from 'lucide-react';
 import type { SavedRoute } from '@/types/saved-route';
 import { RouteNameDialog } from './RouteNameDialog';
+import { QRCodeShare } from './QRCodeShare';
 
 interface SavedRouteCardProps {
   route: SavedRoute;
@@ -14,6 +15,7 @@ interface SavedRouteCardProps {
 
 export function SavedRouteCard({ route, onUse, onDelete, onRename }: SavedRouteCardProps) {
   const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   return (
     <>
@@ -55,12 +57,21 @@ export function SavedRouteCard({ route, onUse, onDelete, onRename }: SavedRouteC
           </div>
         )}
 
-        <button
-          onClick={() => onUse(route)}
-          className="w-full px-3 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-        >
-          사용하기
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onUse(route)}
+            className="flex-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+          >
+            사용하기
+          </button>
+          <button
+            onClick={() => setShowQRCode(true)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            aria-label="QR 코드 공유"
+          >
+            <Share2 size={14} />
+          </button>
+        </div>
       </div>
 
       <RouteNameDialog
@@ -72,6 +83,11 @@ export function SavedRouteCard({ route, onUse, onDelete, onRename }: SavedRouteC
           setShowRenameDialog(false);
         }}
       />
+
+      {/* QR 코드 공유 다이얼로그 */}
+      {showQRCode && (
+        <QRCodeShare route={route} onClose={() => setShowQRCode(false)} />
+      )}
     </>
   );
 }

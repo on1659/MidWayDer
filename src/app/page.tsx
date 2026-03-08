@@ -67,10 +67,12 @@ const FeedbackWidget = dynamic(
 
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
+import { useSavedRouteStore } from '@/store/saved-route-store';
 import { addFavorite, getFavorites } from '@/lib/favorites';
 import { recordLocationVisit } from '@/lib/smart-location';
 import { useToast } from '@/hooks/useToast';
 import ToastContainer from '@/components/ui/ToastContainer';
+import type { SavedRoute } from '@/types/saved-route';
 
 // Custom Hooks
 import { useTheme } from './hooks/useTheme';
@@ -185,6 +187,30 @@ export default function HomePage() {
     savedScrollRef.current = bottomSheetContentRef.current?.scrollTop ?? 0;
     setBottomSheetSnap('collapsed');
   }, [selectWaypoint, setOriginalRoute]);
+
+  // 저장된 경로 선택 핸들러 (v0.63.0)
+  const handleRouteSelect = useCallback((route: SavedRoute) => {
+    // 출발지/도착지 설정
+    setStart({ address: route.startAddress, coordinates: route.startCoords });
+    setEnd({ address: route.endAddress, coordinates: route.endCoords });
+    
+    // 카테고리 설정 (있는 경우)
+    if (route.category) {
+      setCategory(route.category);
+    }
+    
+    // 자동 검색 실행
+    search(
+      { address: route.startAddress, coordinates: route.startCoords },
+      { address: route.endAddress, coordinates: route.endCoords },
+      route.category || category
+    ).then(() => {
+      setBottomSheetSnap('half');
+    });
+    
+    // 오버레이 닫기
+    setSearchOverlayOpen(false);
+  }, [setStart, setEnd, setCategory, search, category, setBottomSheetSnap]);
 
   const mapCenter = start?.coordinates || { lat: 37.5665, lng: 126.978 };
   const hasResults = results.length > 0 || isLoading || !!error;
@@ -382,6 +408,7 @@ export default function HomePage() {
             gpsLoading={gpsLoading}
             onInstantSearch={handleInstantSearch}
             onCancel={handleCancelSearch}
+            onRouteSelect={handleRouteSelect}
           />
         </div>
 

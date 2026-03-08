@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.63.0] - 2026-03-08
+
+### Features
+- **UI 통합**: v0.62.0 경로 저장 기능을 메인 UI에 완전 통합
+  - SearchOverlay에 "저장된 경로" 섹션 추가
+  - SavedRouteCard에 QR 코드 공유 버튼 활성화
+  - handleRouteSelect 핸들러로 경로 선택 시 자동 검색 실행
+
+### Technical Details
+- `src/components/search/SearchOverlay.tsx`: SavedRoutesList 섹션 추가
+- `src/components/saved-routes/SavedRouteCard.tsx`: QR 공유 버튼 활성화
+- `src/app/page.tsx`: handleRouteSelect 핸들러 추가, onRouteSelect prop 전달
+
+### Test Results
+- ✅ 766 tests passing
+- ✅ 0 TypeScript errors (기존 테스트 파일 에러 제외)
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (기존 기능에 UI 통합만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.62.0] - 2026-03-08
 
 ### Features

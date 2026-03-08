@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star, Trash2 } from 'lucide-react';
+import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star, Trash2, Bookmark } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
@@ -17,6 +17,9 @@ import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useSearchStore } from '@/store/search-store';
 import { useCacheStore } from '@/store/cache-store';
 import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
+import { SavedRoutesList } from '@/components/saved-routes/SavedRoutesList';
+import { useSavedRouteStore } from '@/store/saved-route-store';
+import type { SavedRoute } from '@/types/saved-route';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -40,6 +43,7 @@ interface SearchOverlayProps {
   gpsLoading?: boolean;
   onInstantSearch?: (item: RecentSearch) => void;
   onCancel?: () => void;  // 추가: 검색 취소
+  onRouteSelect?: (route: SavedRoute) => void;  // 추가: 저장된 경로 선택
 }
 
 export default function SearchOverlay({
@@ -64,6 +68,7 @@ export default function SearchOverlay({
   gpsLoading = false,
   onInstantSearch,
   onCancel,  // 추가
+  onRouteSelect,  // 추가
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
@@ -483,6 +488,17 @@ export default function SearchOverlay({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Saved routes (v0.63.0) */}
+      {onRouteSelect && (
+        <div className="px-4 pb-3">
+          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+            <Bookmark className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+            저장된 경로
+          </p>
+          <SavedRoutesList onRouteSelect={onRouteSelect} />
         </div>
       )}
 
