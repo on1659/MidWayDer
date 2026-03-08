@@ -62,8 +62,8 @@ export class SearchCacheDB extends Dexie {
 
 export const db = new SearchCacheDB();
 
-const DEFAULT_TTL = 24 * 60 * 60 * 1000; // 24시간
-const LEGACY_TTL = 30 * 60 * 1000; // 30분 (기존 localStorage TTL)
+const DEFAULT_TTL = 7 * 24 * 60 * 60 * 1000; // 7일 (v0.64.0: 24시간 → 7일 연장)
+const LEGACY_TTL = 7 * 24 * 60 * 60 * 1000; // 7일 (기존 30분 → 7일 연장)
 
 /**
  * 캐시 키 생성 (새로운 API)
@@ -222,6 +222,7 @@ export async function getCacheStats(): Promise<{
   total: number;
   expired: number;
   size: number;
+  ttlDays: number;
 }> {
   try {
     const now = Date.now();
@@ -231,11 +232,12 @@ export async function getCacheStats(): Promise<{
     return {
       total: all.length,
       expired: expired.length,
-      size: all.length
+      size: all.length,
+      ttlDays: 7 // 7일 TTL (v0.64.0)
     };
   } catch (error) {
     logger.error('[getCacheStats] Error:', error);
-    return { total: 0, expired: 0, size: 0 };
+    return { total: 0, expired: 0, size: 0, ttlDays: 7 };
   }
 }
 

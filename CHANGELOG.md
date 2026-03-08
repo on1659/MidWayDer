@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-03-08
+
+### Performance
+- **캐시 TTL 연장**: 검색 결과 캐시 24시간 → 7일 연장
+  - DEFAULT_TTL: 24h → 7d
+  - LEGACY_TTL: 30m → 7d
+  - getCacheStats에 ttlDays 필드 추가
+  - 오프라인 사용 경험 대폭 개선
+
+### Technical Details
+- `src/lib/cache/search-cache.ts`: TTL 상수 변경, getCacheStats 반환 타입 확장
+
+### Test Results
+- ✅ 766 tests passing
+- ✅ 0 TypeScript errors
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (기존 캐시 API 호환성 유지)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+
 ## [0.63.0] - 2026-03-08
 
 ### Features
