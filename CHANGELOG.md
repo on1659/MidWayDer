@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.59.0] - 2026-03-08
+
+### Features
+- **푸시 알림**: PWA Web Push API 구현
+  - 알림 권한 요청 UI (NotificationPermissionBanner)
+  - 알림 구독/해지 API
+  - 알림 전송 API (관리자용)
+  - VAPID 키 기반 서버 인증
+- **Prisma 모델**: PushSubscription 모델 추가
+  - endpoint, p256dh, auth 저장
+  - sessionId로 사용자 구독 관리
+- **Service Worker 확장**: 푸시 이벤트 리스너
+  - push 이벤트 수신 및 알림 표시
+  - notificationclick 이벤트 처리
+  - 알림 클릭 시 앱 열기
+- **알림 설정 UI**: NotificationSettings 컴포넌트
+  - 설정 페이지에 알림 토글 추가
+  - 구독 상태 표시
+  - 권한 차단 시 안내
+
+### Technical Details
+- `web-push` 패키지 추가 (Web Push 라이브러리)
+- `src/lib/push-notifications.ts`: Web Push 유틸리티 (신규)
+- `src/app/api/notifications/subscribe/route.ts`: 구독 API (신규)
+- `src/app/api/notifications/send/route.ts`: 알림 전송 API (신규)
+- `src/app/api/notifications/vapid-public-key/route.ts`: 공개키 API (신규)
+- `src/components/ui/NotificationPermissionBanner.tsx`: 권한 배너 (신규)
+- `src/components/settings/NotificationSettings.tsx`: 설정 컴포넌트 (신규)
+- `scripts/generate-vapid-keys.ts`: VAPID 키 생성 스크립트 (신규)
+- `public/sw.js`: 푸시 알림 이벤트 추가
+- `prisma/schema.prisma`: PushSubscription 모델 추가
+
+### Environment Variables
+- `VAPID_PUBLIC_KEY`: VAPID 공개키 (필수)
+- `VAPID_PRIVATE_KEY`: VAPID 개인키 (필수)
+- `VAPID_SUBJECT`: 연락처 이메일 (mailto:...)
+- `ADMIN_API_TOKEN`: 관리자 API 토큰 (선택)
+
+### Test Results
+- ✅ 750 tests passing (+5 new)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Known Limitations
+- iOS Safari: Home Screen Web App에서만 푸시 알림 지원
+- Safari 16+: 푸시 알림 미지원 (macOS Ventura 이상 필요)
+
 ## [0.58.0] - 2026-03-08
 
 ### Features

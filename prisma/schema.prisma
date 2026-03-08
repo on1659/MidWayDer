@@ -127,3 +127,18 @@ model Feedback {
   @@index([category, createdAt])
   @@index([rating, createdAt])
 }
+
+model PushSubscription {
+  id         String    @id @default(cuid())
+  endpoint   String    @unique
+  p256dh     String    // 공개키
+  auth       String    // 인증 시크릿
+  userAgent  String?   // 브라우저 정보
+  sessionId  String?   // 사용자 식별용
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  lastUsedAt DateTime? @default(now())
+
+  @@index([endpoint])
+  @@index([sessionId])
+}

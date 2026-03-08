@@ -1,4 +1,4 @@
-const CACHE_NAME = 'midwayder-v0.58.0';
+const CACHE_NAME = 'midwayder-v0.59.0';
 const OFFLINE_URL = '/offline.html';
 
 // 캐시할 정적 자산
@@ -240,3 +240,68 @@ function updateItemRetryCount(db, id, retryCount) {
     };
   });
 }
+
+// ============================================
+// v0.59.0: 푸시 알림
+// ============================================
+
+// 푸시 이벤트 수신
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push received');
+
+  let data = { title: 'MidWayDer', body: '새로운 알림이 있습니다.' };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    vibrate: [100, 50, 100],
+    data: {
+      url: data.url || '/',
+    },
+    actions: [
+      { action: 'open', title: '열기' },
+      { action: 'close', title: '닫기' },
+    ],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// 알림 클릭 이벤트
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked');
+
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // 이미 열린 창이 있으면 포커스
+      for (const client of clients) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // 없으면 새 창 열기
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
