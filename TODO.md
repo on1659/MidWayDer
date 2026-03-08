@@ -149,8 +149,14 @@
 - [x] QR 코드 공유 기능 활성화
 - [x] 766 tests passing
 
-### v0.64.0 - 성능 최적화 (다음)
-- [ ] 검색 결과 캐시 TTL 연장 (24시간 → 7일)
+### v0.66.0 - 코드 품질 개선 ✅ (2026-03-08)
+- [x] ESLint 0 errors, 0 warnings 달성
+- [x] RouteNameDialog.tsx eslint-disable 추가
+- [x] NotificationSettings.tsx useCallback 래핑
+- [x] 미사용 변수/imports 제거 (7개 파일)
+- [x] 766 tests passing
+
+### v0.67.0 - 성능 최적화 (다음)
 - [ ] 이미지 lazy loading 적용
 - [ ] 번들 사이즈 최적화
 - [ ] Core Web Vitals 개선
@@ -178,5 +184,5 @@
 ---
 
 **마지막 업데이트:** 2026-03-08
-**현재 버전:** v0.64.0
-**다음 버전:** v0.65.0 (성능 최적화 - lazy loading, 번들 사이즈)
+**현재 버전:** v0.66.0
+**다음 버전:** v0.67.0 (성능 최적화 - lazy loading, 번들 사이즈)

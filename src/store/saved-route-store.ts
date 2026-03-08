@@ -11,7 +11,7 @@ interface SavedRouteState {
   deleteRoute: (id: string) => Promise<boolean>;
 }
 
-export const useSavedRouteStore = create<SavedRouteState>((set, get) => ({
+export const useSavedRouteStore = create<SavedRouteState>((set, _get) => ({
   routes: [],
   isLoading: false,
   error: null,

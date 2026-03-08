@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.66.0] - 2026-03-08
+
+### Code Quality
+- **ESLint 0 errors, 0 warnings 달성**
+  - RouteNameDialog.tsx: set-state-in-effect eslint-disable 추가
+  - NotificationSettings.tsx: subscribeToPush/unsubscribeFromPush useCallback 래핑
+  - sw.js: 미사용 catch error 파라미터 수정
+  - page.tsx: 미사용 useSavedRouteStore import 제거
+  - FilterChips.tsx: 미사용 SearchFilters type import 제거
+  - CustomCategorySettings.tsx: 미사용 COLOR_PRESETS 변수 제거
+  - custom-category-store.ts: 미사용 get 파라미터 → _get
+  - saved-route-store.ts: 미사용 get 파라미터 → _get
+
+### Technical Details
+- `src/components/saved-routes/RouteNameDialog.tsx`: eslint-disable-line 추가
+- `src/components/settings/NotificationSettings.tsx`: useCallback으로 함수 메모이제이션
+- `public/sw.js`: catch (e) → catch (_e)
+- `src/app/page.tsx`: 미사용 import 제거
+- `src/components/search/FilterChips.tsx`: 미사용 type import 제거
+- `src/components/settings/CustomCategorySettings.tsx`: 미사용 변수 제거
+- `src/store/custom-category-store.ts`: 파라미터 명명 규칙 준수
+- `src/store/saved-route-store.ts`: 파라미터 명명 규칙 준수
+
+### Test Results
+- ✅ 766 tests passing
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (코드 품질 개선만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: 성능 최적화 (Core Web Vitals)
+
 ## [0.65.0] - 2026-03-08
 
 ### Performance

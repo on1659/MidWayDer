@@ -13,12 +13,6 @@ import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 // 프리셋 아이콘 (emoji)
 const ICON_PRESETS = ['🏪', '🍔', '☕', '🛒', '⛽', '🏦', '🏥', '🎨', '🏋️', '💇', '🧁', '🍕', '🍜', '🎁'];
 
-// 프리셋 색상
-const COLOR_PRESETS = [
-  '#EF4444', '#F97316', '#F59E0B', '#84CC16', '#22C55E',
-  '#14B8A6', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899',
-];
-
 interface CategoryFormData {
   name: string;
   icon: string;

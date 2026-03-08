@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useSearchStore, type SearchFilters } from '@/store/search-store';
+import { useSearchStore } from '@/store/search-store';
 
 const DISTANCE_OPTIONS: Array<{ value: number | null; label: string }> = [
   { value: null, label: '전체' },

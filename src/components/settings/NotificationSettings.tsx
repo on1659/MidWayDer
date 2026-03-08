@@ -34,7 +34,7 @@ export function NotificationSettings({ sessionId }: NotificationSettingsProps) {
     }
   };
 
-  const subscribeToPush = async () => {
+  const subscribeToPush = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -72,9 +72,9 @@ export function NotificationSettings({ sessionId }: NotificationSettingsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
 
-  const unsubscribeFromPush = async () => {
+  const unsubscribeFromPush = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -101,7 +101,7 @@ export function NotificationSettings({ sessionId }: NotificationSettingsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const toggleNotifications = useCallback(async () => {
     if (!('Notification' in window)) {
@@ -132,7 +132,7 @@ export function NotificationSettings({ sessionId }: NotificationSettingsProps) {
       console.error('Failed to toggle notifications:', error);
       alert('알림 설정 중 오류가 발생했습니다.');
     }
-  }, [subscribed]);
+  }, [subscribed, subscribeToPush, unsubscribeFromPush]);
 
   const getStatusText = () => {
     if (permission === 'denied') return '알림이 차단됨';

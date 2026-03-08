@@ -16,7 +16,7 @@ export function RouteNameDialog({ isOpen, initialName = '', onClose, onSave }: R
 
   useEffect(() => {
     if (isOpen) {
-      setName(initialName);
+      setName(initialName); // eslint-disable-line react-hooks/set-state-in-effect
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, initialName]);

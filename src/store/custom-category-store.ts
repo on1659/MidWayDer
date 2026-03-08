@@ -28,7 +28,7 @@ interface CustomCategoryState {
   loadFromStorage: () => void;
 }
 
-export const useCustomCategoryStore = create<CustomCategoryState>((set, get) => ({
+export const useCustomCategoryStore = create<CustomCategoryState>((set, _get) => ({
   categories: [],
 
   addCategory: (categoryData) => {
