@@ -17,8 +17,18 @@ import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useSearchStore } from '@/store/search-store';
 import { useCacheStore } from '@/store/cache-store';
 import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
-import { SavedRoutesList } from '@/components/saved-routes/SavedRoutesList';
-import { useSavedRouteStore } from '@/store/saved-route-store';
+import dynamic from 'next/dynamic';
+
+// 동적 import: 초기 로딩 속도 개선 (v0.65.0)
+const SavedRoutesList = dynamic(
+  () => import('@/components/saved-routes/SavedRoutesList').then((mod) => mod.SavedRoutesList),
+  {
+    loading: () => (
+      <div className="animate-pulse h-24 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+    ),
+    ssr: false,
+  }
+);
 import type { SavedRoute } from '@/types/saved-route';
 
 interface SearchOverlayProps {

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.65.0] - 2026-03-08
+
+### Performance
+- **동적 import 적용**: 초기 로딩 속도 개선
+  - SavedRoutesList 컴포넌트 동적 import (SearchOverlay)
+  - 초기 번들 크기 감소
+  - 로딩 스켈레톤 UI 추가
+
+### Technical Details
+- `src/components/search/SearchOverlay.tsx`: SavedRoutesList 동적 import 적용
+  - Next.js dynamic import 사용
+  - loading 플레이스홀더 추가
+  - ssr: false (클라이언트 전용)
+
+### Test Results
+- ✅ 766 tests passing (예상)
+- ✅ 0 TypeScript errors (예상)
+- ✅ Build successful (예상)
+
+### Breaking Changes
+- **없음** (기존 기능 동작 유지)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: 추가 성능 최적화 (Core Web Vitals)
+
 ## [0.64.0] - 2026-03-08
 
 ### Performance
