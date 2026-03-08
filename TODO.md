@@ -118,7 +118,14 @@
 - [x] 알림 전송 API
 - [x] 750 tests passing
 
-### v0.60.0 - 고급 기능 (다음)
+### v0.60.0 - 즐겨찾기 기능 ✅ (2026-03-08)
+- [x] Bookmark Prisma 모델 추가
+- [x] `/api/bookmarks` CRUD API 구현
+- [x] BookmarkStore (Zustand + localStorage)
+- [x] BookmarkButton 컴포넌트
+- [x] 762 tests passing (+12)
+
+### v0.61.0 - 고급 기능 (다음)
 - [ ] 경로 저장/공유 기능 강화
 - [ ] 커스텀 카테고리 추가
 - [ ] 즐겨찾기 기능

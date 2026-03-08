@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.60.0] - 2026-03-08
+
+### Features
+- **즐겨찾기 기능**: DB 기반 북마크 시스템 구현
+  - Bookmark Prisma 모델 추가 (placeId, sessionId, memo)
+  - `/api/bookmarks` CRUD API (GET 목록, POST 추가)
+  - `/api/bookmarks/[placeId]` API (GET 조회, DELETE 삭제)
+  - BookmarkStore (Zustand + localStorage persist)
+  - BookmarkButton 컴포넌트 (토글 버튼)
+  - 세션 유틸리티 (`src/lib/auth/session.ts`)
+
+### Technical Details
+- `prisma/schema.prisma`: Bookmark 모델, Place.bookmarks 관계 추가
+- `src/types/bookmark.ts`: 타입 정의 (신규)
+- `src/store/bookmark-store.ts`: Zustand 스토어 (신규)
+- `src/components/ui/BookmarkButton.tsx`: UI 컴포넌트 (신규)
+- `src/app/api/bookmarks/route.ts`: API 라우트 (신규)
+- `src/app/api/bookmarks/[placeId]/route.ts`: API 라우트 (신규)
+- `src/lib/auth/session.ts`: 세션 유틸리티 (신규)
+
+### Test Results
+- ✅ 762 tests passing (+12 new)
+- ✅ 0 TypeScript errors
+- ✅ 0 ESLint warnings
+- ✅ Build successful
+
+### Breaking Changes
+- **없음** (새로운 기능 추가만)
+
+### Notes
+- Auto Dev PD GLM v2로 자동 개발
+- Railway 자동 배포
+- 다음 포커스: 경로 저장/공유 강화 또는 커스텀 카테고리
+
 ## [0.59.0] - 2026-03-08
 
 ### Features

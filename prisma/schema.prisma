@@ -21,6 +21,7 @@ model Place {
   clicks       ClickLog[]
   feedbacks    VisitFeedback[]
   visitLogs    VisitLog[]
+  bookmarks    Bookmark[]
 
   @@unique([name, category, address])
   @@index([category])
@@ -141,4 +142,17 @@ model PushSubscription {
 
   @@index([endpoint])
   @@index([sessionId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  placeId   String
+  sessionId String
+  memo      String?  @db.Text
+  createdAt DateTime @default(now())
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, sessionId])
+  @@index([sessionId])
+  @@index([createdAt])
 }
