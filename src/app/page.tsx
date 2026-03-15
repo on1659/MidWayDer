@@ -351,7 +351,7 @@ export default function HomePage() {
         )}
 
         {/* Mobile Search Bar */}
-        <div className="md:hidden absolute top-3 inset-x-3 z-30">
+        <div className="md:hidden absolute top-4 inset-x-4 z-30">
           {/* Network Status Warning */}
           {!isOnline && (
             <div className="mb-2 px-4 py-2 text-sm text-red-700 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center gap-2">
@@ -370,15 +370,15 @@ export default function HomePage() {
             <button data-testid="open-search-overlay-btn" onClick={() => setSearchOverlayOpen(true)} className="flex-1 bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
                 <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
-                <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: start?.address ? 'var(--text-strong)' : 'var(--text-muted)' }}>{start?.address || '출발지'}</span>
+                <span className="flex-1 text-left text-base truncate font-medium" style={{ color: start?.address ? 'var(--text-strong)' : 'var(--text-secondary)' }}>{start?.address || '출발지를 입력하세요'}</span>
               </div>
               <div className="flex items-center gap-3 px-4 py-4">
                 <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--pink-500)' }} />
-                <span className="flex-1 text-left text-xl truncate font-medium" style={{ color: end?.address ? 'var(--text-strong)' : 'var(--text-muted)' }}>{end?.address || '도착지'}</span>
+                <span className="flex-1 text-left text-base truncate font-medium" style={{ color: end?.address ? 'var(--text-strong)' : 'var(--text-secondary)' }}>{end?.address || '도착지를 입력하세요'}</span>
               </div>
             </button>
-            <button onClick={toggleTheme} aria-label="테마 변경" className="w-12 h-12 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <button onClick={toggleTheme} aria-label="테마 변경" className="w-14 h-14 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
+              {theme === 'dark' ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
             </button>
             <LanguageSelector />
           </div>
@@ -425,9 +425,9 @@ export default function HomePage() {
                         {favorites.slice(0, 5).map((fav) => (
                           <div key={fav.id} className="flex items-center gap-2 p-3 rounded-xl transition-all active:scale-[0.99]" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}>
                             <button className="flex-1 text-left min-w-0" onClick={() => { setStart({ address: fav.startAddress, coordinates: fav.startCoords }); setEnd({ address: fav.endAddress, coordinates: fav.endCoords }); setCategory(fav.category); if (fav.startCoords && fav.endCoords) search({ address: fav.startAddress, coordinates: fav.startCoords }, { address: fav.endAddress, coordinates: fav.endCoords }, fav.category).then(() => setBottomSheetSnap('half')); }}>
-                              <p className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-strong)' }}><Star className="w-3 h-3 inline mr-1" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />{fav.name}</p>
-                              <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{fav.startAddress} → {fav.endAddress}</p>
-                              <p className="text-[11px]" style={{ color: 'var(--text-disabled)' }}>{fav.category}</p>
+                              <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-strong)' }}><Star className="w-3.5 h-3.5 inline mr-1" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />{fav.name}</p>
+                              <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{fav.startAddress} → {fav.endAddress}</p>
+                              <p className="text-xs" style={{ color: 'var(--text-disabled)' }}>{fav.category}</p>
                             </button>
                             <button onClick={() => { setStart({ address: fav.startAddress, coordinates: fav.startCoords }); setEnd({ address: fav.endAddress, coordinates: fav.endCoords }); setCategory(fav.category); if (fav.startCoords && fav.endCoords) search({ address: fav.startAddress, coordinates: fav.startCoords }, { address: fav.endAddress, coordinates: fav.endCoords }, fav.category).then(() => setBottomSheetSnap('half')); }} className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95" style={{ background: 'var(--accent)', color: 'white' }}>▶</button>
                           </div>
@@ -442,8 +442,8 @@ export default function HomePage() {
                         {recentSearches.slice(0, 3).map((item) => (
                           <div key={item.id} className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}>
                             <button className="flex-1 text-left min-w-0" onClick={() => { setStart({ address: item.startAddress, coordinates: item.startCoords }); setEnd({ address: item.endAddress, coordinates: item.endCoords }); setCategory(item.category); }}>
-                              <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>{item.startAddress} → {item.endAddress}</p>
-                              <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                              <p className="text-sm font-medium truncate" style={{ color: 'var(--text-strong)' }}>{item.startAddress} → {item.endAddress}</p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
                             </button>
                             <button onClick={() => handleInstantSearch(item)} className="shrink-0 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95" style={{ background: 'var(--accent)', color: 'white' }}>▶</button>
                           </div>

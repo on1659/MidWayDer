@@ -100,10 +100,6 @@ export default function KakaoMap({
       level: zoom,
     });
 
-    // 줌 컨트롤 추가
-    const zoomControl = new window.kakao.maps.ZoomControl();
-    mapInstance.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
-
     // 지도 타입 컨트롤 추가
     const mapTypeControl = new window.kakao.maps.MapTypeControl();
     mapInstance.addControl(mapTypeControl, window.kakao.maps.ControlPosition.TOPRIGHT);
@@ -113,7 +109,22 @@ export default function KakaoMap({
   }, [isLoaded, center, zoom, map, onMapReady]);
 
   return (
-    <div ref={mapRef} className="w-full h-full">
+    <div ref={mapRef} className="w-full h-full relative">
+      {/* Custom zoom controls — 48px touch targets with 12px gap */}
+      {map && (
+        <div className="absolute right-3 bottom-24 flex flex-col gap-3 z-10">
+          <button
+            onClick={() => map.setLevel(map.getLevel() - 1)}
+            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+            aria-label="확대"
+          >+</button>
+          <button
+            onClick={() => map.setLevel(map.getLevel() + 1)}
+            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+            aria-label="축소"
+          >−</button>
+        </div>
+      )}
       {!isLoaded && (
         <div className="w-full h-full flex items-center justify-center bg-gray-100">
           {loadError ? (

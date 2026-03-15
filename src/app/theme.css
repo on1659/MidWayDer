@@ -78,6 +78,7 @@
   --text-strong: #e2e8f0;
   --text-muted: #94a3b8;
   --text-disabled: #475569;
+  --text-loading: #cbd5e1;     /* slate-300: 7.1:1 on #0f172a — WCAG AA ✓ */
 
   --accent: #5B93FA;          /* KakaoMap Blue (Dark mode) */
   --accent-light: #7AA6FF;

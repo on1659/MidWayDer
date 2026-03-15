@@ -354,7 +354,7 @@ export default function SearchOverlay({
           })()}
         </div>
         
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {/* 출발지 입력 + GPS 버튼 */}
           <div className="flex items-center gap-2">
             <div className="flex-1">
@@ -534,7 +534,7 @@ export default function SearchOverlay({
                   className="flex-1 text-left min-w-0"
                   onClick={() => handleRecentSelect(item)}
                 >
-                  <p className="text-[14px] font-medium truncate" style={{ color: 'var(--text-strong)' }}>
+                  <p className="text-[14px] font-medium truncate route-text-truncate" style={{ color: 'var(--text-strong)' }} title={`${item.startAddress} → ${item.endAddress}`}>
                     {item.startAddress} → {item.endAddress}
                   </p>
                   <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
@@ -550,12 +550,12 @@ export default function SearchOverlay({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
-                  className="shrink-0 p-2 rounded-full transition-all active:scale-95"
+                  className="shrink-0 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-all active:scale-95"
                   style={{ background: 'var(--red-50)', color: 'var(--red-500)' }}
                   title="삭제"
                   aria-label={`${item.startAddress} 검색 기록 삭제`}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             ))}
@@ -573,7 +573,7 @@ export default function SearchOverlay({
           <div className="space-y-3">
             <div
               className="flex items-center justify-center gap-2 py-5 rounded-2xl font-bold text-lg"
-              style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}
+              style={{ background: 'var(--accent)', color: 'var(--text-loading, white)' }}
               role="status"
               aria-live="polite"
               aria-label="검색 진행 중"
@@ -587,7 +587,7 @@ export default function SearchOverlay({
                 className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                 aria-label="검색 취소"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
                 <span>취소</span>
               </button>
             )}
@@ -598,7 +598,7 @@ export default function SearchOverlay({
             data-testid="mobile-search-route-btn"
             onClick={handleSearch}
             disabled={!canSearch}
-            className="w-full py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md"
+            className="w-full max-w-[calc(100%-32px)] mx-auto py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md box-border"
             style={{ background: canSearch ? 'var(--accent)' : undefined }}
           >
             경유지 찾기 🔍

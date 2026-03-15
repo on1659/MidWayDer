@@ -196,7 +196,7 @@ export default function MapContainer({
 
   // 프로바이더 토글 버튼
   const providerToggle = (
-    <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-1 flex gap-1">
+    <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-1 flex gap-1 md:top-4 max-md:top-[140px]">
       <button
         onClick={() => { setMapProvider('kakao'); setNaverMap(null); }}
         className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -252,14 +252,14 @@ export default function MapContainer({
   return (
     <div className="relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
       {providerToggle}
-      <div className="absolute top-4 right-4 z-10 bg-white/95 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-700">
+      <div className="absolute top-16 right-4 z-10 bg-white/95 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-700 md:top-4">
         <div className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--blue-800)' }} />
-          <span>일반도로</span>
+          <span className="text-sm">일반도로</span>
         </div>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1.5">
           <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--orange-600)' }} />
-          <span>고속화/고속도로</span>
+          <span className="text-sm">고속화/고속도로</span>
         </div>
       </div>
       <KakaoMap

@@ -173,6 +173,18 @@ video,
     font-size: 18px;
   }
 
+  /* 최소 폰트 사이즈 보장 (가독성) */
+  p, span, label, a {
+    min-font-size: 13px;
+  }
+
+  /* 힌트/플레이스홀더 대비 강화 */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-secondary, #6b7280) !important;
+    opacity: 1;
+  }
+
   /* 간격 확대 */
   .gap-mobile {
     gap: 24px;
@@ -249,6 +261,14 @@ video,
     -webkit-overflow-scrolling: touch;
     will-change: transform;
   }
+}
+
+/* Route text truncation (UX fix v0.66.0) */
+.route-text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 /* Slide up animation */
