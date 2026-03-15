@@ -12,7 +12,7 @@ export function StickyBar({ bestResult, showStickyBar, onQuickGo }: StickyBarPro
   if (!showStickyBar || !bestResult) return null;
 
   const bMin = Math.round(bestResult.detourCost.duration / 60);
-  const bKm = (bestResult.detourCost.distance / 1000).toFixed(1);
+  const bKm = ((bestResult.detourCost?.distance ?? 0) / 1000).toFixed(1);
 
   return (
     <div

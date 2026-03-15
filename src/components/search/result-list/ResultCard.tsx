@@ -61,8 +61,8 @@ export const ResultCard = React.memo(function ResultCard({
 
   const isVisited = visitedDates.has(result.place.id);
   const visitedAt = visitedDates.get(result.place.id);
-  const detourKm = (result.detourCost.distance / 1000).toFixed(1);
-  const detourMin = Math.round(result.detourCost.duration / 60);
+  const detourKm = ((result.detourCost?.distance ?? 0) / 1000).toFixed(1);
+  const detourMin = Math.round((result.detourCost?.duration ?? 0) / 60);
   const routeLabel = result.routeType === 'shortest' ? '최단거리' : result.routeType === 'fastest' ? '최단시간' : null;
   const recentClicks = popularityMap[result.place.id] ?? 0;
 

@@ -391,7 +391,7 @@ export default function ResultList({
   const handleShare = useCallback(async (e: React.MouseEvent, result: DetourResult) => {
     e.stopPropagation();
     const detourMin = Math.round(result.detourCost.duration / 60);
-    const detourKm = (result.detourCost.distance / 1000).toFixed(1);
+    const detourKm = ((result.detourCost?.distance ?? 0) / 1000).toFixed(1);
     const address = result.place.roadAddress || result.place.address || '';
     const text = `📍 ${result.place.name}\n🏠 ${address}\n⏱ +${detourMin}분 · 📏 +${detourKm}km 이탈\n🗺 midwayder.up.railway.app`;
     if (typeof navigator !== 'undefined' && navigator.share) {

@@ -57,18 +57,18 @@ export const ResultHeader = forwardRef<HTMLDivElement, ResultHeaderProps>(({
   const [exportCopied, setExportCopied] = useState(false);
 
   const avgDetourMin = Math.round(
-    results.reduce((sum, r) => sum + r.detourCost.duration, 0) / results.length / 60
+    results.reduce((sum, r) => sum + (r.detourCost?.duration ?? 0), 0) / results.length / 60
   );
-  const withinFiveMin = results.filter((r) => r.detourCost.duration <= 300).length;
+  const withinFiveMin = results.filter((r) => (r.detourCost?.duration ?? Infinity) <= 300).length;
   const bestResult = results.reduce((best, r) =>
-    r.detourCost.duration < best.detourCost.duration ? r : best, results[0]
+    (r.detourCost?.duration ?? Infinity) < (best.detourCost?.duration ?? Infinity) ? r : best, results[0]
   );
 
   const handleExport = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const lines = sortedWithPins.map((r, i) => {
-      const dMin = Math.round(r.detourCost.duration / 60);
-      const dKm = (r.detourCost.distance / 1000).toFixed(1);
+      const dMin = Math.round((r.detourCost?.duration ?? 0) / 60);
+      const dKm = ((r.detourCost?.distance ?? 0) / 1000).toFixed(1);
       const bizStatus = r.place.businessHours ? getBusinessStatus(r.place.businessHours) : null;
       const bizLabel = bizStatus && bizStatus.label !== '정보 없음' ? ` [${bizStatus.label}]` : '';
       return `${i + 1}. ${r.place.name} — +${dMin}분 +${dKm}km${bizLabel}`;
@@ -314,8 +314,8 @@ export const ResultHeader = forwardRef<HTMLDivElement, ResultHeaderProps>(({
               style={{ gridTemplateColumns: `repeat(${Math.min(3, sortedWithPins.length)}, 1fr)` }}
             >
               {sortedWithPins.slice(0, 3).map((r, i) => {
-                const dMin = Math.round(r.detourCost.duration / 60);
-                const dKm = (r.detourCost.distance / 1000).toFixed(1);
+                const dMin = Math.round((r.detourCost?.duration ?? 0) / 60);
+                const dKm = ((r.detourCost?.distance ?? 0) / 1000).toFixed(1);
                 const bizStatus = r.place.businessHours ? getBusinessStatus(r.place.businessHours) : null;
                 return (
                   <div

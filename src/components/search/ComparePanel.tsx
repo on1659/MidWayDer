@@ -65,9 +65,9 @@ export default function ComparePanel({ waypoints, onClose, onSelect }: ComparePa
             </thead>
             <tbody>
               {waypoints.map((wp, index) => {
-                const detourKm = (wp.detourCost.distance / 1000).toFixed(1);
-                const detourMin = Math.round(wp.detourCost.duration / 60);
-                const score = wp.finalScore.toFixed(1);
+                const detourKm = ((wp.detourCost?.distance ?? 0) / 1000).toFixed(1);
+                const detourMin = Math.round((wp.detourCost?.duration ?? 0) / 60);
+                const score = (wp.finalScore ?? 0).toFixed(1);
 
                 return (
                   <tr

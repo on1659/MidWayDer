@@ -477,7 +477,7 @@ export default function HomePage() {
               )}
               {results.length >= 2 && start?.coordinates && end?.coordinates && (
                 <div className="mb-3">
-                  <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost.distance, detourDuration: r.detourCost.duration }))} onOptimize={(ids) => { logger.debug('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
+                  <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost?.distance ?? 0, detourDuration: r.detourCost?.duration ?? 0 }))} onOptimize={(ids) => { logger.debug('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
                 </div>
               )}
               <ResultList results={filteredResults} selectedId={selectedWaypoint?.place.id || null} isLoading={isLoading} error={error} hasSearched={hasSearched} currentCategory={category}
