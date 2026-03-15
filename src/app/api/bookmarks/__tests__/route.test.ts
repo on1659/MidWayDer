@@ -1,4 +1,4 @@
-// @ts-nocheck - Prisma mock types incompatible with Prisma 7
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';

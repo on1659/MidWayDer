@@ -14,7 +14,7 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const pool = new Pool({ connectionString });
-  // @ts-ignore - Prisma adapter-pg uses its own pg types
+  // @ts-expect-error - Prisma adapter-pg uses its own pg types
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
