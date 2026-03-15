@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
         sessionId: sessionId === 'anonymous' ? null : sessionId,
         routeHash, // 개인화용 경로 해시 저장
       },
-    }).catch(err => logger.error('[SearchLog] Failed to save:', err));
+    }).catch((err: unknown) => logger.error('[SearchLog] Failed to save:', err));
 
     const response: SearchWaypointsResponse = {
       success: true,

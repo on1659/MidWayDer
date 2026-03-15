@@ -118,7 +118,7 @@ export async function broadcastNotification(payload: NotificationPayload) {
   }
 
   const results = await Promise.allSettled(
-    subscriptions.map((sub) =>
+    subscriptions.map((sub: { endpoint: string; p256dh: string; auth: string }) =>
       sendPushNotification(
         {
           endpoint: sub.endpoint,
@@ -133,7 +133,7 @@ export async function broadcastNotification(payload: NotificationPayload) {
   // 만료된 구독 정리 (410 Gone 응답)
   const expiredEndpoints: string[] = [];
 
-  results.forEach((result, index) => {
+  results.forEach((result: PromiseSettledResult<unknown>, index: number) => {
     if (result.status === 'rejected') {
       const error = result.reason as Error;
       if (error.message?.includes('410') || error.message?.includes('expired')) {
@@ -151,8 +151,8 @@ export async function broadcastNotification(payload: NotificationPayload) {
 
   return {
     total: subscriptions.length,
-    successful: results.filter((r) => r.status === 'fulfilled').length,
-    failed: results.filter((r) => r.status === 'rejected').length,
+    successful: results.filter((r: PromiseSettledResult<unknown>) => r.status === 'fulfilled').length,
+    failed: results.filter((r: PromiseSettledResult<unknown>) => r.status === 'rejected').length,
     expired: expiredEndpoints.length,
   };
 }

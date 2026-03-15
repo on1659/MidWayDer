@@ -2,9 +2,9 @@
  * Prisma Client 싱글톤 (Prisma 7 + pg adapter)
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '.prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import { Pool } from 'pg';
 
 const connectionString = process.env.DATABASE_URL!;
 
@@ -13,7 +13,8 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const pool = new pg.Pool({ connectionString });
+  const pool = new Pool({ connectionString });
+  // @ts-ignore - Prisma adapter-pg uses its own pg types
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,

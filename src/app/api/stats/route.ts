@@ -106,7 +106,7 @@ export async function GET(request: Request) {
     });
     
     // Place 정보 조회
-    const placeIds = topPlaces.map((p) => p.placeId);
+    const placeIds = topPlaces.map((p: { placeId: string }) => p.placeId);
     const places = await prisma.place.findMany({
       where: {
         id: {
@@ -121,8 +121,8 @@ export async function GET(request: Request) {
       },
     });
     
-    const topPlacesWithDetails = topPlaces.map((tp) => {
-      const place = places.find((p) => p.id === tp.placeId);
+    const topPlacesWithDetails = topPlaces.map((tp: { placeId: string; _count: { id: number } }) => {
+      const place = places.find((p: { id: string }) => p.id === tp.placeId);
       return {
         place: place || { id: tp.placeId, name: 'Unknown', category: 'Unknown', address: '' },
         clicks: tp._count.id,
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
         avgSearchDurationMs: avgDuration._avg.searchDuration 
           ? Math.round(avgDuration._avg.searchDuration) 
           : null,
-        categoryBreakdown: categoryBreakdown.map((c) => ({
+        categoryBreakdown: categoryBreakdown.map((c: { category: string; _count: { id: number } }) => ({
           category: c.category,
           count: c._count.id,
           percentage: totalSearches > 0 

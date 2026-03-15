@@ -49,19 +49,19 @@ export async function calculatePersonalizationScores(
 
     // 3. 점수 계산
     const maxUserClicks = Math.max(
-      ...userClicks.map((c) => c._count.placeId),
+      ...userClicks.map((c: { placeId: string; _count: { placeId: number } }) => c._count.placeId),
       1
     );
     const maxRouteClicks = Math.max(
-      ...routePopularity.map((c) => c._count.placeId),
+      ...routePopularity.map((c: { placeId: string; _count: { placeId: number } }) => c._count.placeId),
       1
     );
 
     return placeIds.map((placeId) => {
       const userClickCount =
-        userClicks.find((c) => c.placeId === placeId)?._count.placeId || 0;
+        userClicks.find((c: { placeId: string }) => c.placeId === placeId)?._count.placeId || 0;
       const routeClickCount =
-        routePopularity.find((c) => c.placeId === placeId)?._count.placeId ||
+        routePopularity.find((c: { placeId: string }) => c.placeId === placeId)?._count.placeId ||
         0;
 
       const personalScore = (userClickCount / maxUserClicks) * 100;
@@ -112,7 +112,7 @@ export async function getUserCategoryPreferences(
     const searches = await prisma.searchLog.findMany({
       where: {
         id: {
-          in: categoryClicks.map((c) => c.searchLogId),
+          in: categoryClicks.map((c: { searchLogId: string; _count: { searchLogId: number } }) => c.searchLogId),
         },
       },
       select: {
@@ -121,11 +121,11 @@ export async function getUserCategoryPreferences(
       },
     });
 
-    const categoryMap = new Map(searches.map((s) => [s.id, s.category]));
+    const categoryMap = new Map(searches.map((s: { id: string; category: string }) => [s.id, s.category]));
 
     // 카테고리별 클릭 수 집계
     const preferences: Record<string, number> = {};
-    categoryClicks.forEach((click) => {
+    categoryClicks.forEach((click: { searchLogId: string; _count: { searchLogId: number } }) => {
       const category = categoryMap.get(click.searchLogId);
       if (category) {
         preferences[category] = (preferences[category] || 0) + click._count.searchLogId;
