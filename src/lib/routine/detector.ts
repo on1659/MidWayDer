@@ -11,9 +11,10 @@ export type RoutineType = 'morning-commute' | 'evening-commute' | 'weekend-trip'
 
 /**
  * 현재 시간대/요일 기반으로 루틴 타입 감지
+ * @param date - 테스트용 날짜 (기본값: 현재 시간)
  */
-export function detectRoutine(): RoutineType {
-  const now = new Date();
+export function detectRoutine(date?: Date): RoutineType {
+  const now = date ?? new Date();
   const hour = now.getHours();
   const day = now.getDay(); // 0=일, 1=월, ..., 6=토
   
