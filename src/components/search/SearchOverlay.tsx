@@ -300,7 +300,7 @@ export default function SearchOverlay({
       )}
 
       {/* Route inputs */}
-      <div className="px-4 pt-3 pb-2 relative z-20">
+      <div className="px-4 pt-3 pb-2 relative z-[60]" style={{ backgroundColor: 'var(--bg-surface)' }}>
         {/* 📍 현재 위치 CTA 버튼 (홈/회사 칩보다 상단) */}
         {onGPS && (
           <button

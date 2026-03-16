@@ -177,21 +177,23 @@ export default function AddressInput({
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
-          className="w-full px-4 py-4 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12 gpu-accelerate"
+          className="w-full px-4 py-4 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-12 gpu-accelerate"
           style={{
-            background: 'var(--bg-surface-muted)',
+            background: 'var(--bg-surface)',
             color: 'var(--text-primary)',
-            border: '1px solid var(--border-soft)',
+            border: '2px solid var(--border-strong)',
             fontSize: '16px', // iOS 자동 줌 방지
             minHeight: '56px', // 모바일 터치 영역 확보
           }}
           onFocusCapture={(e) => {
             e.currentTarget.style.borderColor = 'var(--accent)';
             e.currentTarget.style.background = 'var(--bg-surface)';
+            e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-weak)';
           }}
           onBlurCapture={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-soft)';
-            e.currentTarget.style.background = 'var(--bg-surface-muted)';
+            e.currentTarget.style.borderColor = 'var(--border-strong)';
+            e.currentTarget.style.background = 'var(--bg-surface)';
+            e.currentTarget.style.boxShadow = 'none';
           }}
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -225,13 +227,13 @@ export default function AddressInput({
       {isOpen && results.length > 0 && (
         <div
           id="address-listbox"
-          className="absolute top-full left-0 right-0 mt-1 border rounded-2xl shadow-xl overflow-hidden z-50 max-h-[260px] overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-2 border-2 rounded-2xl shadow-2xl overflow-hidden z-[100] max-h-[260px] overflow-y-auto"
           role="listbox"
           aria-label="검색 결과"
           style={{
             backgroundColor: 'var(--bg-surface)',
-            borderColor: 'var(--border-soft)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            borderColor: 'var(--border-strong)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1)',
           }}
         >
           {results.map((result, i) => (
