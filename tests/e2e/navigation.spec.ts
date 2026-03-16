@@ -12,6 +12,10 @@ test.describe('네비게이션 딥링크', () => {
     // 검색 오버레이 열기 버튼 또는 인풋
     const body = page.locator('body');
     await expect(body).toBeVisible();
+    
+    // main 요소 확인 (더 구체적인 selector)
+    const main = page.locator('main');
+    await expect(main).toBeVisible();
   });
 
   test('네비 앱 딥링크는 kakaonavi/nmap/tmap 스킴 사용', async ({ page, isMobile }) => {

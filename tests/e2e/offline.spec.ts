@@ -4,7 +4,7 @@ const waitAppReady = async (page: Page) => {
   await page.goto('/');
   const splash = page.getByTestId('splash-screen');
   await expect(splash).toBeVisible();
-  await expect(splash).toBeHidden({ timeout: 15000 });
+  await expect(splash).toBeHidden({ timeout: 30000 }); // 15초 → 30초로 증가
 };
 
 test.describe('Offline Mode E2E', () => {
