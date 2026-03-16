@@ -125,7 +125,7 @@ video,
   }
 }
 
-/* ========== 모바일 UI/UX 최적화 (v0.67.0 개선) ========== */
+/* ========== 모바일 UI/UX 최적화 (v0.68.0 심화 최적화) ========== */
 
 /* P0: 터치 타겟 확대 */
 @media (max-width: 768px) {
@@ -177,7 +177,7 @@ video,
   p, span, label, a, button {
     font-size: max(14px, 1em) !important;
   }
-  
+
   /* 예외: 뱃지, 칩 등 작은 UI 요소 */
   .text-xs, .badge, .chip {
     font-size: max(12px, 1em) !important;
@@ -207,19 +207,186 @@ video,
   button[class*="fixed"][class*="bottom"] {
     bottom: 24px !important;
   }
-  
+
   /* 카드 내부 버튼 간격 확보 */
   .card-actions {
     gap: 12px;
   }
-  
+
   /* 리스트 아이템 간격 증가 */
   .space-y-2 {
     gap: 12px;
   }
-  
+
   .space-y-3 {
     gap: 16px;
+  }
+}
+
+/* ========== v0.68.0: Safe Area 심화 대응 ========== */
+@supports (padding: env(safe-area-inset-top)) {
+  /* 상단 Safe Area (노치, 다이나믹 아일랜드) */
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  /* 하단 Safe Area (홈 인디케이터) */
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* 좌우 Safe Area (iPhone Landscape) */
+  .safe-sides {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* 전체 Safe Area */
+  .safe-all {
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  }
+
+  /* 고정 요소 Safe Area */
+  .fixed-top {
+    top: env(safe-area-inset-top);
+  }
+
+  .fixed-bottom {
+    bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ========== v0.68.0: 키보드 대응 레이아웃 ========== */
+@media (max-width: 768px) {
+  /* 키보드 활성화 시 뷰포트 조정 (dvh 사용) */
+  .keyboard-aware {
+    min-height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  /* 키보드 올라올 때 숨길 요소 */
+  .keyboard-hide {
+    @media (max-height: 500px) {
+      display: none !important;
+    }
+  }
+
+  /* 키보드 올라올 때 고정 요소 */
+  .keyboard-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
+/* ========== v0.68.0: GPU 가속 애니메이션 ========== */
+.gpu-accelerate {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 스크롤 성능 최적화 */
+.scroll-gpu {
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+}
+
+/* 애니메이션 GPU 가속 */
+.animate-gpu {
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, opacity;
+}
+
+/* 스와이프 제스처 GPU 가속 */
+.swipe-gpu {
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ========== v0.68.0: 화면 회전 대응 ========== */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 가로 모드에서 UI 축소 */
+  .landscape-compact {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .landscape-compact .text-lg {
+    font-size: 14px !important;
+  }
+
+  .landscape-compact .text-base {
+    font-size: 13px !important;
+  }
+
+  /* 가로 모드에서 FAB 위치 조정 */
+  .fab-container {
+    bottom: 16px !important;
+    right: 16px !important;
+  }
+}
+
+/* ========== v0.68.0: 접근성 심화 ========== */
+
+/* 색상 대비 강화 (WCAG 2.1 AA) */
+@media (max-width: 768px) {
+  /* 텍스트 대비 4.5:1 이상 보장 */
+  .a11y-text {
+    color: var(--text-primary) !important;
+    opacity: 1 !important;
+  }
+
+  /* 링크 대비 강화 */
+  a:not(.btn) {
+    color: var(--blue-700) !important;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* 포커스 표시 강화 */
+  *:focus-visible {
+    outline: 3px solid var(--accent) !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* 스크린 리더 전용 (시각적 숨김, 음성만) */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
+}
+
+/* 시각적 + 스크린 리더 모두 표시 */
+.sr-visible {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: inherit !important;
+  margin: inherit !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* 접근성: 애니메이션 끄기 존중 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

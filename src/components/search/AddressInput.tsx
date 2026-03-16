@@ -173,7 +173,11 @@ export default function AddressInput({
           aria-controls="address-listbox"
           aria-expanded={isOpen}
           aria-activedescendant={activeIndex >= 0 ? `result-${activeIndex}` : undefined}
-          className="w-full px-4 py-4 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
+          autoComplete="street-address"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          className="w-full px-4 py-4 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12 gpu-accelerate"
           style={{
             background: 'var(--bg-surface-muted)',
             color: 'var(--text-primary)',

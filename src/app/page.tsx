@@ -26,7 +26,7 @@ import { ResultListSkeleton } from '@/components/ui/Skeleton';
 
 const ComparePanel = dynamic(() => import('@/components/search/ComparePanel'), {
   loading: () => (
-    <div className="p-4 space-y-3 animate-pulse rounded-2xl" style={{ background: 'var(--bg-surface)' }}>
+    <div className="p-4 space-y-3 animate-pulse rounded-2xl gpu-accelerate" style={{ background: 'var(--bg-surface)' }}>
       <div className="h-6 rounded-lg w-1/3" style={{ background: 'var(--bg-surface-muted)' }} />
       <div className="grid grid-cols-2 gap-3">
         <div className="h-24 rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
@@ -43,14 +43,14 @@ const ResultList = dynamic(() => import('@/components/search/ResultList'), {
 
 const PlaceDetail = dynamic(() => import('@/components/place/PlaceDetail'), {
   loading: () => (
-    <div className="h-64 animate-pulse rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
+    <div className="h-64 animate-pulse rounded-xl gpu-accelerate" style={{ background: 'var(--bg-surface-muted)' }} />
   ),
   ssr: false,
 });
 
 const SaveRouteDialog = dynamic(() => import('@/components/search/SaveRouteDialog'), {
   loading: () => (
-    <div className="h-96 animate-pulse rounded-xl" style={{ background: 'var(--bg-surface-muted)' }} />
+    <div className="h-96 animate-pulse rounded-xl gpu-accelerate" style={{ background: 'var(--bg-surface-muted)' }} />
   ),
   ssr: false,
 });
@@ -59,7 +59,7 @@ const FeedbackWidget = dynamic(
   () => import('@/components/feedback/FeedbackWidget').then((mod) => ({ default: mod.FeedbackWidget })),
   {
     loading: () => (
-      <div className="h-12 w-12 animate-pulse rounded-full" style={{ background: 'var(--bg-surface-muted)' }} />
+      <div className="h-12 w-12 animate-pulse rounded-full gpu-accelerate" style={{ background: 'var(--bg-surface-muted)' }} />
     ),
     ssr: false,
   }
@@ -123,6 +123,30 @@ export default function HomePage() {
     const timer = setTimeout(() => setAppReady(true), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // v0.68.0: 뒤로가기 버튼 처리 (모바일)
+  useEffect(() => {
+    const handlePopState = () => {
+      // 검색 오버레이가 열려있으면 닫기
+      if (searchOverlayOpen) {
+        setSearchOverlayOpen(false);
+        return;
+      }
+      // 선택된 경유지가 있으면 해제
+      if (selectedWaypoint) {
+        selectWaypoint(null);
+        return;
+      }
+      // 바텀시트가 펼쳐져 있으면 접기
+      if (bottomSheetSnap !== 'collapsed') {
+        setBottomSheetSnap('collapsed');
+        return;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [searchOverlayOpen, selectedWaypoint, bottomSheetSnap, selectWaypoint, setSearchOverlayOpen, setBottomSheetSnap]);
 
   // 세션 ID 초기화
   useEffect(() => {
@@ -217,7 +241,7 @@ export default function HomePage() {
   const canSearch = !!(start?.address && end?.address);
 
   return (
-    <div className="h-dvh flex flex-col md:flex-row overflow-hidden" style={{ background: 'var(--bg-app)' }}>
+    <div className="h-dvh flex flex-col md:flex-row overflow-hidden safe-all" style={{ background: 'var(--bg-app)' }}>
       {/* Skip Links (접근성) */}
       <div className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9998] focus:flex focus:gap-2">
         <a
@@ -233,6 +257,13 @@ export default function HomePage() {
           style={{ background: 'var(--accent)', color: 'white' }}
         >
           검색 영역으로 건너뛰기
+        </a>
+        <a
+          href="#results"
+          className="skip-link inline-block px-4 py-2 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-white"
+          style={{ background: 'var(--accent)', color: 'white' }}
+        >
+          검색 결과로 건너뛰기
         </a>
       </div>
 
@@ -351,7 +382,7 @@ export default function HomePage() {
         )}
 
         {/* Mobile Search Bar */}
-        <div className="md:hidden absolute top-4 inset-x-4 z-30">
+        <div className="md:hidden absolute top-4 inset-x-4 z-30 safe-top">
           {/* Network Status Warning */}
           {!isOnline && (
             <div className="mb-2 px-4 py-2 text-sm text-red-700 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center gap-2">

@@ -4,10 +4,12 @@
   "description": "가는 길 중간에 들를 곳을 찾아드려요",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#F8FAFF",
   "theme_color": "#5B8AF5",
-  "orientation": "portrait",
+  "orientation": "any",
   "scope": "/",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon.svg",
@@ -29,6 +31,14 @@
     }
   ],
   "categories": ["navigation", "travel", "utilities"],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
   "shortcuts": [
     {
       "name": "스타벅스 찾기",
@@ -43,6 +53,29 @@
       "description": "경로 중간에 있는 편의점 찾기",
       "url": "/?cat=편의점",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "다이소 찾기",
+      "short_name": "다이소",
+      "description": "경로 중간에 있는 다이소 찾기",
+      "url": "/?cat=다이소",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+midwayder",
+      "url": "/?route=%s"
     }
   ]
 }

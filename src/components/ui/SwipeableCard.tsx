@@ -112,11 +112,13 @@ export default function SwipeableCard({
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      role="listitem"
+      aria-label="스와이프로 액션 수행 가능"
     >
       {/* 왼쪽 액션 표시 (즐겨찾기) */}
       {showLeftAction && (
         <div
-          className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-yellow-600 dark:text-yellow-400 transition-opacity"
+          className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-yellow-600 dark:text-yellow-400 transition-opacity gpu-accelerate"
           style={{ opacity: Math.min(1, translateX / threshold) }}
           aria-hidden="true"
         >
@@ -128,7 +130,7 @@ export default function SwipeableCard({
       {/* 오른쪽 액션 표시 (공유) */}
       {showRightAction && (
         <div
-          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-blue-600 dark:text-blue-400 transition-opacity"
+          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-blue-600 dark:text-blue-400 transition-opacity gpu-accelerate"
           style={{ opacity: Math.min(1, Math.abs(translateX) / threshold) }}
           aria-hidden="true"
         >
@@ -139,9 +141,9 @@ export default function SwipeableCard({
 
       {/* 카드 콘텐츠 */}
       <div
-        className="relative z-10"
+        className="relative z-10 gpu-accelerate"
         style={{
-          transform: `translateX(${-translateX}px)`,
+          transform: `translate3d(${-translateX}px, 0, 0)`,
           transition: transitionStyle,
         }}
       >

@@ -211,13 +211,13 @@ export default function SearchOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col animate-slide-up"
+      className="fixed inset-0 z-50 flex flex-col animate-slide-up gpu-accelerate"
       style={{ backgroundColor: 'var(--bg-primary)' }}
       role="search"
       aria-label="경유지 검색"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="flex items-center gap-3 px-4 py-3 safe-top" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button
           onClick={onClose}
           className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
@@ -567,7 +567,7 @@ export default function SearchOverlay({
       {recentSearches.length === 0 && placeFavorites.length === 0 && <div className="flex-1" />}
 
       {/* Search button */}
-      <div className="px-4 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div className="px-4 py-4 safe-bottom keyboard-aware">
         {isLoading ? (
           /* 로딩 중: 취소 버튼 */
           <div className="space-y-3">
