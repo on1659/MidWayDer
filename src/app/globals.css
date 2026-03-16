@@ -125,11 +125,11 @@ video,
   }
 }
 
-/* ========== 모바일 UI/UX 최적화 ========== */
+/* ========== 모바일 UI/UX 최적화 (v0.67.0 개선) ========== */
 
 /* P0: 터치 타겟 확대 */
 @media (max-width: 768px) {
-  /* 버튼 최소 크기 48x48px */
+  /* 버튼 최소 크기 48x48px 강제 */
   button:not(.btn-sm),
   [role="button"]:not(.btn-sm),
   .btn-touch {
@@ -144,19 +144,19 @@ video,
     min-width: 48px;
   }
 
-  /* 입력 필드 최소 높이 56px */
+  /* 입력 필드 최소 높이 56px + iOS 줌 방지 */
   input[type="text"],
   input[type="search"],
   textarea {
     min-height: 56px;
-    font-size: 16px; /* iOS 줌 방지 */
+    font-size: 16px !important; /* iOS 줌 방지 - 강제 적용 */
     padding: 16px;
   }
 
-  /* 결과 카드 최소 높이 72px */
+  /* 결과 카드 최소 높이 80px (터치 영역 확보) */
   .result-card,
   [data-result-index] {
-    min-height: 72px;
+    min-height: 80px;
   }
 
   /* 아이콘 크기 확대 */
@@ -167,15 +167,20 @@ video,
 
   /* 폰트 사이즈 증가 */
   .text-mobile-base {
-    font-size: 16px;
+    font-size: 16px !important;
   }
   .text-mobile-lg {
-    font-size: 18px;
+    font-size: 18px !important;
   }
 
-  /* 최소 폰트 사이즈 보장 (가독성) */
-  p, span, label, a {
-    min-font-size: 13px;
+  /* 최소 폰트 사이즈 보장 (가독성) - 13px 이하 금지 */
+  p, span, label, a, button {
+    font-size: max(14px, 1em) !important;
+  }
+  
+  /* 예외: 뱃지, 칩 등 작은 UI 요소 */
+  .text-xs, .badge, .chip {
+    font-size: max(12px, 1em) !important;
   }
 
   /* 힌트/플레이스홀더 대비 강화 */
@@ -183,6 +188,7 @@ video,
   textarea::placeholder {
     color: var(--text-secondary, #6b7280) !important;
     opacity: 1;
+    font-size: 14px !important;
   }
 
   /* 간격 확대 */
@@ -200,6 +206,20 @@ video,
   .fab-container,
   button[class*="fixed"][class*="bottom"] {
     bottom: 24px !important;
+  }
+  
+  /* 카드 내부 버튼 간격 확보 */
+  .card-actions {
+    gap: 12px;
+  }
+  
+  /* 리스트 아이템 간격 증가 */
+  .space-y-2 {
+    gap: 12px;
+  }
+  
+  .space-y-3 {
+    gap: 16px;
   }
 }
 

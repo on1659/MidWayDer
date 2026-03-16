@@ -145,40 +145,40 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
           })()}
           <button
             onClick={(e) => onToggleFav(e, result)}
-            className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
+            className="shrink-0 p-3 rounded-lg active:scale-95 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title={favPlaces.has(result.place.id) ? '즐겨찾기 해제' : '즐겨찾기 저장'}
           >
             <Star
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill={favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'none'}
               style={{ color: favPlaces.has(result.place.id) ? 'var(--yellow-600)' : 'var(--text-muted)' }}
             />
           </button>
           <button
             onClick={(e) => onOpenNavi(e, result.place)}
-            className="shrink-0 p-2 rounded-lg active:scale-95"
+            className="shrink-0 p-3 rounded-lg active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
             style={{ background: 'var(--accent-weak)', color: 'var(--accent)' }}
             title="네비 시작"
           >
-            <Navigation className="w-4 h-4" />
+            <Navigation className="w-5 h-5" />
           </button>
           <button
             onClick={(e) => onVisitToggle(e, result)}
-            className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
+            className="shrink-0 p-3 rounded-lg active:scale-95 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title={isVisited ? '방문 표시 해제' : '방문했어요'}
           >
             {isVisited
-              ? <CheckCircle className="w-4 h-4" style={{ color: 'var(--green-600)' }} />
-              : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+              ? <CheckCircle className="w-5 h-5" style={{ color: 'var(--green-600)' }} />
+              : <Circle className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
             }
           </button>
           <button
             onClick={(e) => onTogglePin(e, result)}
-            className="shrink-0 p-2 rounded-lg active:scale-95 transition-colors"
+            className="shrink-0 p-3 rounded-lg active:scale-95 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title={pinnedIds.has(result.place.id) ? '핀 고정 해제' : '상단에 고정'}
           >
             <Bookmark
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill={pinnedIds.has(result.place.id) ? 'var(--accent)' : 'none'}
               style={{ color: pinnedIds.has(result.place.id) ? 'var(--accent)' : 'var(--text-muted)' }}
             />

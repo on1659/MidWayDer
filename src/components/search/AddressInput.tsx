@@ -173,11 +173,13 @@ export default function AddressInput({
           aria-controls="address-listbox"
           aria-expanded={isOpen}
           aria-activedescendant={activeIndex >= 0 ? `result-${activeIndex}` : undefined}
-          className="w-full px-4 py-3.5 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
+          className="w-full px-4 py-4 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-1 transition-all pr-12"
           style={{
             background: 'var(--bg-surface-muted)',
             color: 'var(--text-primary)',
             border: '1px solid var(--border-soft)',
+            fontSize: '16px', // iOS 자동 줌 방지
+            minHeight: '56px', // 모바일 터치 영역 확보
           }}
           onFocusCapture={(e) => {
             e.currentTarget.style.borderColor = 'var(--accent)';
@@ -232,18 +234,18 @@ export default function AddressInput({
             <button
               key={`${result.lat}-${result.lng}-${i}`}
               onClick={() => handleSelect(result)}
-              className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${
+              className={`w-full text-left px-4 py-4 flex items-start gap-3 transition-colors ${
                 i === activeIndex ? 'bg-[#F3F4F6]' : 'hover:bg-[#F3F4F6]'
               } ${i > 0 ? 'border-t' : ''}`}
-              style={{ borderColor: 'var(--border-soft)' }}
+              style={{ borderColor: 'var(--border-soft)', minHeight: '60px' }}
               role="option"
               aria-selected={i === activeIndex}
               id={`result-${i}`}
             >
-              <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#9CA3AF' }} />
+              <MapPin className="w-5 h-5 mt-1 shrink-0" style={{ color: '#9CA3AF' }} />
               <div className="min-w-0 flex-1">
                 <p className="text-base font-bold truncate" style={{ color: '#3274F9' }}>{result.name}</p>
-                <p className="text-sm truncate mt-0.5" style={{ color: '#6B7280' }}>
+                <p className="text-sm truncate mt-1" style={{ color: '#6B7280' }}>
                   {result.address}
                   {result.category && (
                     <span className="ml-1.5 text-xs" style={{ color: '#9CA3AF' }}>· {result.category}</span>

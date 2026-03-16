@@ -383,15 +383,15 @@ export default function SearchOverlay({
             )}
           </div>
           
-          {/* 스왑 버튼 */}
+          {/* 스왑 버튼 - 모바일 터치 영역 확대 (48x48px) */}
           {onSwap && (
             <div className="flex justify-center -my-1">
               <button
                 onClick={onSwap}
                 disabled={!startAddress && !endAddress}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all
+                className="w-12 h-12 rounded-full flex items-center justify-center transition-all
                            hover:bg-blue-50 active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{ border: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-surface)' }}
+                style={{ border: '1.5px solid var(--border-soft)', backgroundColor: 'var(--bg-surface)' }}
                 title="출발지↔도착지 바꾸기"
                 aria-label="출발지와 도착지 바꾸기"
               >
@@ -519,11 +519,11 @@ export default function SearchOverlay({
             <Clock className="w-5 h-5" />
             최근 검색
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {recentSearches.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 p-3 rounded-2xl transition-all"
+                className="flex items-center gap-3 p-4 rounded-2xl transition-all"
                 style={{ 
                   background: 'var(--bg-surface)', 
                   border: '1px solid var(--border-soft)',
@@ -531,17 +531,17 @@ export default function SearchOverlay({
                 }}
               >
                 <button
-                  className="flex-1 text-left min-w-0"
+                  className="flex-1 text-left min-w-0 py-2"
                   onClick={() => handleRecentSelect(item)}
                 >
-                  <p className="text-[14px] font-medium truncate route-text-truncate" style={{ color: 'var(--text-strong)' }} title={`${item.startAddress} → ${item.endAddress}`}>
+                  <p className="text-base font-medium truncate route-text-truncate" style={{ color: 'var(--text-strong)' }} title={`${item.startAddress} → ${item.endAddress}`}>
                     {item.startAddress} → {item.endAddress}
                   </p>
-                  <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
                 </button>
                 <button
                   onClick={() => handleInstantSearchClick(item)}
-                  className="shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95"
+                  className="shrink-0 flex items-center justify-center w-12 h-12 rounded-xl text-sm font-bold transition-all active:scale-95"
                   style={{ background: 'var(--accent)', color: 'white' }}
                   title="바로 검색 실행"
                   aria-label={`${item.startAddress}에서 ${item.endAddress} 즉시 검색`}
@@ -550,7 +550,7 @@ export default function SearchOverlay({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
-                  className="shrink-0 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-all active:scale-95"
+                  className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all active:scale-95"
                   style={{ background: 'var(--red-50)', color: 'var(--red-500)' }}
                   title="삭제"
                   aria-label={`${item.startAddress} 검색 기록 삭제`}
