@@ -7,6 +7,10 @@ import { useSyncExternalStore } from 'react';
  * @returns {boolean} 온라인 상태면 true, 오프라인이면 false
  */
 function getSnapshot(): boolean {
+  // Node.js/테스트 환경에서 navigator가 없을 수 있음
+  if (typeof navigator === 'undefined') {
+    return true;
+  }
   return navigator.onLine;
 }
 
