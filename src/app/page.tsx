@@ -381,7 +381,7 @@ export default function HomePage() {
           <PlaceDetail waypoint={selectedWaypoint} onClose={() => selectWaypoint(null)} onConfirm={(wp) => { selectWaypoint(wp); if (wp.routes.original) setOriginalRoute(wp.routes.original); }} />
         )}
 
-        {/* Mobile Search Bar */}
+        {/* Mobile Search Bar - 카카오맵 스타일 (상단 고정) */}
         <div className="md:hidden absolute top-4 inset-x-4 z-30 safe-top">
           {/* Network Status Warning */}
           {!isOnline && (
@@ -396,20 +396,68 @@ export default function HomePage() {
               느린 연결 감지됨. 검색 시간이 오래 걸릴 수 있습니다.
             </div>
           )}
-          
-          <div className="flex items-start gap-2">
-            <button data-testid="open-search-overlay-btn" onClick={() => setSearchOverlayOpen(true)} className="flex-1 bg-white rounded-2xl shadow-lg shadow-black/5 active:scale-[0.98] transition-transform overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-                <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
-                <span className="flex-1 text-left text-base truncate font-medium" style={{ color: start?.address ? 'var(--text-strong)' : 'var(--text-secondary)' }}>{start?.address || '출발지를 입력하세요'}</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--pink-500)' }} />
-                <span className="flex-1 text-left text-base truncate font-medium" style={{ color: end?.address ? 'var(--text-strong)' : 'var(--text-secondary)' }}>{end?.address || '도착지를 입력하세요'}</span>
-              </div>
+
+          {/* 카카오맵 스타일: 검색창 + 태그가 상단에 */}
+          <div className="bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
+            {/* 검색창 */}
+            <button
+              data-testid="open-search-overlay-btn"
+              onClick={() => setSearchOverlayOpen(true)}
+              className="w-full flex items-center gap-3 px-4 py-4 border-b border-gray-100 active:bg-gray-50 transition-colors"
+            >
+              <Search className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
+              <span className="flex-1 text-left text-base font-medium" style={{ color: 'var(--text-secondary)' }}>
+                어디를 들를까? (예: 홍대입구역, 다이소)
+              </span>
             </button>
-            <button onClick={toggleTheme} aria-label="테마 변경" className="w-14 h-14 mt-1 rounded-full flex items-center justify-center shadow-lg shadow-black/5" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
-              {theme === 'dark' ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+
+            {/* 출발지/도착지 표시 */}
+            {(start?.address || end?.address) && (
+              <button
+                onClick={() => setSearchOverlayOpen(true)}
+                className="w-full flex flex-col gap-2 px-4 py-3 active:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--accent)' }}>출</div>
+                  <span className="flex-1 text-left text-sm truncate" style={{ color: 'var(--text-strong)' }}>{start?.address || '출발지 선택'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--pink-500)' }}>도</div>
+                  <span className="flex-1 text-left text-sm truncate" style={{ color: 'var(--text-strong)' }}>{end?.address || '도착지 선택'}</span>
+                </div>
+              </button>
+            )}
+
+            {/* 카테고리 태그 (카카오맵처럼 상단에) */}
+            <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide border-t border-gray-100">
+              {['카페', '편의점', '다이소', '올리브영', '스타벅스'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setCategory(cat);
+                    if (start?.address && end?.address) {
+                      search({ address: start.address }, { address: end.address }, cat);
+                    } else {
+                      setSearchOverlayOpen(true);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 ${
+                    category === cat
+                      ? 'text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  style={category === cat ? { background: 'var(--accent)' } : {}}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 테마/언어 버튼 */}
+          <div className="flex items-center gap-2 mt-2">
+            <button onClick={toggleTheme} aria-label="테마 변경" className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-black/5 bg-white" style={{ color: 'var(--text-muted)' }}>
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <LanguageSelector />
           </div>

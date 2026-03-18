@@ -26,14 +26,6 @@ const PRESET_ROUTES = [
   { start: '역삼역', end: '선릉역', cat: '다이소' },
 ];
 
-const QUICK_CATEGORIES = [
-  { emoji: '☕', label: '카페' },
-  { emoji: '🏪', label: '편의점' },
-  { emoji: '🛒', label: '다이소' },
-  { emoji: '💄', label: '올리브영' },
-  { emoji: '⭐', label: '스타벅스' },
-];
-
 export default function BottomQuickBar({ favorites, setBottomSheetSnap, setSearchOverlayOpen, onRoutineApply }: BottomQuickBarProps) {
   const { setStart, setEnd } = useRouteStore();
   const { setCategory, search } = useSearchStore();
@@ -46,27 +38,7 @@ export default function BottomQuickBar({ favorites, setBottomSheetSnap, setSearc
         </div>
         <div className="px-5 pt-3 pb-3">
           <p className="text-xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ 가는 길에 어디 들를까요?</p>
-          <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>출발지/도착지 설정 후 경유지를 찾아줘요</p>
-        </div>
-        
-        {/* 검색창 추가 */}
-        <div className="px-5 pb-3">
-          <button
-            onClick={() => setSearchOverlayOpen(true)}
-            className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition-all active:scale-[0.98]"
-            style={{
-              background: 'white',
-              border: '2px solid #3B82F6',
-              minHeight: '56px',
-              boxShadow: '0 2px 8px rgba(59, 130, 246, 0.1)',
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <span style={{ color: '#3B82F6', fontSize: '16px', fontWeight: '600' }}>어디를 들를까? (예: 홍대입구역, 다이소)</span>
-          </button>
+          <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>상단에서 출발지/도착지를 설정해주세요</p>
         </div>
         {favorites.length > 0 && (
           <div className="px-5 pb-3">
@@ -122,19 +94,7 @@ export default function BottomQuickBar({ favorites, setBottomSheetSnap, setSearc
             ))}
           </div>
         </div>
-        <div className="flex gap-2.5 px-5 pb-5 overflow-x-auto">
-          {QUICK_CATEGORIES.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => { setCategory(item.label); setSearchOverlayOpen(true); }}
-              className="flex items-center gap-2 px-5 py-3.5 rounded-full text-lg font-semibold whitespace-nowrap shrink-0 active:scale-95 transition-all"
-              style={{ background: 'var(--blue-150)', color: 'var(--blue-700)' }}
-            >
-              <span className="text-2xl">{item.emoji}</span>
-              {item.label}
-            </button>
-          ))}
-        </div>
+
         <div className="px-5 pb-3">
           <span className="text-xs" style={{ color: 'var(--text-disabled)' }}>v0.7.0</span>
         </div>
