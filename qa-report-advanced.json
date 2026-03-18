@@ -1,0 +1,214 @@
+{
+  "url": "http://localhost:3000",
+  "timestamp": "2026-03-18T02:21:55.510Z",
+  "viewport": "mobile (393x852)",
+  "categories": {
+    "레이아웃": [
+      {
+        "desc": "검색창 상단 표시",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      },
+      {
+        "desc": "카테고리 태그 표시",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      },
+      {
+        "desc": "검색창이 화면 상단에 위치 (top < 100px)",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "y": 48,
+          "expected": "< 100px",
+          "reason": "검색창이 상단에 위치"
+        }
+      },
+      {
+        "desc": "태그가 검색창 아래에 위치",
+        "passed": false,
+        "error": "elementHandle.scrollIntoViewIfNeeded: Timeout 30000ms exceeded.\nCall log:\n  - attempting scroll into view action\n    2 × waiting for element to be stable\n      - element is not visible\n    - retrying scroll into view action\n    - waiting 20ms\n    2 × waiting for element to be stable\n      - element is not visible\n    - retrying scroll into view action\n      - waiting 100ms\n    42 × waiting for element to be stable\n       - element is not visible\n     - retrying scroll into view action\n       - waiting 500ms\n    - waiting for element to be stable\n"
+      }
+    ],
+    "시각적 요소": [
+      {
+        "desc": "검색창 배경색이 흰색 (bg-white)",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "expected": "rgb(255, 255, 255)",
+          "reason": "배경색이 흰색"
+        }
+      },
+      {
+        "desc": "검색창 그림자 효과 (shadow-lg)",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0.05) 0px 10px 15px -3px, oklab(0 0 0 / 0.05) 0px 4px 6px -4px",
+          "reason": "그림자 효과 있음"
+        }
+      },
+      {
+        "desc": "검색창 둥근 모서리 (rounded-2xl)",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "borderRadius": "16px",
+          "reason": "둥근 모서리 있음"
+        }
+      },
+      {
+        "desc": "태그 버튼 스타일 (rounded-full, px-4, py-2)",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "styles": {
+            "borderRadius": "3.35544e+07px",
+            "paddingTop": "0px",
+            "paddingRight": "0px",
+            "paddingBottom": "0px",
+            "paddingLeft": "0px"
+          },
+          "reason": "태그 스타일 적용됨"
+        }
+      },
+      {
+        "desc": "선택된 태그 하이라이트 (파란색 배경)",
+        "passed": false,
+        "error": "elementHandle.scrollIntoViewIfNeeded: Timeout 30000ms exceeded.\nCall log:\n  - attempting scroll into view action\n    2 × waiting for element to be stable\n      - element is not visible\n    - retrying scroll into view action\n    - waiting 20ms\n    2 × waiting for element to be stable\n      - element is not visible\n    - retrying scroll into view action\n      - waiting 100ms\n    43 × waiting for element to be stable\n       - element is not visible\n     - retrying scroll into view action\n       - waiting 500ms\n"
+      }
+    ],
+    "기능": [
+      {
+        "desc": "카페 태그 클릭 가능",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      },
+      {
+        "desc": "편의점 태그 클릭 가능",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      },
+      {
+        "desc": "다이소 태그 클릭 가능",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      },
+      {
+        "desc": "올리브영 태그 클릭 가능",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      },
+      {
+        "desc": "스타벅스 태그 클릭 가능",
+        "passed": true,
+        "details": {
+          "passed": true
+        }
+      }
+    ],
+    "반응형": [
+      {
+        "desc": "모바일 뷰에서 세로 배치",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "searchWidth": 329,
+          "viewportWidth": 393,
+          "ratio": "0.84",
+          "reason": "모바일 레이아웃 적절"
+        }
+      },
+      {
+        "desc": "터치 타겟 크기 (최소 44x44px)",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "results": [
+            {
+              "width": 48,
+              "height": 48,
+              "passed": true
+            },
+            {
+              "width": 48,
+              "height": 48,
+              "passed": true
+            },
+            {
+              "width": 176.5,
+              "height": 48.171875,
+              "passed": true
+            },
+            {
+              "width": 176.5,
+              "height": 48.171875,
+              "passed": true
+            },
+            {
+              "width": 176.5,
+              "height": 48.171875,
+              "passed": true
+            },
+            {
+              "width": 176.5,
+              "height": 48.171875,
+              "passed": true
+            }
+          ],
+          "minSize": "44x44px",
+          "reason": "모든 터치 타겟 충분한 크기"
+        }
+      }
+    ],
+    "접근성": [
+      {
+        "desc": "ARIA 레이블 존재",
+        "passed": true,
+        "details": {
+          "passed": true,
+          "labeledCount": 4,
+          "total": 5,
+          "reason": "ARIA 레이블 충분"
+        }
+      },
+      {
+        "desc": "키보드 네비게이션 가능",
+        "passed": false,
+        "details": {
+          "passed": false,
+          "focusedElement": {
+            "tagName": "NEXTJS-PORTAL",
+            "text": ""
+          },
+          "reason": "키보드 네비게이션 불가"
+        }
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "/Users/radar/Work/MidWayDer/qa-screenshots/advanced-1773800519362.png"
+    }
+  ],
+  "summary": {
+    "total": 18,
+    "passed": 15,
+    "failed": 3,
+    "passRate": "83.3"
+  }
+}

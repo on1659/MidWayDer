@@ -1,0 +1,114 @@
+{
+  "projectName": "MidWayDer",
+  "description": "미드웨이더 고급 QA - 카카오맵 스타일 UI/UX 검증",
+  "checks": [
+    {
+      "category": "레이아웃",
+      "type": "visible",
+      "selector": "button:has-text('어디를 들를까')",
+      "desc": "검색창 상단 표시"
+    },
+    {
+      "category": "레이아웃",
+      "type": "visible",
+      "selector": "button:has-text('카페')",
+      "desc": "카테고리 태그 표시"
+    },
+    {
+      "category": "레이아웃",
+      "type": "custom",
+      "script": "verifySearchBarPosition",
+      "desc": "검색창이 화면 상단에 위치 (top < 100px)"
+    },
+    {
+      "category": "레이아웃",
+      "type": "custom",
+      "script": "verifyTagsBelowSearch",
+      "desc": "태그가 검색창 아래에 위치"
+    },
+    {
+      "category": "시각적 요소",
+      "type": "custom",
+      "script": "verifySearchBarStyle",
+      "desc": "검색창 배경색이 흰색 (bg-white)"
+    },
+    {
+      "category": "시각적 요소",
+      "type": "custom",
+      "script": "verifySearchBarShadow",
+      "desc": "검색창 그림자 효과 (shadow-lg)"
+    },
+    {
+      "category": "시각적 요소",
+      "type": "custom",
+      "script": "verifySearchBarRadius",
+      "desc": "검색창 둥근 모서리 (rounded-2xl)"
+    },
+    {
+      "category": "시각적 요소",
+      "type": "custom",
+      "script": "verifyTagStyle",
+      "desc": "태그 버튼 스타일 (rounded-full, px-4, py-2)"
+    },
+    {
+      "category": "시각적 요소",
+      "type": "custom",
+      "script": "verifySelectedTagHighlight",
+      "desc": "선택된 태그 하이라이트 (파란색 배경)"
+    },
+    {
+      "category": "기능",
+      "type": "clickable",
+      "selector": "button:has-text('카페')",
+      "desc": "카페 태그 클릭 가능"
+    },
+    {
+      "category": "기능",
+      "type": "clickable",
+      "selector": "button:has-text('편의점')",
+      "desc": "편의점 태그 클릭 가능"
+    },
+    {
+      "category": "기능",
+      "type": "clickable",
+      "selector": "button:has-text('다이소')",
+      "desc": "다이소 태그 클릭 가능"
+    },
+    {
+      "category": "기능",
+      "type": "clickable",
+      "selector": "button:has-text('올리브영')",
+      "desc": "올리브영 태그 클릭 가능"
+    },
+    {
+      "category": "기능",
+      "type": "clickable",
+      "selector": "button:has-text('스타벅스')",
+      "desc": "스타벅스 태그 클릭 가능"
+    },
+    {
+      "category": "반응형",
+      "type": "custom",
+      "script": "verifyMobileLayout",
+      "desc": "모바일 뷰에서 세로 배치"
+    },
+    {
+      "category": "반응형",
+      "type": "custom",
+      "script": "verifyTouchTargets",
+      "desc": "터치 타겟 크기 (최소 44x44px)"
+    },
+    {
+      "category": "접근성",
+      "type": "custom",
+      "script": "verifyAriaLabels",
+      "desc": "ARIA 레이블 존재"
+    },
+    {
+      "category": "접근성",
+      "type": "custom",
+      "script": "verifyKeyboardNav",
+      "desc": "키보드 네비게이션 가능"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "url": "http://localhost:3000",
+  "timestamp": "2026-03-18T01:01:19.928Z",
+  "screenshots": [
+    {
+      "viewport": "mobile",
+      "path": "/Users/radar/Work/MidWayDer/qa-screenshots/mobile-1773795682702.png",
+      "width": 393,
+      "height": 852
+    }
+  ],
+  "checks": [
+    {
+      "desc": "검색창 상단 표시",
+      "passed": true,
+      "viewport": "mobile"
+    },
+    {
+      "desc": "카페 태그 표시",
+      "passed": true,
+      "viewport": "mobile"
+    },
+    {
+      "desc": "편의점 태그 표시",
+      "passed": true,
+      "viewport": "mobile"
+    },
+    {
+      "desc": "다이소 태그 표시",
+      "passed": true,
+      "viewport": "mobile"
+    },
+    {
+      "desc": "올리브영 태그 표시",
+      "passed": true,
+      "viewport": "mobile"
+    },
+    {
+      "desc": "카페 태그 클릭 가능",
+      "passed": true,
+      "viewport": "mobile"
+    },
+    {
+      "desc": "편의점 태그 클릭 가능",
+      "passed": true,
+      "viewport": "mobile"
+    }
+  ]
+}

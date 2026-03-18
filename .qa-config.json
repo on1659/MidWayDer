@@ -1,0 +1,8 @@
+{
+  "type": "web",
+  "url": "http://localhost:3000",
+  "productionUrl": "https://midwayder.up.railway.app",
+  "checklist": "./qa-checklist.json",
+  "viewports": ["mobile", "desktop"],
+  "waitFor": 2000
+}

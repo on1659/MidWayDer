@@ -1,0 +1,41 @@
+{
+  "projectName": "MidWayDer",
+  "description": "미드웨이더 카카오맵 스타일 QA",
+  "checks": [
+    {
+      "type": "visible",
+      "selector": "button:has-text('어디를 들를까')",
+      "desc": "검색창 상단 표시"
+    },
+    {
+      "type": "visible",
+      "selector": "button:has-text('카페')",
+      "desc": "카페 태그 표시"
+    },
+    {
+      "type": "visible",
+      "selector": "button:has-text('편의점')",
+      "desc": "편의점 태그 표시"
+    },
+    {
+      "type": "visible",
+      "selector": "button:has-text('다이소')",
+      "desc": "다이소 태그 표시"
+    },
+    {
+      "type": "visible",
+      "selector": "button:has-text('올리브영')",
+      "desc": "올리브영 태그 표시"
+    },
+    {
+      "type": "clickable",
+      "selector": "button:has-text('카페')",
+      "desc": "카페 태그 클릭 가능"
+    },
+    {
+      "type": "clickable",
+      "selector": "button:has-text('편의점')",
+      "desc": "편의점 태그 클릭 가능"
+    }
+  ]
+}

@@ -433,6 +433,8 @@ export default function HomePage() {
               {['카페', '편의점', '다이소', '올리브영', '스타벅스'].map((cat) => (
                 <button
                   key={cat}
+                  tabIndex={0}
+                  aria-label={`${cat} 카테고리 선택`}
                   onClick={() => {
                     setCategory(cat);
                     if (start?.address && end?.address) {
