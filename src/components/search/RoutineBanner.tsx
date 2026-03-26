@@ -202,7 +202,7 @@ function SetupMiniForm({ type, onSaved, onDismiss }: SetupMiniFormProps) {
         {suggestions.length > 0 && (
           <div
             className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden z-20 shadow-lg"
-            style={{ background: 'white', border: '1px solid var(--blue-100)' }}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--blue-100)' }}
           >
             {suggestions.map((s, i) => (
               <button

@@ -105,13 +105,13 @@ export default function BottomSheet({
         transform: `translate3d(0, ${currentTranslate}px, 0)`,
         transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
         height: '100dvh',
-        touchAction: 'none',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
       }}
     >
-      {/* Drag handle */}
+      {/* Drag handle — touchAction: none은 여기만 적용 */}
       <div
         className="flex items-center justify-center h-14 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: 'none' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}

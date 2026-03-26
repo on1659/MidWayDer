@@ -222,7 +222,7 @@ export const ResultHeader = forwardRef<HTMLDivElement, ResultHeaderProps>(({
               onChange={(e) => onDepartureTimeChange(e.target.value)}
               onClick={(e) => e.stopPropagation()}
               className="flex-1 min-w-0 px-3 py-1.5 rounded-xl text-sm font-bold border-0 outline-none focus:ring-2 transition-all"
-              style={{ background: 'white', color: 'var(--text-primary)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
             />
             <button
               onClick={() => {

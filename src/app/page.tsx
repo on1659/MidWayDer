@@ -327,7 +327,7 @@ export default function HomePage() {
 
         {/* 지도 영역 재검색 */}
         {(mapPanned || mapZoomed) && hasSearched && !isLoading && (
-          <button className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all active:scale-95 hover:shadow-xl" style={{ background: 'white', color: 'var(--accent)', border: '1.5px solid var(--accent)' }}
+          <button className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all active:scale-95 hover:shadow-xl" style={{ background: 'var(--bg-surface)', color: 'var(--accent)', border: '1.5px solid var(--accent)' }}
             onClick={async () => {
               setMapPanned(false);
               if (!start?.address || !end?.address) return;
@@ -338,21 +338,25 @@ export default function HomePage() {
           >🔄 이 지역 재검색</button>
         )}
 
-        {/* Settings Button */}
+        {/* Settings Button — z-50: BottomSheet(z-40) 위에 표시, 바텀시트 상태에 따라 위치 조정 */}
         <Link
           href="/settings"
-          className="absolute bottom-44 right-4 z-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50"
+          className={`absolute right-4 z-50 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 ${
+            hasResults && bottomSheetSnap !== 'full' ? 'bottom-52' : 'bottom-44'
+          }`}
           title="설정"
           aria-label="설정"
         >
           <Settings className="w-6 h-6" style={{ color: 'var(--accent)' }} />
         </Link>
 
-        {/* GPS Button */}
+        {/* GPS Button — z-50: BottomSheet(z-40) 위에 표시 */}
         <button
           onClick={handleGPS}
           disabled={gpsLoading}
-          className="absolute bottom-24 right-4 z-20 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50"
+          className={`absolute right-4 z-50 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50 ${
+            hasResults && bottomSheetSnap !== 'full' ? 'bottom-32' : 'bottom-24'
+          }`}
           title="현재 위치"
           aria-label="현재 위치로 이동"
         >
@@ -571,8 +575,8 @@ export default function HomePage() {
           </BottomSheet>
         </div>
 
-        {/* Bottom Quick Bar (모바일) - 검색창 항상 표시 */}
-        {!hasResults && !selectedWaypoint && !mapClickInfo && (
+        {/* Bottom Quick Bar (모바일) - BottomSheet가 안 보일 때만 표시 (즐겨찾기/최근검색 있으면 BottomSheet에서 처리) */}
+        {!hasResults && !selectedWaypoint && !mapClickInfo && favorites.length === 0 && recentSearches.length === 0 && (
           <BottomQuickBar favorites={favorites} setBottomSheetSnap={setBottomSheetSnap} setSearchOverlayOpen={setSearchOverlayOpen} onRoutineApply={handleRoutineApply} />
         )}
       </main>

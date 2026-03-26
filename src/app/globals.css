@@ -127,45 +127,35 @@ video,
 
 /* ========== 모바일 UI/UX 최적화 (v0.68.0 심화 최적화) ========== */
 
-/* P0: 터치 타겟 확대 */
+/* P0: 터치 타겟 확대 — opt-in 방식으로 전환 */
 @media (max-width: 768px) {
-  /* 버튼 최소 크기 48x48px 강제 */
-  button:not(.btn-sm),
-  [role="button"]:not(.btn-sm),
+  /* 명시적으로 터치 타겟이 필요한 요소만 적용 */
   .btn-touch {
     min-height: 48px;
     min-width: 48px;
   }
 
-  /* 작은 아이콘 버튼은 패딩으로 확보 */
+  /* 아이콘 버튼 전용 */
   .btn-icon {
     padding: 12px;
     min-height: 48px;
     min-width: 48px;
   }
 
-  /* 입력 필드 최소 높이 56px + iOS 줌 방지 */
+  /* iOS 줌 방지: font-size 16px만 적용 (min-height/padding은 컴포넌트에서 제어) */
   input[type="text"],
   input[type="search"],
   textarea {
-    min-height: 56px;
-    font-size: 16px !important; /* iOS 줌 방지 - 강제 적용 */
-    padding: 16px;
+    font-size: 16px !important;
   }
 
-  /* 결과 카드 최소 높이 80px (터치 영역 확보) */
+  /* 결과 카드 최소 높이 */
   .result-card,
   [data-result-index] {
     min-height: 80px;
   }
 
-  /* 아이콘 크기 확대 */
-  svg.lucide {
-    width: 24px;
-    height: 24px;
-  }
-
-  /* 폰트 사이즈 증가 */
+  /* 폰트 사이즈: opt-in 클래스만 적용 (전체 강제 제거) */
   .text-mobile-base {
     font-size: 16px !important;
   }
@@ -173,25 +163,14 @@ video,
     font-size: 18px !important;
   }
 
-  /* 최소 폰트 사이즈 보장 (가독성) - 13px 이하 금지 */
-  p, span, label, a, button {
-    font-size: max(14px, 1em) !important;
-  }
-
-  /* 예외: 뱃지, 칩 등 작은 UI 요소 */
-  .text-xs, .badge, .chip {
-    font-size: max(12px, 1em) !important;
-  }
-
   /* 힌트/플레이스홀더 대비 강화 */
   input::placeholder,
   textarea::placeholder {
     color: var(--text-secondary, #6b7280) !important;
     opacity: 1;
-    font-size: 14px !important;
   }
 
-  /* 간격 확대 */
+  /* 간격: opt-in 클래스만 */
   .gap-mobile {
     gap: 24px;
   }
@@ -202,24 +181,9 @@ video,
     margin-top: 20px;
   }
 
-  /* FAB 위치 조정 (하단 여백 증가) */
-  .fab-container,
-  button[class*="fixed"][class*="bottom"] {
-    bottom: 24px !important;
-  }
-
   /* 카드 내부 버튼 간격 확보 */
   .card-actions {
     gap: 12px;
-  }
-
-  /* 리스트 아이템 간격 증가 */
-  .space-y-2 {
-    gap: 12px;
-  }
-
-  .space-y-3 {
-    gap: 16px;
   }
 }
 
@@ -644,20 +608,13 @@ a:focus-visible,
 @media (hover: none) {
   /* 모바일: active 효과 */
   .result-card-hover:active {
-
-/* ========== 접근성: 스크린 리더 전용 클래스 (v0.45.0) ========== */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
 }
 
+/* ========== 접근성: 스크린 리더 전용 클래스 (v0.45.0) ========== */
 .sr-only-focusable:focus,
 .sr-only-focusable:focus-within {
   position: static;
@@ -668,10 +625,5 @@ a:focus-visible,
   overflow: visible;
   clip: auto;
   white-space: normal;
-}
-    transform: scale(0.98);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
 }
 
