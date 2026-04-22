@@ -90,7 +90,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={notoSansKR.variable}>
+    <html lang="ko" className={notoSansKR.variable} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3274f9" />
