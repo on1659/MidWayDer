@@ -2,16 +2,41 @@
 
 import { useState, useEffect } from 'react';
 
+export const COLOR_THEMES = ['blue', 'indigo', 'violet', 'teal', 'emerald', 'rose', 'slate'] as const;
+export type ColorTheme = typeof COLOR_THEMES[number];
+export const DEFAULT_COLOR_THEME: ColorTheme = 'blue';
+
+const COLOR_THEME_LABELS: Record<ColorTheme, string> = {
+  blue: '블루 (기본)',
+  indigo: '인디고',
+  violet: '바이올렛',
+  teal: '틸',
+  emerald: '에메랄드',
+  rose: '로즈',
+  slate: '슬레이트',
+};
+
+export function getColorThemeLabel(t: ColorTheme): string {
+  return COLOR_THEME_LABELS[t];
+}
+
+function isColorTheme(value: string | null): value is ColorTheme {
+  return !!value && (COLOR_THEMES as readonly string[]).includes(value);
+}
+
 interface UseThemeReturn {
   theme: 'light' | 'dark';
   autoTheme: boolean;
+  colorTheme: ColorTheme;
   toggleTheme: () => void;
   toggleAutoTheme: () => void;
+  setColorTheme: (next: ColorTheme) => void;
 }
 
 export function useTheme(): UseThemeReturn {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [autoTheme, setAutoTheme] = useState(false);
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>(DEFAULT_COLOR_THEME);
 
   // 테마 초기화 + 시스템 테마 동기화
   useEffect(() => {
@@ -39,10 +64,19 @@ export function useTheme(): UseThemeReturn {
           setTheme('dark');
         }
       }
+
+      // Color theme 초기화
+      const savedColor = localStorage.getItem('color-theme');
+      const applied = isColorTheme(savedColor) ? savedColor : DEFAULT_COLOR_THEME;
+      document.documentElement.setAttribute('data-theme', applied);
+      setColorThemeState(applied);
     } catch {
       // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
     }
 
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
       try {
@@ -81,7 +115,7 @@ export function useTheme(): UseThemeReturn {
     return () => clearInterval(interval);
   }, [autoTheme]);
 
-  // theme-color 메타 동기화
+  // theme-color 메타 동기화 (light/dark + colorTheme 둘 다 반응)
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) return;
@@ -89,7 +123,7 @@ export function useTheme(): UseThemeReturn {
       .getPropertyValue('--accent')
       .trim();
     if (accent) meta.setAttribute('content', accent);
-  }, [theme]);
+  }, [theme, colorTheme]);
 
   const toggleTheme = () => {
     setAutoTheme(false);
@@ -127,5 +161,15 @@ export function useTheme(): UseThemeReturn {
     }
   };
 
-  return { theme, autoTheme, toggleTheme, toggleAutoTheme };
+  const setColorTheme = (next: ColorTheme) => {
+    setColorThemeState(next);
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem('color-theme', next);
+    } catch {
+      // localStorage 접근 불가 시 무시
+    }
+  };
+
+  return { theme, autoTheme, colorTheme, toggleTheme, toggleAutoTheme, setColorTheme };
 }

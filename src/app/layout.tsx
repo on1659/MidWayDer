@@ -93,7 +93,7 @@ export default function RootLayout({
     <html lang="ko" className={notoSansKR.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#6c9cff" />
+        <meta name="theme-color" content="#3274f9" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
@@ -104,7 +104,16 @@ export default function RootLayout({
         >{`(() => {
   try {
     const theme = localStorage.getItem('theme');
-    if (theme === 'dark') document.documentElement.classList.add('theme-dark');
+    const autoTheme = localStorage.getItem('auto-theme');
+    if (autoTheme === 'true') {
+      const h = new Date().getHours();
+      if (h < 6 || h >= 18) document.documentElement.classList.add('theme-dark');
+    } else if (theme === 'dark') {
+      document.documentElement.classList.add('theme-dark');
+    }
+    const color = localStorage.getItem('color-theme');
+    const allowed = ['blue','indigo','violet','teal','emerald','rose','slate'];
+    document.documentElement.setAttribute('data-theme', allowed.includes(color) ? color : 'blue');
   } catch {}
 })();`}</Script>
       </head>
