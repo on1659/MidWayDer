@@ -8,6 +8,9 @@ import { useRef, useCallback, useState } from 'react';
 
 type SnapPoint = 'collapsed' | 'half' | 'full';
 
+/** snap 순서 (collapsed → half → full) — 키보드 이동용 */
+const SNAP_ORDER: readonly SnapPoint[] = ['collapsed', 'half', 'full'] as const;
+
 interface BottomSheetProps {
   children: React.ReactNode;
   peekHeight?: number;
@@ -94,6 +97,38 @@ export default function BottomSheet({
     window.addEventListener('mouseup', onMouseUp);
   };
 
+  // 키보드 접근성 — 슬라이더 핸들 포커스 시 ↑/↓/Home/End 로 snap 이동
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const idx = SNAP_ORDER.indexOf(snap);
+    if (idx < 0) return;
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'ArrowRight': {
+        e.preventDefault();
+        const next = SNAP_ORDER[Math.min(SNAP_ORDER.length - 1, idx + 1)];
+        if (next !== snap) onSnapChange?.(next);
+        break;
+      }
+      case 'ArrowDown':
+      case 'ArrowLeft': {
+        e.preventDefault();
+        const prev = SNAP_ORDER[Math.max(0, idx - 1)];
+        if (prev !== snap) onSnapChange?.(prev);
+        break;
+      }
+      case 'Home': {
+        e.preventDefault();
+        if (snap !== 'collapsed') onSnapChange?.('collapsed');
+        break;
+      }
+      case 'End': {
+        e.preventDefault();
+        if (snap !== 'full') onSnapChange?.('full');
+        break;
+      }
+    }
+  }, [snap, onSnapChange]);
+
   if (!visible) return null;
 
   return (
@@ -103,22 +138,28 @@ export default function BottomSheet({
       style={{
         background: 'var(--bg-surface)',
         transform: `translate3d(0, ${currentTranslate}px, 0)`,
-        transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
+        transition: isDragging
+          ? 'none'
+          : 'transform var(--duration-slow) var(--ease-emphasized)',
         height: '100dvh',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
       }}
     >
       {/* Drag handle — touchAction: none은 여기만 적용 */}
       <div
-        className="flex items-center justify-center h-14 cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-center h-14 cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2"
         style={{ touchAction: 'none' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onMouseDown={onMouseDown}
-        aria-label="드래그하여 패널 조절"
+        onKeyDown={onKeyDown}
+        tabIndex={0}
+        aria-label="드래그하여 패널 조절 (방향키로도 이동 가능)"
         role="slider"
         aria-valuenow={snap === 'full' ? 100 : snap === 'half' ? 50 : 0}
+        aria-valuemin={0}
+        aria-valuemax={100}
       >
         <div
           className={`
