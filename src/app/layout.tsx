@@ -117,7 +117,7 @@ export default function RootLayout({
   } catch {}
 })();`}</Script>
       </head>
-      <body className="antialiased font-sans">
+      <body className="antialiased font-sans" suppressHydrationWarning>
         <Providers>
           <ServiceWorkerRegister />
           <OfflineBanner />
