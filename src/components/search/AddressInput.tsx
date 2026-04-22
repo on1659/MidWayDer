@@ -250,7 +250,7 @@ export default function AddressInput({
             >
               <MapPin className="w-5 h-5 mt-1 shrink-0" style={{ color: '#9CA3AF' }} />
               <div className="min-w-0 flex-1">
-                <p className="text-base font-bold truncate" style={{ color: '#3274F9' }}>{result.name}</p>
+                <p className="text-base font-bold truncate" style={{ color: 'var(--accent)' }}>{result.name}</p>
                 <p className="text-sm truncate mt-1" style={{ color: '#6B7280' }}>
                   {result.address}
                   {result.category && (

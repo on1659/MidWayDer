@@ -10,6 +10,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { DetourResult } from '@/types/detour';
+import { getAccentColor, getSuccessColor } from '@/lib/theme-colors';
 
 interface WaypointMarkerProps {
   /** Naver Maps 인스턴스 */
@@ -83,6 +84,8 @@ export default function WaypointMarker({
 
     // 새 마커 생성
     const markers: naver.maps.Marker[] = [];
+    const accentColor = getAccentColor();
+    const successColor = getSuccessColor();
     waypoints.forEach((waypoint, index) => {
       const isSelected = selectedId === waypoint.place.id;
 
@@ -102,7 +105,7 @@ export default function WaypointMarker({
               <div style="
                 width: 40px;
                 height: 40px;
-                background-color: ${isSelected ? '#16A34A' : '#3274F9'};
+                background-color: ${isSelected ? successColor : accentColor};
                 border: 3px solid white;
                 border-radius: 50%;
                 display: flex;
@@ -154,7 +157,7 @@ export default function WaypointMarker({
                 display: flex;
                 gap: 12px;
                 font-size: 12px;
-                color: #3274F9;
+                color: ${accentColor};
                 font-weight: 500;
               ">
                 <span>+${detourDistance}km</span>
@@ -189,7 +192,7 @@ export default function WaypointMarker({
           {
             width: '40px',
             height: '40px',
-            background: '#3274F9',
+            background: accentColor,
             borderRadius: '50%',
             color: '#fff',
             textAlign: 'center',
