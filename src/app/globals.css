@@ -1,50 +1,6 @@
 @import "tailwindcss";
 @import "./theme.css";
 
-:root {
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 18px;
-  --r-xl: 24px;
-
-  --sp-1: 4px;
-  --sp-2: 8px;
-  --sp-3: 12px;
-  --sp-4: 16px;
-  --sp-5: 20px;
-  --sp-6: 24px;
-
-  /* Typography Scale */
-  --text-xs: 0.75rem;    /* 12px - Category */
-  --text-sm: 0.875rem;   /* 14px - Address, Badge */
-  --text-base: 1rem;     /* 16px - Store Name */
-  --text-lg: 1.125rem;   /* 18px - Header */
-
-  /* Font Weights */
-  --font-normal: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
-
-  /* 카카오맵 스타일 컬러 팔레트 (v0.13.0) */
-  --kakao-primary: #3274F9;        /* 파란색 - Primary */
-  --kakao-secondary: #FF6B00;      /* 주황색 - 이탈 거리 */
-  --kakao-success: #4CAF50;        /* 초록색 - 거리/시간 */
-  --kakao-bg: #F5F5F5;             /* 연한 회색 배경 */
-  --kakao-card: #FFFFFF;           /* 흰색 카드 */
-  --kakao-text: #1F2937;           /* 진한 회색 텍스트 */
-  --kakao-text-muted: #6B7280;     /* 회색 텍스트 */
-  --kakao-border: #E5E7EB;         /* 연한 회색 테두리 */
-  --kakao-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* 그림자 */
-
-  /* backward compatibility */
-  --pastel-blue: var(--accent);
-  --pastel-pink: #f43f5e;
-  --pastel-green: #22c55e;
-  --bg-main: var(--bg-app);
-  --text-dark: var(--text-primary);
-  --text-light: var(--text-secondary);
-}
 
 * {
   box-sizing: border-box;
@@ -395,13 +351,6 @@ video,
 
 /* P3: 레이아웃 & 간격 */
 @media (max-width: 768px) {
-  body {
-    /* 전체 패딩 증가 */
-    --sp-4: 20px;
-    --sp-5: 24px;
-    --sp-6: 28px;
-  }
-
   /* 카드 그림자/깊이 */
   .card-elevated {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);

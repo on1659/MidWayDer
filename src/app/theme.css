@@ -1,43 +1,257 @@
+/* ============================================================
+ * MidWayDer 2026 Design Token System  v1.0
+ * Phase 1: Token structure modernization
+ * No JSX changes required — backward compat aliases preserved.
+ * ============================================================ */
+
+/* ── Tailwind 4 @theme: palette-level → generates bg-accent-500 etc. ── */
+@theme {
+  /* Neutral (Slate) — 11-step */
+  --color-neutral-0:   #ffffff;
+  --color-neutral-50:  #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* Accent (KakaoMap blue) — 11-step */
+  --color-accent-50:  #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3274f9;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --color-accent-800: #1e40af;
+  --color-accent-900: #1e3a8a;
+  --color-accent-950: #172554;
+
+  /* Status — 4-step each (50/100/500/700) */
+  --color-success-50:  #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-500: #16a34a;
+  --color-success-700: #15803d;
+
+  --color-warning-50:  #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #d97706;
+  --color-warning-700: #b45309;
+
+  --color-error-50:  #fff1f2;
+  --color-error-100: #ffe4e6;
+  --color-error-500: #dc2626;
+  --color-error-700: #b91c1c;
+
+  --color-info-50:  #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-500: #0284c7;
+  --color-info-700: #0369a1;
+
+  /* Radius ladder */
+  --radius-0:    0;
+  --radius-1:    4px;
+  --radius-2:    8px;
+  --radius-3:    12px;
+  --radius-4:    16px;
+  --radius-5:    20px;
+  --radius-6:    24px;
+  --radius-full: 9999px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * LIGHT MODE (default)
+ * ══════════════════════════════════════════════════════════════ */
 :root {
-  /* Core surfaces */
-  --bg-app: #f6f7f9;
-  --bg-surface: #ffffff;
-  --bg-surface-muted: #f2f4f7;
-  --bg-overlay: rgba(255, 255, 255, 0.88);
+  /* ── Surface elevation (e0 = app bg → e5 = tooltip) ── */
+  --surface-0: #f6f7f9;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #ffffff;
+  --surface-4: #ffffff;
+  --surface-5: #ffffff;
 
-  /* Text */
-  --text-primary: #1f2937;
+  /* ── Text semantic ── */
+  --text-primary:   #1f2937;
   --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-  --text-strong: #2d3748;
-  --text-muted: #8b95a5;
-  --text-disabled: #c4ccd8;
+  --text-tertiary:  #9ca3af;
+  --text-strong:    #0f172a;
+  --text-muted:     #8b95a5;
+  --text-disabled:  #c4ccd8;
+  --text-on-accent: #ffffff;
+  --text-link:      var(--color-accent-500);
 
-  /* Brand / accents */
-  --accent: #3274F9;          /* KakaoMap Blue */
-  --accent-light: #5B93FA;    /* Lighter Blue */
-  --accent-dark: #1E5CD9;     /* Darker Blue */
-  --accent-weak: #dbeafe;
+  /* ── Accent RGB triplet (enables rgba(var(--color-accent-rgb), X)) ── */
+  --color-accent-rgb: 50, 116, 249;
 
-  /* Status Colors */
-  --warning: #FF6B00;         /* Orange - Detour Distance */
-  --success: #4CAF50;         /* Green - Distance/Time */
+  /* ── Border ── */
+  --border-soft:   #e5e7eb;
+  --border-strong: #d1d5db;
+  --border-accent: rgba(var(--color-accent-rgb), 0.3);
 
-  /* Palette */
-  --blue-50: #eff6ff;
-  --blue-100: #e8f0fe;
+  /* ── Overlay tints ── */
+  --overlay-scrim:    rgba(0, 0, 0, 0.48);
+  --overlay-hover:    rgba(var(--color-accent-rgb), 0.06);
+  --overlay-press:    rgba(var(--color-accent-rgb), 0.12);
+  --overlay-selected: rgba(var(--color-accent-rgb), 0.18);
+
+  /* ── Current-mode status shortcuts (change in dark) ── */
+  --color-accent-current:       var(--color-accent-500);
+  --color-accent-current-light: var(--color-accent-100);
+  --color-success-current: #16a34a;
+  --color-warning-current: #d97706;
+  --color-error-current:   #dc2626;
+  --color-info-current:    #0284c7;
+
+  /* ── Fluid typography scale (375px → 1280px) ── */
+  --text-2xs:    clamp(0.6875rem, 0.68rem + 0.04vw, 0.75rem);   /* 11–12px */
+  --text-xs:     clamp(0.75rem,   0.73rem + 0.10vw, 0.8125rem); /* 12–13px */
+  --text-sm:     clamp(0.875rem,  0.85rem + 0.12vw, 0.9375rem); /* 14–15px */
+  --text-base:   clamp(1rem,      0.97rem + 0.15vw, 1.0625rem); /* 16–17px */
+  --text-lg:     clamp(1.125rem,  1.08rem + 0.22vw, 1.25rem);   /* 18–20px */
+  --text-xl:     clamp(1.25rem,   1.18rem + 0.35vw, 1.5rem);    /* 20–24px */
+  --text-2xl:    clamp(1.5rem,    1.40rem + 0.50vw, 1.875rem);
+  --text-3xl:    clamp(1.875rem,  1.70rem + 0.88vw, 2.5rem);
+  --text-display: clamp(2.5rem,   2.00rem + 2.50vw, 4rem);
+
+  /* ── Line height ── */
+  --leading-tight:   1.2;
+  --leading-snug:    1.35;
+  --leading-normal:  1.55;
+  --leading-relaxed: 1.7;
+
+  /* ── Letter spacing ── */
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide:   0.02em;
+
+  /* ── Font weight ── */
+  --font-weight-regular:   400;
+  --font-weight-medium:    500;
+  --font-weight-semibold:  600;
+  --font-weight-bold:      700;
+  --font-weight-extrabold: 800;
+
+  /* ── Spacing (4px base) ── */
+  --space-0:   0;
+  --space-0_5: 2px;
+  --space-1:   4px;
+  --space-1_5: 6px;
+  --space-2:   8px;
+  --space-2_5: 10px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-7:   28px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-14:  56px;
+  --space-16:  64px;
+  --space-20:  80px;
+  --space-24:  96px;
+
+  /* ── Radius role aliases ── */
+  --radius-button: var(--radius-2);
+  --radius-card:   var(--radius-4);
+  --radius-sheet:  var(--radius-5);
+  --radius-chip:   var(--radius-full);
+
+  /* ── Shadow elevation ── */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-2: 0 4px 6px -2px rgba(15, 23, 42, 0.04), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+  --shadow-3: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+  --shadow-4: 0 20px 25px -5px rgba(15, 23, 42, 0.10), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+  --shadow-5: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-accent-sm: 0 4px 12px rgba(var(--color-accent-rgb), 0.18);
+  --shadow-accent-md: 0 8px 24px rgba(var(--color-accent-rgb), 0.28);
+
+  /* ── Motion ── */
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-instant: 0ms;
+  --duration-fast:    120ms;
+  --duration-normal:  200ms;
+  --duration-slow:    320ms;
+  --duration-slower:  480ms;
+
+  /* ═══════════════════════════════════════════════════════════
+   * BACKWARD COMPAT ALIASES — maps old names → new tokens.
+   * Do not remove until all JSX migrated.
+   * ═══════════════════════════════════════════════════════════ */
+
+  /* bg-* */
+  --bg-app:           var(--surface-0);
+  --bg-surface:       var(--surface-1);
+  --bg-surface-muted: #f2f4f7;
+  --bg-overlay:       rgba(255, 255, 255, 0.88);
+  --bg-main:          var(--surface-0);
+
+  /* accent */
+  --accent:       var(--color-accent-500);
+  --accent-light: var(--color-accent-400);
+  --accent-dark:  var(--color-accent-600);
+  --accent-weak:  var(--color-accent-100);
+
+  /* status */
+  --warning: var(--color-warning-500);
+  --success: var(--color-success-500);
+
+  /* text */
+  --text-dark:  var(--text-primary);
+  --text-light: var(--text-secondary);
+
+  /* radius */
+  --r-sm: var(--radius-3);
+  --r-md: var(--radius-4);
+  --r-lg: var(--radius-5);
+  --r-xl: var(--radius-6);
+
+  /* spacing */
+  --sp-1: var(--space-1);
+  --sp-2: var(--space-2);
+  --sp-3: var(--space-3);
+  --sp-4: var(--space-4);
+  --sp-5: var(--space-5);
+  --sp-6: var(--space-6);
+
+  /* shadow (old names → new elevation) */
+  --shadow-sm: var(--shadow-2);
+  --shadow-md: var(--shadow-3);
+
+  /* font weight (old names) */
+  --font-normal:   var(--font-weight-regular);
+  --font-medium:   var(--font-weight-medium);
+  --font-semibold: var(--font-weight-semibold);
+  --font-bold:     var(--font-weight-bold);
+
+  /* palette (old names kept for JSX) */
+  --blue-50:  var(--color-accent-50);
+  --blue-100: var(--color-accent-100);
   --blue-150: #f0f4ff;
   --blue-200: #eef4ff;
-  --blue-600: #4a7ae8;
-  --blue-700: #4a6fa5;
-  --blue-800: #4a78c2;
+  --blue-600: var(--color-accent-600);
+  --blue-700: var(--color-accent-700);
+  --blue-800: var(--color-accent-800);
 
   --pink-100: #fff0f3;
   --pink-500: #ff8fa3;
 
   --green-100: #e6f7ed;
   --green-200: #f0fdf4;
-  --green-500: #22c55e;
+  --green-500: var(--color-success-500);
   --green-600: #10b981;
   --green-700: #2d8f5e;
 
@@ -57,50 +271,91 @@
   --red-500: #e85d5d;
 
   --kakao-yellow: #fee500;
-  --kakao-brown: #3c1e1e;
+  --kakao-brown:  #3c1e1e;
 
-  /* Borders & shadows */
-  --border-soft: #e5e7eb;
-  --border-strong: #d1d5db;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+  /* kakao-* palette */
+  --kakao-primary:    var(--color-accent-500);
+  --kakao-secondary:  #FF6B00;
+  --kakao-success:    #4CAF50;
+  --kakao-bg:         var(--surface-0);
+  --kakao-card:       var(--surface-1);
+  --kakao-text:       var(--text-primary);
+  --kakao-text-muted: var(--text-secondary);
+  --kakao-border:     var(--border-soft);
+  --kakao-shadow:     var(--shadow-2);
+
+  /* pastel-* */
+  --pastel-blue:  var(--accent);
+  --pastel-pink:  #f43f5e;
+  --pastel-green: #22c55e;
 }
 
+/* ══════════════════════════════════════════════════════════════
+ * DARK MODE — .theme-dark class (toggled by app)
+ * ══════════════════════════════════════════════════════════════ */
 .theme-dark {
-  --bg-app: #0b1020;
-  --bg-surface: #0f172a;
-  --bg-surface-muted: #111827;
+  /* Surface */
+  --surface-0: #0b1020;
+  --surface-1: #0f172a;
+  --surface-2: #131b30;
+  --surface-3: #1a2340;
+  --surface-4: #202a4d;
+  --surface-5: #2a3560;
+
+  /* Text */
+  --text-primary:   #e5e7eb;
+  --text-secondary: #94a3b8;
+  --text-tertiary:  #64748b;
+  --text-strong:    #f1f5f9;
+  --text-muted:     #94a3b8;
+  --text-disabled:  #475569;
+  --text-loading:   #cbd5e1;
+  --text-on-accent: #ffffff;
+  --text-link:      var(--color-accent-400);
+
+  /* Border */
+  --border-soft:   #1f2937;
+  --border-strong: #334155;
+  --border-accent: rgba(var(--color-accent-rgb), 0.3);
+
+  /* Overlay */
   --bg-overlay: rgba(15, 23, 42, 0.88);
 
-  --text-primary: #e5e7eb;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
-  --text-strong: #e2e8f0;
-  --text-muted: #94a3b8;
-  --text-disabled: #475569;
-  --text-loading: #cbd5e1;     /* slate-300: 7.1:1 on #0f172a — WCAG AA ✓ */
+  /* Status (lighter for dark bg readability) */
+  --color-accent-current:       var(--color-accent-400);
+  --color-accent-current-light: rgba(var(--color-accent-rgb), 0.15);
+  --color-success-current: #22c55e;
+  --color-warning-current: #f59e0b;
+  --color-error-current:   #f87171;
+  --color-info-current:    #38bdf8;
 
-  --accent: #5B93FA;          /* KakaoMap Blue (Dark mode) */
+  /* Shadow (amplified for dark surfaces) */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-2: 0 4px 6px -2px rgba(0, 0, 0, 0.20), 0 2px 4px -1px rgba(0, 0, 0, 0.30);
+  --shadow-3: 0 10px 15px -3px rgba(0, 0, 0, 0.30), 0 4px 6px -2px rgba(0, 0, 0, 0.20);
+  --shadow-4: 0 20px 25px -5px rgba(0, 0, 0, 0.40), 0 10px 10px -5px rgba(0, 0, 0, 0.20);
+  --shadow-5: 0 25px 50px -12px rgba(0, 0, 0, 0.60);
+  --shadow-accent-sm: 0 4px 12px rgba(var(--color-accent-rgb), 0.22);
+  --shadow-accent-md: 0 8px 24px rgba(var(--color-accent-rgb), 0.30);
+
+  /* Backward compat overrides */
+  --bg-app:           var(--surface-0);
+  --bg-surface:       var(--surface-1);
+  --bg-surface-muted: #111827;
+  --bg-main:          var(--surface-0);
+
+  --accent:       var(--color-accent-400);
   --accent-light: #7AA6FF;
-  --accent-dark: #3274F9;
-  --accent-weak: #1e293b;
+  --accent-dark:  var(--color-accent-500);
+  --accent-weak:  #1e293b;
 
-  /* Status Colors */
-  --warning: #FF8C42;         /* Orange - Detour Distance */
-  --success: #34D399;         /* Green - Distance/Time */
+  --warning: #FF8C42;
+  --success: #34D399;
 
-  /* 카카오맵 스타일 컬러 팔레트 (다크모드) */
-  --kakao-primary: #60A5FA;        /* 밝은 파란색 */
-  --kakao-secondary: #FFA500;      /* 밝은 주황색 */
-  --kakao-success: #66BB6A;        /* 밝은 초록색 */
-  --kakao-bg: #1F2937;             /* 진한 회색 배경 */
-  --kakao-card: #374151;           /* 진한 회색 카드 */
-  --kakao-text: #F9FAFB;           /* 밝은 텍스트 */
-  --kakao-text-muted: #9CA3AF;     /* 연한 회색 텍스트 */
-  --kakao-border: #4B5563;         /* 진한 회색 테두리 */
-  --kakao-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 진한 그림자 */
+  --shadow-sm: var(--shadow-2);
+  --shadow-md: var(--shadow-3);
 
-  --blue-50: #1e293b;
+  --blue-50:  #1e293b;
   --blue-100: #1f2a44;
   --blue-150: #1b2540;
   --blue-200: #223055;
@@ -133,54 +388,209 @@
   --red-500: #f87171;
 
   --kakao-yellow: #facc15;
-  --kakao-brown: #2b1a0f;
+  --kakao-brown:  #2b1a0f;
 
-  --border-soft: #1f2937;
-  --border-strong: #334155;
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --kakao-primary:    #60A5FA;
+  --kakao-secondary:  #FFA500;
+  --kakao-success:    #66BB6A;
+  --kakao-bg:         #1F2937;
+  --kakao-card:       #374151;
+  --kakao-text:       #F9FAFB;
+  --kakao-text-muted: #9CA3AF;
+  --kakao-border:     #4B5563;
+  --kakao-shadow:     var(--shadow-2);
 }
 
-/* Tailwind utility overrides for dark theme */
-.theme-dark .bg-white { background-color: var(--bg-surface) !important; }
-.theme-dark .bg-white\/90 { background-color: var(--bg-overlay) !important; }
-.theme-dark .bg-white\/95 { background-color: rgba(15, 23, 42, 0.95) !important; }
-.theme-dark .bg-gray-50 { background-color: var(--bg-surface-muted) !important; }
-.theme-dark .bg-gray-100 { background-color: var(--border-soft) !important; }
-.theme-dark .bg-blue-50 { background-color: var(--blue-50) !important; }
-.theme-dark .border-gray-100 { border-color: var(--border-soft) !important; }
-.theme-dark .text-gray-400 { color: var(--text-tertiary) !important; }
-.theme-dark .text-gray-500 { color: var(--text-secondary) !important; }
-.theme-dark .text-gray-700 { color: var(--text-primary) !important; }
-.theme-dark .hover\:bg-gray-50:hover { background-color: var(--bg-surface-muted) !important; }
-.theme-dark .hover\:bg-gray-100:hover { background-color: var(--border-soft) !important; }
-.theme-dark .active\:bg-gray-100:active { background-color: var(--border-soft) !important; }
+/* ── OS dark fallback (when .theme-dark not set explicitly) ── */
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-dark):not(.theme-light) {
+    --surface-0: #0b1020;
+    --surface-1: #0f172a;
+    --surface-2: #131b30;
+    --surface-3: #1a2340;
+    --surface-4: #202a4d;
+    --surface-5: #2a3560;
 
-/* ========== 추가 다크모드 오버라이드 (v0.44.0) ========== */
+    --text-primary:   #e5e7eb;
+    --text-secondary: #94a3b8;
+    --text-tertiary:  #64748b;
+    --text-strong:    #f1f5f9;
+    --text-muted:     #94a3b8;
+    --text-disabled:  #475569;
+    --text-on-accent: #ffffff;
+    --text-link:      var(--color-accent-400);
 
-/* Divide */
+    --border-soft:   #1f2937;
+    --border-strong: #334155;
+    --bg-overlay:    rgba(15, 23, 42, 0.88);
+
+    --color-accent-current: var(--color-accent-400);
+    --color-accent-current-light: rgba(var(--color-accent-rgb), 0.15);
+    --color-success-current: #22c55e;
+    --color-warning-current: #f59e0b;
+    --color-error-current:   #f87171;
+    --color-info-current:    #38bdf8;
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 3px rgba(0, 0, 0, 0.30);
+    --shadow-2: 0 4px 6px -2px rgba(0, 0, 0, 0.20), 0 2px 4px -1px rgba(0, 0, 0, 0.30);
+    --shadow-3: 0 10px 15px -3px rgba(0, 0, 0, 0.30), 0 4px 6px -2px rgba(0, 0, 0, 0.20);
+    --shadow-4: 0 20px 25px -5px rgba(0, 0, 0, 0.40), 0 10px 10px -5px rgba(0, 0, 0, 0.20);
+    --shadow-5: 0 25px 50px -12px rgba(0, 0, 0, 0.60);
+
+    --bg-app:           var(--surface-0);
+    --bg-surface:       var(--surface-1);
+    --bg-surface-muted: #111827;
+    --bg-main:          var(--surface-0);
+
+    --accent:      var(--color-accent-400);
+    --accent-weak: #1e293b;
+    --warning: #FF8C42;
+    --success: #34D399;
+    --shadow-sm: var(--shadow-2);
+    --shadow-md: var(--shadow-3);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * TAILWIND UTILITY OVERRIDES — .theme-dark
+ * Handles Tailwind 3/4 hardcoded classes in existing JSX.
+ * ══════════════════════════════════════════════════════════════ */
+.theme-dark .bg-white             { background-color: var(--bg-surface) !important; }
+.theme-dark .bg-white\/90         { background-color: var(--bg-overlay) !important; }
+.theme-dark .bg-white\/95         { background-color: rgba(15, 23, 42, 0.95) !important; }
+.theme-dark .bg-gray-50           { background-color: var(--bg-surface-muted) !important; }
+.theme-dark .bg-gray-100          { background-color: var(--border-soft) !important; }
+.theme-dark .bg-blue-50           { background-color: var(--blue-50) !important; }
+.theme-dark .border-gray-100      { border-color: var(--border-soft) !important; }
+.theme-dark .border-gray-200      { border-color: var(--border-soft) !important; }
+.theme-dark .border-gray-300      { border-color: var(--border-strong) !important; }
+.theme-dark .text-gray-400        { color: var(--text-tertiary) !important; }
+.theme-dark .text-gray-500        { color: var(--text-secondary) !important; }
+.theme-dark .text-gray-600        { color: var(--text-secondary) !important; }
+.theme-dark .text-gray-700        { color: var(--text-primary) !important; }
+.theme-dark .text-gray-800        { color: var(--text-primary) !important; }
+.theme-dark .text-gray-900        { color: var(--text-strong) !important; }
 .theme-dark .divide-gray-200 > * + * { border-color: var(--border-soft) !important; }
-
-/* Ring */
-.theme-dark .ring-gray-200 { --tw-ring-color: var(--border-soft) !important; }
-
-/* Shadows */
-.theme-dark .shadow-sm { box-shadow: var(--shadow-sm) !important; }
-.theme-dark .shadow-md { box-shadow: var(--shadow-md) !important; }
-
-/* Button states */
-.theme-dark .hover\:bg-blue-50:hover { background-color: var(--blue-50) !important; }
-.theme-dark .active\:bg-blue-100:active { background-color: var(--blue-100) !important; }
-
-/* Additional text colors */
-.theme-dark .text-gray-600 { color: var(--text-secondary) !important; }
-.theme-dark .text-gray-800 { color: var(--text-primary) !important; }
-.theme-dark .text-gray-900 { color: var(--text-strong) !important; }
-
-/* Additional border colors */
-.theme-dark .border-gray-200 { border-color: var(--border-soft) !important; }
-.theme-dark .border-gray-300 { border-color: var(--border-strong) !important; }
-
-/* Hover states for gray backgrounds */
+.theme-dark .ring-gray-200        { --tw-ring-color: var(--border-soft) !important; }
+.theme-dark .shadow-sm            { box-shadow: var(--shadow-sm) !important; }
+.theme-dark .shadow-md            { box-shadow: var(--shadow-md) !important; }
+.theme-dark .hover\:bg-gray-50:hover  { background-color: var(--bg-surface-muted) !important; }
+.theme-dark .hover\:bg-gray-100:hover { background-color: var(--border-soft) !important; }
 .theme-dark .hover\:bg-gray-200:hover { background-color: var(--border-soft) !important; }
 .theme-dark .hover\:bg-gray-300:hover { background-color: var(--border-strong) !important; }
+.theme-dark .hover\:bg-blue-50:hover  { background-color: var(--blue-50) !important; }
+.theme-dark .active\:bg-gray-100:active { background-color: var(--border-soft) !important; }
+.theme-dark .active\:bg-blue-100:active { background-color: var(--blue-100) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+ * COLOR THEMES — [data-theme="X"] overrides on <html>
+ * Swap the 11-step accent palette + rgb triplet.
+ * Semantic tokens (--accent, overlays, shadows) auto-follow.
+ * ══════════════════════════════════════════════════════════════ */
+
+/* Default (blue) — matches KakaoMap brand, no override needed.
+ * Explicitly listed for completeness + for theme picker preview. */
+[data-theme="blue"] {
+  --color-accent-50:  #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3274f9;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --color-accent-800: #1e40af;
+  --color-accent-900: #1e3a8a;
+  --color-accent-950: #172554;
+  --color-accent-rgb: 50, 116, 249;
+}
+
+[data-theme="indigo"] {
+  --color-accent-50:  #eef2ff;
+  --color-accent-100: #e0e7ff;
+  --color-accent-200: #c7d2fe;
+  --color-accent-300: #a5b4fc;
+  --color-accent-400: #818cf8;
+  --color-accent-500: #6366f1;
+  --color-accent-600: #4f46e5;
+  --color-accent-700: #4338ca;
+  --color-accent-800: #3730a3;
+  --color-accent-900: #312e81;
+  --color-accent-950: #1e1b4b;
+  --color-accent-rgb: 99, 102, 241;
+}
+
+[data-theme="violet"] {
+  --color-accent-50:  #f5f3ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+  --color-accent-800: #5b21b6;
+  --color-accent-900: #4c1d95;
+  --color-accent-950: #2e1065;
+  --color-accent-rgb: 139, 92, 246;
+}
+
+[data-theme="teal"] {
+  --color-accent-50:  #ecfeff;
+  --color-accent-100: #cffafe;
+  --color-accent-200: #a5f3fc;
+  --color-accent-300: #67e8f9;
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+  --color-accent-700: #0e7490;
+  --color-accent-800: #155e75;
+  --color-accent-900: #164e63;
+  --color-accent-950: #083344;
+  --color-accent-rgb: 6, 182, 212;
+}
+
+[data-theme="emerald"] {
+  --color-accent-50:  #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+  --color-accent-800: #065f46;
+  --color-accent-900: #064e3b;
+  --color-accent-950: #022c22;
+  --color-accent-rgb: 16, 185, 129;
+}
+
+[data-theme="rose"] {
+  --color-accent-50:  #fff1f2;
+  --color-accent-100: #ffe4e6;
+  --color-accent-200: #fecdd3;
+  --color-accent-300: #fda4af;
+  --color-accent-400: #fb7185;
+  --color-accent-500: #f43f5e;
+  --color-accent-600: #e11d48;
+  --color-accent-700: #be123c;
+  --color-accent-800: #9f1239;
+  --color-accent-900: #881337;
+  --color-accent-950: #4c0519;
+  --color-accent-rgb: 244, 63, 94;
+}
+
+[data-theme="slate"] {
+  --color-accent-50:  #f8fafc;
+  --color-accent-100: #f1f5f9;
+  --color-accent-200: #e2e8f0;
+  --color-accent-300: #cbd5e1;
+  --color-accent-400: #94a3b8;
+  --color-accent-500: #64748b;
+  --color-accent-600: #475569;
+  --color-accent-700: #334155;
+  --color-accent-800: #1e293b;
+  --color-accent-900: #0f172a;
+  --color-accent-950: #020617;
+  --color-accent-rgb: 100, 116, 139;
+}
