@@ -52,10 +52,10 @@ export const CardScoreDetail = React.memo(function CardScoreDetail({
           <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
             🚗 이탈 비용 <span style={{ color: 'var(--text-muted)' }}>(70%)</span>
           </span>
-          <span className="text-[11px] font-semibold" style={{ color: '#16a34a' }}>{detourScore}점</span>
+          <span className="text-[11px] font-semibold" style={{ color: 'var(--color-success-700)' }}>{detourScore}점</span>
         </div>
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
-          <div className="h-full rounded-full" style={{ width: `${detourScore}%`, background: '#22c55e' }} />
+          <div className="h-full rounded-full" style={{ width: `${detourScore}%`, background: 'var(--color-success-500)' }} />
         </div>
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
           +{detourKm}km · +{detourMin}분 추가 이탈
@@ -68,10 +68,10 @@ export const CardScoreDetail = React.memo(function CardScoreDetail({
           <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
             📍 경로 근접도 <span style={{ color: 'var(--text-muted)' }}>(30%)</span>
           </span>
-          <span className="text-[11px] font-semibold" style={{ color: '#7c3aed' }}>{proxScore}점</span>
+          <span className="text-[11px] font-semibold" style={{ color: 'var(--purple-700)' }}>{proxScore}점</span>
         </div>
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
-          <div className="h-full rounded-full" style={{ width: `${proxScore}%`, background: '#a855f7' }} />
+          <div className="h-full rounded-full" style={{ width: `${proxScore}%`, background: 'var(--purple-700)' }} />
         </div>
       </div>
     </div>

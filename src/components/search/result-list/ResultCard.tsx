@@ -9,6 +9,7 @@ import { getRecommendationBadges, getBadgeColor } from '@/lib/recommendation-bad
 import { getVisitCount } from '@/lib/visit-tracking';
 import { getSmartOneLiner } from '@/lib/smart-summary';
 import { useResultList } from './ResultListContext';
+import { StatPods } from './StatPods';
 import {
   getRoutePositionLabel,
   getETAText,
@@ -82,7 +83,12 @@ export const ResultCard = React.memo(function ResultCard({
   const detourRatio = detourRange > 30
     ? (result.detourCost.duration - minDetourDuration) / detourRange
     : 0;
-  const stripeColor = detourRatio < 0.3 ? '#22c55e' : detourRatio < 0.65 ? '#f59e0b' : '#f97316';
+  const stripeColor =
+    detourRatio < 0.3
+      ? 'var(--color-success-500)'
+      : detourRatio < 0.65
+      ? 'var(--color-warning-500)'
+      : 'var(--color-warning-700)';
 
   const animDelay = index < 10 ? index * 30 : 0;
 
@@ -146,7 +152,7 @@ export const ResultCard = React.memo(function ResultCard({
       <div
         className="absolute inset-y-0 left-0 flex items-center gap-1.5 px-5"
         style={{
-          background: `rgba(34, 197, 94, ${swipeOpacity})`,
+          background: `color-mix(in srgb, var(--color-success-500) ${swipeOpacity * 100}%, transparent)`,
           opacity: swipeDeltaX > 8 ? 1 : 0,
           transition: !isBeingSwiped ? 'all 0.2s' : 'none',
           minWidth: 88,
@@ -160,7 +166,7 @@ export const ResultCard = React.memo(function ResultCard({
       <div
         className="absolute inset-y-0 right-0 flex items-center justify-end gap-1.5 px-5"
         style={{
-          background: `rgba(59, 130, 246, ${swipeOpacity})`,
+          background: `color-mix(in srgb, var(--accent) ${swipeOpacity * 100}%, transparent)`,
           opacity: swipeDeltaX < -8 ? 1 : 0,
           transition: !isBeingSwiped ? 'all 0.2s' : 'none',
           minWidth: 88,
@@ -240,7 +246,7 @@ export const ResultCard = React.memo(function ResultCard({
           </div>
 
           <div className="flex-1 min-w-0 mr-2">
-            <h3 className="text-lg md:text-[17px] font-bold truncate" style={{ color: '#3274F9' }}>
+            <h3 className="text-lg md:text-[17px] font-bold truncate" style={{ color: 'var(--accent)' }}>
               {highlightText(result.place.name, nameFilter)}
             </h3>
             {(result.place.roadAddress || result.place.address) && (
@@ -249,28 +255,20 @@ export const ResultCard = React.memo(function ResultCard({
               </p>
             )}
 
-            {/* 뱃지 */}
+            {/* Stat Pods — 핵심 3통계 (+분 / +km / 점수) */}
+            <StatPods
+              result={result}
+              sortBy={sortBy}
+              scoreOpen={scoreDetailOpenId === result.place.id}
+              onToggleScore={() =>
+                onSetScoreDetail(scoreDetailOpenId === result.place.id ? null : result.place.id)
+              }
+              detourRange={detourRange}
+              minDetourDuration={minDetourDuration}
+            />
+
+            {/* 보조 컨텍스트 뱃지 */}
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
-              <span
-                className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
-                style={
-                  sortBy === 'distance'
-                    ? { background: 'var(--success)', color: 'white' }
-                    : { background: 'var(--green-100)', color: 'var(--success)' }
-                }
-              >
-                {sortBy === 'distance' && '📏 '}+{detourKm}km
-              </span>
-              <span
-                className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
-                style={
-                  sortBy === 'duration'
-                    ? { background: 'var(--success)', color: 'white' }
-                    : { background: 'var(--green-100)', color: 'var(--success)' }
-                }
-              >
-                {sortBy === 'duration' && '⏱ '}+{detourMin}분
-              </span>
               {routeLabel && (
                 <span
                   className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
@@ -311,9 +309,15 @@ export const ResultCard = React.memo(function ResultCard({
                     <span
                       className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
                       style={{
-                        background: isUrgentClose ? '#fef3c7' : status.isOpen ? 'var(--green-100)' : 'var(--red-100)',
-                        color: isUrgentClose ? '#92400e' : status.color,
-                        border: isUrgentClose ? '1.5px solid #fbbf24' : undefined,
+                        background: isUrgentClose
+                          ? 'var(--color-warning-100)'
+                          : status.isOpen
+                          ? 'var(--green-100)'
+                          : 'var(--red-100)',
+                        color: isUrgentClose ? 'var(--color-warning-700)' : status.color,
+                        border: isUrgentClose
+                          ? '1.5px solid var(--color-warning-500)'
+                          : undefined,
                       }}
                     >
                       {isUrgentClose ? '⚠️' : status.emoji}{' '}
@@ -322,7 +326,11 @@ export const ResultCard = React.memo(function ResultCard({
                     {isOpeningSoon && (
                       <span
                         className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                        style={{ background: '#dbeafe', color: '#1d4ed8', border: '1.5px solid #93c5fd' }}
+                        style={{
+                          background: 'var(--color-accent-100)',
+                          color: 'var(--color-accent-700)',
+                          border: '1.5px solid var(--color-accent-300)',
+                        }}
                       >
                         🕐 {minsUntilOpen}분 후 오픈
                       </span>
@@ -335,7 +343,11 @@ export const ResultCard = React.memo(function ResultCard({
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
                   style={
                     isClosest
-                      ? { background: '#dcfce7', color: '#15803d', border: '1.5px solid #86efac' }
+                      ? {
+                          background: 'var(--color-success-100)',
+                          color: 'var(--color-success-700)',
+                          border: '1.5px solid var(--color-success-500)',
+                        }
                       : { background: 'var(--bg-surface)', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }
                   }
                 >
@@ -345,35 +357,15 @@ export const ResultCard = React.memo(function ResultCard({
               {currentDistKm !== null && currentDistKm < 0.3 && (
                 <span
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                  style={{ background: '#ecfdf5', color: '#059669', border: '1.5px solid #6ee7b7' }}
+                  style={{
+                    background: 'var(--color-success-100)',
+                    color: 'var(--color-success-700)',
+                    border: '1.5px solid var(--color-success-100)',
+                  }}
                 >
                   🚶 도보 {Math.ceil(currentDistKm * 1000 / 80)}분
                 </span>
               )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSetScoreDetail(scoreDetailOpenId === result.place.id ? null : result.place.id);
-                }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all active:scale-95"
-                style={{
-                  background: scoreDetailOpenId === result.place.id
-                    ? 'var(--accent)'
-                    : sortBy === 'score'
-                    ? 'var(--blue-200)'
-                    : 'var(--blue-100)',
-                  color: scoreDetailOpenId === result.place.id ? 'white' : 'var(--blue-700)',
-                  border: `1.5px solid ${
-                    scoreDetailOpenId === result.place.id
-                      ? 'var(--accent)'
-                      : sortBy === 'score'
-                      ? 'var(--blue-400)'
-                      : 'var(--blue-200)'
-                  }`,
-                }}
-              >
-                📊 {Math.round(result.finalScore)}점
-              </button>
             </div>
 
             {/* 상대적 이탈 비교 바 */}
@@ -381,8 +373,18 @@ export const ResultCard = React.memo(function ResultCard({
               const deltaSec = result.detourCost.duration - minDetourDuration;
               const deltaMin = Math.round(deltaSec / 60);
               const ratio = deltaSec / detourRange;
-              const barColor = ratio < 0.3 ? '#22c55e' : ratio < 0.65 ? '#f59e0b' : '#f97316';
-              const textColor = ratio < 0.3 ? '#16a34a' : ratio < 0.65 ? '#b45309' : '#ea580c';
+              const barColor =
+                ratio < 0.3
+                  ? 'var(--color-success-500)'
+                  : ratio < 0.65
+                  ? 'var(--color-warning-500)'
+                  : 'var(--color-warning-700)';
+              const textColor =
+                ratio < 0.3
+                  ? 'var(--color-success-700)'
+                  : ratio < 0.65
+                  ? 'var(--color-warning-700)'
+                  : 'var(--color-warning-700)';
               const isBest = deltaSec < 30;
               return (
                 <div className="mt-2.5 flex items-center gap-2">
@@ -395,7 +397,7 @@ export const ResultCard = React.memo(function ResultCard({
                   </div>
                   <span
                     className="text-[10px] font-semibold shrink-0 min-w-[44px] text-right"
-                    style={{ color: isBest ? '#16a34a' : textColor }}
+                    style={{ color: isBest ? 'var(--color-success-700)' : textColor }}
                   >
                     {isBest ? '⭐최단' : `+${deltaMin}분 더`}
                   </span>
@@ -427,12 +429,14 @@ export const ResultCard = React.memo(function ResultCard({
                       style={{
                         left: `${openPct}%`,
                         width: `${Math.max(0, closePct - openPct)}%`,
-                        background: bizStatus.isOpen ? '#22c55e' : '#9ca3af',
+                        background: bizStatus.isOpen
+                          ? 'var(--color-success-500)'
+                          : 'var(--text-muted)',
                       }}
                     />
                     <div
                       className="absolute top-[-1px] bottom-[-1px] z-10 rounded-sm"
-                      style={{ left: `${nowPct}%`, width: 2, background: '#ef4444' }}
+                      style={{ left: `${nowPct}%`, width: 2, background: 'var(--color-error-500)' }}
                     />
                   </div>
                   <div className="flex justify-between mt-0.5">
@@ -470,10 +474,10 @@ export const ResultCard = React.memo(function ResultCard({
                       <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         🚗 이탈 비용 <span style={{ color: 'var(--text-muted)' }}>(70%)</span>
                       </span>
-                      <span className="text-[11px] font-semibold" style={{ color: '#16a34a' }}>{detourScore}점</span>
+                      <span className="text-[11px] font-semibold" style={{ color: 'var(--color-success-700)' }}>{detourScore}점</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
-                      <div className="h-full rounded-full" style={{ width: `${detourScore}%`, background: '#22c55e' }} />
+                      <div className="h-full rounded-full" style={{ width: `${detourScore}%`, background: 'var(--color-success-500)' }} />
                     </div>
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                       +{detourKm}km · +{detourMin}분 추가 이탈
@@ -484,10 +488,10 @@ export const ResultCard = React.memo(function ResultCard({
                       <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         📍 경로 근접도 <span style={{ color: 'var(--text-muted)' }}>(30%)</span>
                       </span>
-                      <span className="text-[11px] font-semibold" style={{ color: '#7c3aed' }}>{proxScore}점</span>
+                      <span className="text-[11px] font-semibold" style={{ color: 'var(--purple-700)' }}>{proxScore}점</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-soft)' }}>
-                      <div className="h-full rounded-full" style={{ width: `${proxScore}%`, background: '#a855f7' }} />
+                      <div className="h-full rounded-full" style={{ width: `${proxScore}%`, background: 'var(--purple-700)' }} />
                     </div>
                   </div>
                 </div>

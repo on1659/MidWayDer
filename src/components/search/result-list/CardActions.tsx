@@ -73,7 +73,7 @@ export const CardActions = React.memo(function CardActions({
         >
           <Star
             className="w-5 h-5 md:w-4 md:h-4"
-            fill={isFav ? '#f59e0b' : 'none'}
+            fill={isFav ? 'var(--yellow-600)' : 'none'}
             style={{ color: isFav ? 'var(--yellow-600)' : 'var(--text-muted)' }}
           />
         </button>
@@ -141,7 +141,7 @@ export const CardActions = React.memo(function CardActions({
               title={isVisited ? '방문 표시 해제' : '방문했어요'}
             >
               {isVisited
-                ? <CheckCircle className="w-4 h-4" style={{ color: '#16a34a' }} />
+                ? <CheckCircle className="w-4 h-4" style={{ color: 'var(--color-success-700)' }} />
                 : <Circle className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
               }
             </button>
@@ -167,7 +167,7 @@ export const CardActions = React.memo(function CardActions({
             >
               <Pencil
                 className="w-4 h-4"
-                style={{ color: hasMemo ? '#d97706' : 'var(--text-muted)' }}
+                style={{ color: hasMemo ? 'var(--color-warning-500)' : 'var(--text-muted)' }}
               />
             </button>
           </div>

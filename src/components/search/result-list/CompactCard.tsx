@@ -6,6 +6,8 @@ import type { DetourResult } from '@/types/detour';
 import { getCategoryIcon } from '@/lib/category-icons';
 import { getBusinessStatus, getMinutesUntilClose } from '@/lib/business-hours';
 import { useResultList } from './ResultListContext';
+import { MiniStatStrip } from './StatPods';
+import { CardScoreDetail } from './CardScoreDetail';
 import { getRoutePositionLabel, getETAText, highlightText, haversineDistanceKm } from './utils';
 
 interface CompactCardProps {
@@ -26,6 +28,8 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
   const {
     favPlaces, visitedDates, pinnedIds,
     expandedCompactId, onSetExpandedCompact,
+    scoreDetailOpenId, onSetScoreDetail,
+    sortBy,
     isNowDeparture, nowMs, departureMs, dwellMinutes,
     nameFilter,
     onToggleFav, onVisitToggle, onTogglePin,
@@ -36,7 +40,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
 
   const isVisited = visitedDates.has(result.place.id);
   const isClosest = closestPlaceId === result.place.id;
-  const detourMin = Math.round(result.detourCost.duration / 60);
+  const scoreOpen = scoreDetailOpenId === result.place.id;
 
   const isBeingSwiped = swipeVisual?.id === result.place.id;
   const swipeDeltaX = isBeingSwiped ? swipeVisual!.deltaX : 0;
@@ -99,7 +103,7 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
             {index + 1}
           </div>
           <span className="text-base shrink-0">{getCategoryIcon(result.place.category)}</span>
-          <p className="text-sm font-bold flex-1 truncate min-w-0" style={{ color: '#3274F9' }}>
+          <p className="text-sm font-bold flex-1 truncate min-w-0" style={{ color: 'var(--accent)' }}>
             {highlightText(result.place.name, nameFilter)}
           </p>
           {(() => {
@@ -122,12 +126,15 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
               📍근접
             </span>
           )}
-          <span
-            className="shrink-0 text-[12px] font-bold px-2 py-1 rounded-full"
-            style={{ background: 'var(--yellow-100)', color: 'var(--yellow-700)' }}
-          >
-            +{detourMin}분
-          </span>
+          <MiniStatStrip
+            result={result}
+            sortBy={sortBy}
+            scoreOpen={scoreOpen}
+            onToggleScore={(e) => {
+              e.stopPropagation();
+              onSetScoreDetail(scoreOpen ? null : result.place.id);
+            }}
+          />
           {result.place.businessHours && (() => {
             const status = getBusinessStatus(result.place.businessHours);
             const minsUntilClose = status.isOpen ? getMinutesUntilClose(result.place.businessHours) : null;
@@ -184,6 +191,22 @@ export const CompactCard = React.memo(function CompactCard({ result, index, isSe
             />
           </button>
         </div>
+
+        {/* 점수 분해 패널 — 아코디언 확장 여부와 무관하게 scoreOpen 일 때 표시 */}
+        {scoreOpen && (
+          <div
+            className="mt-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardScoreDetail
+              finalScore={result.finalScore}
+              detourCostScore={result.detourCost.costScore}
+              proximityScore={result.proximityScore}
+              detourKm={((result.detourCost?.distance ?? 0) / 1000).toFixed(1)}
+              detourMin={Math.round((result.detourCost?.duration ?? 0) / 60)}
+            />
+          </div>
+        )}
 
         {/* 아코디언 확장 */}
         {expandedCompactId === result.place.id && (() => {

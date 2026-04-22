@@ -53,7 +53,7 @@ export const CardBadges = React.memo(function CardBadges({
         className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold transition-all"
         style={
           sortBy === 'duration'
-            ? { background: 'var(--yellow-500, #eab308)', color: 'white' }
+            ? { background: 'var(--yellow-600)', color: 'white' }
             : { background: 'var(--yellow-100)', color: 'var(--yellow-600)' }
         }
       >
@@ -108,9 +108,15 @@ export const CardBadges = React.memo(function CardBadges({
             <span
               className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
               style={{
-                background: isUrgentClose ? '#fef3c7' : status.isOpen ? 'var(--green-100)' : 'var(--red-100)',
-                color: isUrgentClose ? '#92400e' : status.color,
-                border: isUrgentClose ? '1.5px solid #fbbf24' : undefined,
+                background: isUrgentClose
+                  ? 'var(--color-warning-100)'
+                  : status.isOpen
+                  ? 'var(--green-100)'
+                  : 'var(--red-100)',
+                color: isUrgentClose ? 'var(--color-warning-700)' : status.color,
+                border: isUrgentClose
+                  ? '1.5px solid var(--color-warning-500)'
+                  : undefined,
               }}
             >
               {isUrgentClose ? '⚠️' : status.emoji}{' '}
@@ -119,7 +125,11 @@ export const CardBadges = React.memo(function CardBadges({
             {isOpeningSoon && (
               <span
                 className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] font-semibold"
-                style={{ background: '#dbeafe', color: '#1d4ed8', border: '1.5px solid #93c5fd' }}
+                style={{
+                  background: 'var(--color-accent-100)',
+                  color: 'var(--color-accent-700)',
+                  border: '1.5px solid var(--color-accent-300)',
+                }}
               >
                 🕐 {minsUntilOpen}분 후 오픈
               </span>
