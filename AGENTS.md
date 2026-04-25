@@ -40,6 +40,12 @@
 | Q2 | Performance Tester | **haiku** | 성능 벤치마크, PostGIS 쿼리 프로파일링 | ⏳ 대기 |
 | Q3 | Security Tester | **haiku** | 보안 검증, 입력 검증, API 키 노출 방지 | ⏳ 대기 |
 
+### 운영/리포팅 팀 (Ops Reporting)
+
+| ID | 역할 | 모델 | 담당 영역 | 상태 |
+|----|------|------|----------|------|
+| R1 | Reporter | **sonnet** | 세션 종료 시 `docs/progress/YYYY-MM-DD.md`에 진행 기록 작성, 세션명/모델명 명시 | ✅ 활성 |
+
 ---
 
 ## Extended Teams (향후 확장)
@@ -94,6 +100,40 @@
 2. **독립적 모듈** → 병렬 에이전트
 3. **의존성 있음** → 순차 에이전트
 4. **단일 파일** → 직접 처리
+
+---
+
+## Codex 어댑터 운영
+
+Claude-first 하네스와 동일한 규칙을 Codex에서도 사용한다.
+
+### 기준 문서
+
+| 계층 | 기준 |
+|------|------|
+| 팀/역할 | `AGENTS.md` |
+| 하네스 코어 | `docs/harness/*` |
+| 실행 규칙 | `.claude/rules/*` |
+| Hook 로직 | `.claude/hooks/*` |
+| Codex 어댑터 | `.codex/*` |
+
+### Codex 라우팅
+
+| 요청 성격 | Codex 처리 |
+|----------|------------|
+| 일반 작업 | `.codex/commands/work.md` 기준으로 route 분류 |
+| 구현/수정 | `.codex/commands/build.md` |
+| 설계/방향 검토 | `.codex/commands/meeting.md` |
+| 코드 리뷰 | `.codex/commands/review.md` |
+| QA/검증 | `.codex/commands/qa.md` |
+| 하네스 개선 | `.codex/commands/improve-harness.md` |
+
+### Codex Hook 원칙
+
+1. `.codex/hooks/codex-hook-dispatch.sh`가 Codex 이벤트를 Claude hook 입력 형태로 변환한다.
+2. 실제 guard 판단은 `.claude/hooks/*.sh`를 재사용한다.
+3. 규칙을 `.codex`와 `.claude`에 중복 정의하지 않는다.
+4. Codex 런타임이 project-local hook을 못 읽는 경우를 위해 `~/.codex/hooks.json`은 repo-local dispatcher만 호출한다.
 
 ---
 
