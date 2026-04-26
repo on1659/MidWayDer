@@ -160,8 +160,8 @@ export default function MapContainer({
     const el = document.createElement('div');
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
-        <div style="width:44px;height:44px;background:var(--pink-500);border:5px solid var(--bg-surface);border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,0.3);"></div>
-        <div style="width:5px;height:28px;background:var(--pink-500);margin-top:-4px;border-radius:0 0 3px 3px;"></div>
+        <div style="width:44px;height:44px;background:var(--accent);border:5px solid var(--bg-surface);border-radius:50%;box-shadow:var(--shadow-3);"></div>
+        <div style="width:5px;height:28px;background:var(--accent);margin-top:-4px;border-radius:0 0 3px 3px;"></div>
       </div>
     `;
 
@@ -196,24 +196,35 @@ export default function MapContainer({
 
   // 프로바이더 토글 버튼
   const providerToggle = (
-    <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-1 flex gap-1 md:top-4 max-md:top-[140px]">
+    <div
+      className="absolute top-4 left-4 z-10 rounded-lg p-1 flex gap-1 md:top-4 max-md:top-[140px]"
+      style={{
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border-soft)',
+        boxShadow: 'var(--shadow-1)',
+      }}
+    >
       <button
         onClick={() => { setMapProvider('kakao'); setNaverMap(null); }}
-        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-          mapProvider === 'kakao'
-            ? 'bg-yellow-400 text-black'
-            : 'text-gray-500 hover:bg-gray-100'
-        }`}
+        aria-pressed={mapProvider === 'kakao'}
+        className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+        style={{
+          background: mapProvider === 'kakao' ? 'var(--overlay-selected)' : 'transparent',
+          color: mapProvider === 'kakao' ? 'var(--accent)' : 'var(--text-secondary)',
+          border: `1px solid ${mapProvider === 'kakao' ? 'var(--border-accent)' : 'transparent'}`,
+        }}
       >
         카카오
       </button>
       <button
         onClick={() => { setMapProvider('naver'); setKakaoMap(null); }}
-        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-          mapProvider === 'naver'
-            ? 'bg-green-500 text-white'
-            : 'text-gray-500 hover:bg-gray-100'
-        }`}
+        aria-pressed={mapProvider === 'naver'}
+        className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+        style={{
+          background: mapProvider === 'naver' ? 'var(--overlay-selected)' : 'transparent',
+          color: mapProvider === 'naver' ? 'var(--accent)' : 'var(--text-secondary)',
+          border: `1px solid ${mapProvider === 'naver' ? 'var(--border-accent)' : 'transparent'}`,
+        }}
       >
         네이버
       </button>
@@ -252,13 +263,21 @@ export default function MapContainer({
   return (
     <div className="relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
       {providerToggle}
-      <div className="absolute top-16 right-4 z-10 bg-white/95 rounded-lg shadow-lg px-3 py-2 text-xs text-gray-700 md:top-4">
+      <div
+        className="absolute top-16 right-4 z-10 rounded-lg px-3 py-2 text-xs backdrop-blur md:top-4"
+        style={{
+          background: 'var(--surface-2)',
+          border: '1px solid var(--border-soft)',
+          boxShadow: 'var(--shadow-1)',
+          color: 'var(--text-primary)',
+        }}
+      >
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--blue-800)' }} />
+          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--accent)' }} />
           <span className="text-sm">일반도로</span>
         </div>
         <div className="flex items-center gap-2 mt-1.5">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--orange-600)' }} />
+          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--warning)' }} />
           <span className="text-sm">고속화/고속도로</span>
         </div>
       </div>

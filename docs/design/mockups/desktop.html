@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MidWayDer Desktop 2026</title>
+<style>
+/* =========================================================
+   Theme Tokens — data-theme 속성으로 전환
+   ========================================================= */
+:root {
+  color-scheme: light dark;
+
+  --n-0:#ffffff;  --n-50:#fafafa;  --n-100:#f4f4f5;  --n-200:#e4e4e7;
+  --n-300:#d4d4d8;  --n-400:#a1a1aa;  --n-500:#71717a;  --n-600:#52525b;
+  --n-700:#3f3f46;  --n-800:#27272a;  --n-900:#18181b;  --n-950:#09090b;
+
+  --success:#10b981;  --warn:#f59e0b;  --error:#ef4444;  --info:#3b82f6;
+
+  /* Default: Indigo */
+  --a-50:#eef2ff;  --a-100:#e0e7ff;  --a-200:#c7d2fe;  --a-300:#a5b4fc;
+  --a-400:#818cf8;  --a-500:#6366f1;  --a-600:#4f46e5;  --a-700:#4338ca;
+  --a-800:#3730a3;  --a-900:#312e81;  --a-950:#1e1b4b;
+  --a-rgb: 99, 102, 241;
+
+  --surface-0: var(--n-0);
+  --surface-1: var(--n-50);
+  --surface-2: var(--n-100);
+  --ink-1: var(--n-900);
+  --ink-2: var(--n-600);
+  --ink-3: var(--n-400);
+  --border: var(--n-200);
+
+  --e1:0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+  --e2:0 4px 8px -2px rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.04);
+  --e3:0 12px 20px -6px rgba(0,0,0,0.1), 0 4px 8px -2px rgba(0,0,0,0.06);
+  --e-glow: 0 0 28px rgba(var(--a-rgb), 0.3);
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-theme="teal"] {
+  --a-50:#ecfeff;  --a-100:#cffafe;  --a-200:#a5f3fc;  --a-300:#67e8f9;
+  --a-400:#22d3ee;  --a-500:#06b6d4;  --a-600:#0891b2;  --a-700:#0e7490;
+  --a-800:#155e75;  --a-900:#164e63;  --a-950:#083344;
+  --a-rgb: 6, 182, 212;
+}
+[data-theme="violet"] {
+  --a-50:#f5f3ff;  --a-100:#ede9fe;  --a-200:#ddd6fe;  --a-300:#c4b5fd;
+  --a-400:#a78bfa;  --a-500:#8b5cf6;  --a-600:#7c3aed;  --a-700:#6d28d9;
+  --a-800:#5b21b6;  --a-900:#4c1d95;  --a-950:#2e1065;
+  --a-rgb: 139, 92, 246;
+}
+[data-theme="emerald"] {
+  --a-50:#ecfdf5;  --a-100:#d1fae5;  --a-200:#a7f3d0;  --a-300:#6ee7b7;
+  --a-400:#34d399;  --a-500:#10b981;  --a-600:#059669;  --a-700:#047857;
+  --a-800:#065f46;  --a-900:#064e3b;  --a-950:#022c22;
+  --a-rgb: 16, 185, 129;
+}
+[data-theme="blue"] {
+  --a-50:#eff6ff;  --a-100:#dbeafe;  --a-200:#bfdbfe;  --a-300:#93c5fd;
+  --a-400:#60a5fa;  --a-500:#3b82f6;  --a-600:#2563eb;  --a-700:#1d4ed8;
+  --a-800:#1e40af;  --a-900:#1e3a8a;  --a-950:#172554;
+  --a-rgb: 59, 130, 246;
+}
+[data-theme="rose"] {
+  --a-50:#fff1f2;  --a-100:#ffe4e6;  --a-200:#fecdd3;  --a-300:#fda4af;
+  --a-400:#fb7185;  --a-500:#f43f5e;  --a-600:#e11d48;  --a-700:#be123c;
+  --a-800:#9f1239;  --a-900:#881337;  --a-950:#4c0519;
+  --a-rgb: 244, 63, 94;
+}
+[data-theme="slate"] {
+  --a-50:#f8fafc;  --a-100:#f1f5f9;  --a-200:#e2e8f0;  --a-300:#cbd5e1;
+  --a-400:#94a3b8;  --a-500:#64748b;  --a-600:#475569;  --a-700:#334155;
+  --a-800:#1e293b;  --a-900:#0f172a;  --a-950:#020617;
+  --a-rgb: 100, 116, 139;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-0: var(--n-950);
+    --surface-1: var(--n-900);
+    --surface-2: var(--n-800);
+    --ink-1: var(--n-50);
+    --ink-2: var(--n-400);
+    --ink-3: var(--n-500);
+    --border: var(--n-800);
+    --e1: 0 1px 2px rgba(0,0,0,0.5);
+    --e2: 0 4px 8px -2px rgba(0,0,0,0.5);
+    --e3: 0 12px 24px -6px rgba(0,0,0,0.6);
+  }
+}
+[data-mode="dark"] {
+  --surface-0: #0b0b0e;
+  --surface-1: #141418;
+  --surface-2: #1c1c22;
+  --ink-1: #f5f5f7;
+  --ink-2: #a1a1aa;
+  --ink-3: #6b6b72;
+  --border: #26262c;
+  --e1: 0 1px 2px rgba(0,0,0,0.5);
+  --e2: 0 4px 8px -2px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02);
+  --e3: 0 12px 24px -6px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03);
+  --e-glow: 0 0 20px rgba(var(--a-rgb), 0.22);
+  color-scheme: dark;
+}
+[data-mode="light"] {
+  --surface-0: var(--n-0);
+  --surface-1: var(--n-50);
+  --surface-2: var(--n-100);
+  --ink-1: var(--n-900);
+  --ink-2: var(--n-600);
+  --ink-3: var(--n-400);
+  --border: var(--n-200);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+  background: var(--surface-1);
+  color: var(--ink-1);
+  min-height: 100dvh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; }
+
+/* =========================================================
+   Theme Picker (top floating)
+   ========================================================= */
+.theme-picker {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 999px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: var(--e3);
+}
+[data-mode="dark"] .theme-picker {
+  background: rgba(24,24,27,0.85);
+  border-color: rgba(255,255,255,0.08);
+}
+.tp-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease);
+  position: relative;
+}
+.tp-swatch:hover { transform: scale(1.15); }
+.tp-swatch.active { border-color: var(--ink-1); transform: scale(1.1); }
+.tp-swatch[data-t="indigo"]  { background: #6366f1; }
+.tp-swatch[data-t="teal"]    { background: #06b6d4; }
+.tp-swatch[data-t="violet"]  { background: #8b5cf6; }
+.tp-swatch[data-t="emerald"] { background: #10b981; }
+.tp-swatch[data-t="blue"]    { background: #3b82f6; }
+.tp-swatch[data-t="rose"]    { background: #f43f5e; }
+.tp-swatch[data-t="slate"]   { background: #64748b; }
+.tp-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.tp-mode {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--ink-2);
+  border-radius: 999px;
+}
+.tp-mode.active { background: var(--surface-2); color: var(--ink-1); }
+
+/* =========================================================
+   App Grid
+   ========================================================= */
+.app {
+  display: grid;
+  grid-template-columns: 56px 380px 1fr 440px;
+  height: 100dvh;
+}
+.app.no-detail {
+  grid-template-columns: 56px 380px 1fr 0;
+}
+
+/* =========================================================
+   Left Rail (icon nav)
+   ========================================================= */
+.rail {
+  background: var(--surface-0);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0;
+  gap: 4px;
+}
+.rail .logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--a-500), var(--a-400));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+  box-shadow: var(--e-glow);
+}
+.rail-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease);
+  position: relative;
+}
+.rail-btn:hover { background: var(--surface-1); color: var(--ink-1); }
+.rail-btn.active {
+  background: var(--a-50);
+  color: var(--a-600);
+}
+[data-mode="dark"] .rail-btn.active {
+  background: rgba(var(--a-rgb), 0.16);
+  color: var(--a-300);
+}
+.rail-btn .badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--error);
+  border: 2px solid var(--surface-0);
+}
+.rail-spacer { flex: 1; }
+
+/* =========================================================
+   Left Panel — Search + List (네이버 지도 스타일)
+   ========================================================= */
+.left-panel {
+  background: var(--surface-0);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lp-head {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.lp-search {
+  background: var(--surface-1);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.lp-search:focus-within { border-color: var(--a-400); }
+.lp-search-ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--a-500);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.lp-search-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lp-search-fields .f {
+  color: var(--ink-1);
+  font-weight: 600;
+}
+.lp-search-fields .f-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+.lp-search-fields .placeholder { color: var(--ink-3); font-weight: 500; }
+.lp-swap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: none;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.lp-title-row {
+  padding: 14px 16px 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.lp-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.lp-title .c {
+  color: var(--a-500);
+  font-variant-numeric: tabular-nums;
+  margin-right: 4px;
+}
+.lp-meta {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-sort {
+  padding: 4px 12px 10px;
+  display: flex;
+  gap: 2px;
+}
+.lp-sort-btn {
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+  border-radius: 8px;
+}
+.lp-sort-btn.active {
+  background: var(--surface-1);
+  color: var(--ink-1);
+}
+
+.lp-filters {
+  padding: 0 12px 10px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.lp-filters::-webkit-scrollbar { display: none; }
+.lp-fchip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface-1);
+  color: var(--ink-2);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.lp-fchip.on {
+  background: var(--a-50);
+  color: var(--a-700);
+  border-color: var(--a-300);
+}
+[data-mode="dark"] .lp-fchip.on {
+  background: rgba(var(--a-rgb), 0.15);
+  color: var(--a-300);
+  border-color: var(--a-600);
+}
+
+.lp-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px 40px;
+}
+
+/* List card (slim version) */
+.lcard {
+  background: var(--surface-0);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.lcard:hover { background: var(--surface-1); }
+.lcard.selected {
+  background: var(--a-50);
+  border-color: var(--a-400);
+  box-shadow: 0 0 0 3px rgba(var(--a-rgb), 0.1);
+}
+[data-mode="dark"] .lcard.selected {
+  background: rgba(var(--a-rgb), 0.1);
+  border-color: var(--a-500);
+}
+.lcard.best::before {
+  content: '🥇';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 16px;
+}
+.lcard-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.lcard-rank {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  width: 14px;
+}
+.lcard-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  flex: 1;
+}
+.lcard-addr {
+  font-size: 11px;
+  color: var(--ink-2);
+  padding-left: 22px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.lcard-stats {
+  display: flex;
+  gap: 10px;
+  padding-left: 22px;
+  align-items: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.lcard-stats .det {
+  color: var(--a-600);
+  font-size: 13px;
+  font-weight: 700;
+}
+[data-mode="dark"] .lcard-stats .det { color: var(--a-400); }
+.lcard-stats .div { color: var(--ink-3); }
+.lcard-stats .dist { color: var(--ink-2); }
+.lcard-stats .status {
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(16,185,129,0.12);
+  color: var(--success);
+  font-size: 10px;
+}
+.lcard-stats .status.closed {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+
+/* =========================================================
+   Map (center)
+   ========================================================= */
+.map {
+  position: relative;
+  background: linear-gradient(135deg, #e5e9ec 0%, #d4dbe0 100%);
+  overflow: hidden;
+}
+[data-mode="dark"] .map {
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+}
+.map-decor {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(var(--a-rgb),0.12), transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(var(--a-rgb),0.08), transparent 45%);
+}
+.map-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+[data-mode="dark"] .map-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+}
+.map-route-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.marker {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg) translate(-50%, -50%);
+  transform-origin: 0 0;
+  box-shadow: var(--e2);
+  border: 3px solid white;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.marker:hover { transform: rotate(-45deg) translate(-50%, -50%) scale(1.15); z-index: 10; }
+.marker::before {
+  content: attr(data-n);
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(45deg);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+}
+.marker.origin { background: var(--n-800); top: 32%; left: 20%; }
+.marker.dest   { background: var(--n-800); top: 42%; left: 82%; }
+.marker.mid    { background: var(--a-500); box-shadow: var(--e3), var(--e-glow); }
+.marker.mid.active { width: 52px; height: 52px; border-width: 4px; z-index: 20; }
+.marker.faded { opacity: 0.55; }
+
+/* Map floating controls */
+.map-controls {
+  position: absolute;
+  right: 20px;
+  top: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+.map-ctrl {
+  width: 40px;
+  height: 40px;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink-1);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: var(--e2);
+  transition: all 0.15s;
+}
+.map-ctrl:hover { background: var(--surface-1); transform: translateY(-1px); }
+.map-ctrl + .map-ctrl { margin-top: 0; }
+.map-ctrl-group {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--e2);
+  overflow: hidden;
+}
+.map-ctrl-group .map-ctrl {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.map-ctrl-group .map-ctrl + .map-ctrl {
+  border-top: 1px solid var(--border);
+}
+
+/* Map top pill */
+.map-pill {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  background: rgba(var(--n-950-rgb, 9, 9, 11), 0.88);
+  background: rgba(9, 9, 11, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--e3);
+}
+.map-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+/* Map bento summary (bottom) */
+.map-bento {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 16px;
+  box-shadow: var(--e3);
+}
+[data-mode="dark"] .map-bento {
+  background: rgba(24,24,27,0.9);
+  border-color: rgba(255,255,255,0.06);
+}
+.mb-pod {
+  padding: 10px 16px;
+  text-align: center;
+  min-width: 96px;
+}
+.mb-pod + .mb-pod { border-left: 1px solid var(--border); }
+.mb-pod .l {
+  font-size: 10px;
+  color: var(--ink-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+.mb-pod .v {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.mb-pod .v .u { font-size: 11px; color: var(--ink-2); font-weight: 500; margin-left: 1px; }
+.mb-pod.best .v { color: var(--a-500); }
+
+/* =========================================================
+   Right Panel — Place Detail (카카오맵 장소 상세 스타일)
+   ========================================================= */
+.detail {
+  background: var(--surface-0);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.4s var(--ease);
+}
+.app.no-detail .detail {
+  transform: translateX(100%);
+  border-left: none;
+}
+
+.dt-hero {
+  position: relative;
+  height: 180px;
+  background:
+    linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%),
+    linear-gradient(135deg, var(--a-400), var(--a-700));
+  overflow: hidden;
+}
+.dt-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.2), transparent 40%),
+    radial-gradient(circle at 80% 60%, rgba(255,255,255,0.15), transparent 40%);
+}
+.dt-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  border: none;
+  color: var(--n-900);
+  font-size: 14px;
+  z-index: 2;
+  box-shadow: var(--e1);
+}
+.dt-cat {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.92);
+  color: var(--n-900);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  z-index: 2;
+}
+.dt-hero-info {
+  position: absolute;
+  bottom: 14px;
+  left: 20px;
+  right: 20px;
+  z-index: 2;
+  color: white;
+}
+.dt-hero-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.dt-hero-sub {
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dt-hero-sub .rating { font-weight: 700; }
+.dt-hero-sub .star { color: #fbbf24; }
+
+.dt-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px 120px;
+}
+
+.dt-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.dt-act {
+  padding: 10px 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-2);
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.dt-act:hover { background: var(--surface-2); color: var(--ink-1); }
+.dt-act .ico { font-size: 18px; }
+.dt-act.fav { color: var(--warn); }
+
+.dt-section {
+  margin-bottom: 20px;
+}
+.dt-section-t {
+  font-size: 11px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* Stat grid for detail */
+.dt-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dt-stat {
+  background: var(--surface-1);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  position: relative;
+}
+.dt-stat .l {
+  font-size: 10px;
+  color: var(--ink-3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.dt-stat .v {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.dt-stat .v .u { font-size: 12px; color: var(--ink-2); font-weight: 500; margin-left: 2px; }
+.dt-stat .d {
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
+.dt-stat.primary { background: var(--a-50); }
+[data-mode="dark"] .dt-stat.primary { background: rgba(var(--a-rgb), 0.15); }
+.dt-stat.primary .v { color: var(--a-700); }
+[data-mode="dark"] .dt-stat.primary .v { color: var(--a-300); }
+
+/* Opening hours timeline */
+.oh-timeline {
+  position: relative;
+  height: 28px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.oh-open {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: var(--success);
+  opacity: 0.3;
+}
+.oh-open.current {
+  background: var(--a-500);
+  opacity: 1;
+}
+.oh-now {
+  position: absolute;
+  top: -3px; bottom: -3px;
+  width: 2px;
+  background: var(--error);
+  box-shadow: 0 0 6px var(--error);
+}
+.oh-now::before {
+  content: 'Now';
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--error);
+  font-weight: 700;
+  background: var(--surface-0);
+  padding: 1px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.oh-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.oh-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.oh-status .k {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(16,185,129,0.15);
+  color: var(--success);
+  font-size: 11px;
+  font-weight: 700;
+}
+.oh-status .r { font-size: 12px; color: var(--ink-2); }
+
+/* Address card */
+.addr-card {
+  background: var(--surface-1);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.addr-card .ic {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--a-500);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.addr-card .t { flex: 1; font-size: 12px; line-height: 1.4; }
+.addr-card .t .main { font-weight: 600; color: var(--ink-1); }
+.addr-card .t .sub { color: var(--ink-3); font-size: 11px; margin-top: 2px; }
+.addr-card .ac-btn {
+  padding: 6px 10px;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  color: var(--ink-1);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* Score breakdown */
+.sb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sb-row .l {
+  width: 70px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.sb-row .bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.sb-row .bar .fill {
+  height: 100%;
+  background: var(--a-500);
+  border-radius: 4px;
+}
+.sb-row .v {
+  width: 32px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Related places */
+.rel-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -20px;
+  padding: 0 20px;
+}
+.rel-scroll::-webkit-scrollbar { display: none; }
+.rel-card {
+  flex-shrink: 0;
+  width: 140px;
+  background: var(--surface-1);
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.rel-card:hover { transform: translateY(-2px); }
+.rel-card .n { font-size: 12px; font-weight: 700; }
+.rel-card .d { font-size: 10px; color: var(--ink-3); margin: 2px 0 6px; }
+.rel-card .s {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--a-600);
+  font-variant-numeric: tabular-nums;
+}
+[data-mode="dark"] .rel-card .s { color: var(--a-400); }
+
+/* Bottom CTA */
+.dt-cta-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 16px 16px;
+  background: linear-gradient(180deg, transparent 0%, var(--surface-0) 40%);
+  pointer-events: none;
+}
+.dt-cta {
+  width: 100%;
+  padding: 14px;
+  background: var(--a-500);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: var(--e-glow), 0 4px 12px rgba(var(--a-rgb), 0.3);
+  transition: transform 0.2s var(--ease);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.dt-cta:hover { transform: translateY(-2px); }
+
+/* =========================================================
+   Responsive (under 1200px, stack detail as overlay)
+   ========================================================= */
+@media (max-width: 1280px) {
+  .app { grid-template-columns: 56px 340px 1fr 400px; }
+}
+@media (max-width: 1100px) {
+  .app { grid-template-columns: 56px 320px 1fr 0; }
+  .detail {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 400px;
+    z-index: 100;
+    box-shadow: var(--e3);
+  }
+}
+
+/* =========================================================
+   🌙 Dark Mode Fine Tuning — 색감 조정
+   ========================================================= */
+[data-mode="dark"] .rail .logo {
+  box-shadow: 0 0 14px rgba(var(--a-rgb), 0.2);
+}
+[data-mode="dark"] .map {
+  background: linear-gradient(135deg, #0a0d12 0%, #13171d 100%);
+}
+[data-mode="dark"] .map-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+}
+/* 출발/도착 마커 — 어두운 지도에서 선명하게 */
+[data-mode="dark"] .marker.origin,
+[data-mode="dark"] .marker.dest {
+  background: #e4e4e7;
+  border-color: #1c1c22;
+}
+[data-mode="dark"] .marker.origin::before,
+[data-mode="dark"] .marker.dest::before {
+  color: #18181b;
+}
+/* 경유 마커 — 약간 완화된 accent */
+[data-mode="dark"] .marker.mid {
+  background: var(--a-400);
+  border-color: #0b0b0e;
+}
+/* 희미한 마커 */
+[data-mode="dark"] .marker.faded { opacity: 0.45; }
+
+/* 지도 경로선 — 다크에서 더 선명하게 */
+[data-mode="dark"] .map-route-svg path:first-of-type {
+  stroke: rgba(var(--a-rgb), 0.7);
+  stroke-width: 6.5;
+}
+
+/* 지도 bento — solid 블랙에 가까운 톤으로 */
+[data-mode="dark"] .map-bento {
+  background: rgba(14,14,18,0.92);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+[data-mode="dark"] .mb-pod.best .v { color: var(--a-400); }
+
+/* 맵 컨트롤 */
+[data-mode="dark"] .map-ctrl,
+[data-mode="dark"] .map-ctrl-group {
+  background: #17171c;
+  border-color: #26262c;
+  color: var(--ink-1);
+}
+[data-mode="dark"] .map-ctrl:hover { background: #1f1f26; }
+
+/* 선택된 카드 — 더 눈에 띄게 */
+[data-mode="dark"] .lcard.selected {
+  background: rgba(var(--a-rgb), 0.14);
+  border-color: rgba(var(--a-rgb), 0.5);
+  box-shadow: 0 0 0 1px rgba(var(--a-rgb), 0.25), 0 4px 12px rgba(var(--a-rgb), 0.12);
+}
+[data-mode="dark"] .lcard:hover { background: #18181e; }
+[data-mode="dark"] .lcard.selected:hover { background: rgba(var(--a-rgb), 0.18); }
+
+/* 리스트 카드 내 accent 텍스트 — a-400이 다크에서 더 읽힘 */
+[data-mode="dark"] .lcard-stats .det { color: var(--a-300); }
+[data-mode="dark"] .lp-title .c { color: var(--a-300); }
+
+/* 필터 칩 — 다크 톤 조정 */
+[data-mode="dark"] .lp-fchip { background: #18181e; color: var(--ink-2); }
+[data-mode="dark"] .lp-fchip.on {
+  background: rgba(var(--a-rgb), 0.14);
+  color: var(--a-300);
+  border-color: rgba(var(--a-rgb), 0.4);
+}
+[data-mode="dark"] .lp-sort-btn.active { background: #1c1c22; color: var(--ink-1); }
+[data-mode="dark"] .lp-search { background: #18181e; }
+[data-mode="dark"] .lp-swap { background: #20202a; }
+
+/* 상세 패널 hero — 다크에서 과도한 밝기 완화 */
+[data-mode="dark"] .dt-hero {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 100%),
+    linear-gradient(135deg, var(--a-600) 0%, var(--a-900) 100%);
+}
+[data-mode="dark"] .dt-close {
+  background: rgba(20,20,24,0.92);
+  color: #f5f5f7;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+[data-mode="dark"] .dt-cat {
+  background: rgba(20,20,24,0.92);
+  color: #f5f5f7;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* 상세 액션 버튼 */
+[data-mode="dark"] .dt-act { background: #18181e; }
+[data-mode="dark"] .dt-act:hover { background: #20202a; color: var(--ink-1); }
+
+/* Stat 카드 — primary의 바탕을 덜 쨍하게 */
+[data-mode="dark"] .dt-stat { background: #17171c; }
+[data-mode="dark"] .dt-stat.primary {
+  background: linear-gradient(135deg, rgba(var(--a-rgb), 0.14), rgba(var(--a-rgb), 0.06));
+  border: 1px solid rgba(var(--a-rgb), 0.2);
+}
+[data-mode="dark"] .dt-stat.primary .v { color: var(--a-300); }
+
+/* 영업시간 타임라인 */
+[data-mode="dark"] .oh-timeline { background: #1a1a20; }
+[data-mode="dark"] .oh-open { background: var(--success); opacity: 0.25; }
+[data-mode="dark"] .oh-open.current { background: var(--a-400); opacity: 0.95; }
+
+/* Address card */
+[data-mode="dark"] .addr-card { background: #17171c; }
+[data-mode="dark"] .addr-card .ac-btn { background: #1f1f26; border-color: #2a2a32; }
+
+/* Score breakdown */
+[data-mode="dark"] .sb-row .bar { background: #1a1a20; }
+[data-mode="dark"] .sb-row .bar .fill { background: var(--a-400); }
+
+/* Related cards */
+[data-mode="dark"] .rel-card { background: #17171c; }
+[data-mode="dark"] .rel-card .s { color: var(--a-300); }
+
+/* Bottom CTA — 과한 glow 완화 */
+[data-mode="dark"] .dt-cta {
+  background: var(--a-500);
+  box-shadow:
+    0 0 24px rgba(var(--a-rgb), 0.3),
+    0 8px 20px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+[data-mode="dark"] .dt-cta-wrap {
+  background: linear-gradient(180deg, transparent 0%, var(--surface-0) 50%);
+}
+
+/* 지도 pill — 테마색 살짝 섞기 */
+[data-mode="dark"] .map-pill {
+  background: rgba(14,14,18,0.88);
+  border: 1px solid rgba(var(--a-rgb), 0.25);
+}
+</style>
+</head>
+<body data-theme="indigo" data-mode="light">
+
+<!-- THEME PICKER -->
+<div class="theme-picker">
+  <div class="tp-swatch active" data-t="indigo" title="Indigo"></div>
+  <div class="tp-swatch" data-t="teal" title="Teal"></div>
+  <div class="tp-swatch" data-t="violet" title="Violet"></div>
+  <div class="tp-swatch" data-t="emerald" title="Emerald"></div>
+  <div class="tp-swatch" data-t="blue" title="Blue"></div>
+  <div class="tp-swatch" data-t="rose" title="Rose"></div>
+  <div class="tp-swatch" data-t="slate" title="Slate"></div>
+  <div class="tp-sep"></div>
+  <button class="tp-mode active" data-m="light">Light</button>
+  <button class="tp-mode" data-m="dark">Dark</button>
+</div>
+
+<div class="app" id="app">
+  <!-- LEFT RAIL -->
+  <div class="rail">
+    <div class="logo">M</div>
+    <button class="rail-btn" title="홈">🏠</button>
+    <button class="rail-btn active" title="검색">🔍</button>
+    <button class="rail-btn" title="즐겨찾기"><span class="badge"></span>⭐</button>
+    <button class="rail-btn" title="최근">🕐</button>
+    <button class="rail-btn" title="경로">🗺️</button>
+    <div class="rail-spacer"></div>
+    <button class="rail-btn" title="설정">⚙️</button>
+    <button class="rail-btn" title="프로필">👤</button>
+  </div>
+
+  <!-- LEFT PANEL: Search + Results -->
+  <div class="left-panel">
+    <div class="lp-head">
+      <div class="lp-search">
+        <div class="lp-search-ico">📍</div>
+        <div class="lp-search-fields">
+          <div class="f">서울시청</div>
+          <div class="f-sep"></div>
+          <div class="f">강남역</div>
+        </div>
+        <button class="lp-swap">⇅</button>
+      </div>
+    </div>
+
+    <div class="lp-title-row">
+      <div class="lp-title"><span class="c">12</span>개 다이소</div>
+      <div class="lp-meta">2분 전 · 캐시</div>
+    </div>
+
+    <div class="lp-sort">
+      <button class="lp-sort-btn active">점수순</button>
+      <button class="lp-sort-btn">시간순</button>
+      <button class="lp-sort-btn">거리순</button>
+      <button class="lp-sort-btn">마감임박</button>
+    </div>
+
+    <div class="lp-filters">
+      <div class="lp-fchip on">영업중</div>
+      <div class="lp-fchip on">+5분</div>
+      <div class="lp-fchip">+1km</div>
+      <div class="lp-fchip">경로 근접</div>
+      <div class="lp-fchip">미방문</div>
+      <div class="lp-fchip">🔥 인기</div>
+    </div>
+
+    <div class="lp-list" id="list">
+      <div class="lcard best selected" data-id="1">
+        <div class="lcard-top">
+          <div class="lcard-rank">1</div>
+          <div class="lcard-name">다이소 강남역점</div>
+        </div>
+        <div class="lcard-addr">서울 강남구 역삼동 823-5</div>
+        <div class="lcard-stats">
+          <span class="det">+4분</span>
+          <span class="div">·</span>
+          <span class="dist">0.8km</span>
+          <span class="div">·</span>
+          <span>96점</span>
+          <span class="status">● 영업중</span>
+        </div>
+      </div>
+
+      <div class="lcard" data-id="2">
+        <div class="lcard-top">
+          <div class="lcard-rank">2</div>
+          <div class="lcard-name">다이소 논현역점</div>
+        </div>
+        <div class="lcard-addr">서울 강남구 논현동 171-3</div>
+        <div class="lcard-stats">
+          <span class="det">+7분</span>
+          <span class="div">·</span>
+          <span class="dist">1.4km</span>
+          <span class="div">·</span>
+          <span>82점</span>
+          <span class="status">● 영업중</span>
+        </div>
+      </div>
+
+      <div class="lcard" data-id="3">
+        <div class="lcard-top">
+          <div class="lcard-rank">3</div>
+          <div class="lcard-name">다이소 신논현역점</div>
+        </div>
+        <div class="lcard-addr">서울 강남구 역삼동 736-23</div>
+        <div class="lcard-stats">
+          <span class="det">+9분</span>
+          <span class="div">·</span>
+          <span class="dist">1.7km</span>
+          <span class="div">·</span>
+          <span>75점</span>
+          <span class="status">● 영업중</span>
+        </div>
+      </div>
+
+      <div class="lcard" data-id="4">
+        <div class="lcard-top">
+          <div class="lcard-rank">4</div>
+          <div class="lcard-name">다이소 역삼역점</div>
+        </div>
+        <div class="lcard-addr">서울 강남구 역삼동 648-10</div>
+        <div class="lcard-stats">
+          <span class="det">+11분</span>
+          <span class="div">·</span>
+          <span class="dist">2.1km</span>
+          <span class="div">·</span>
+          <span>68점</span>
+          <span class="status closed">영업종료</span>
+        </div>
+      </div>
+
+      <div class="lcard" data-id="5">
+        <div class="lcard-top">
+          <div class="lcard-rank">5</div>
+          <div class="lcard-name">다이소 선릉역점</div>
+        </div>
+        <div class="lcard-addr">서울 강남구 역삼동 702-18</div>
+        <div class="lcard-stats">
+          <span class="det">+13분</span>
+          <span class="div">·</span>
+          <span class="dist">2.6km</span>
+          <span class="div">·</span>
+          <span>62점</span>
+          <span class="status">● 영업중</span>
+        </div>
+      </div>
+
+      <div class="lcard" data-id="6">
+        <div class="lcard-top">
+          <div class="lcard-rank">6</div>
+          <div class="lcard-name">다이소 교대역점</div>
+        </div>
+        <div class="lcard-addr">서울 서초구 서초동 1330-20</div>
+        <div class="lcard-stats">
+          <span class="det">+15분</span>
+          <span class="div">·</span>
+          <span class="dist">3.1km</span>
+          <span class="div">·</span>
+          <span>58점</span>
+          <span class="status">● 영업중</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: MAP -->
+  <div class="map">
+    <div class="map-decor"></div>
+    <div class="map-grid"></div>
+    <svg class="map-route-svg" viewBox="0 0 800 800" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="var(--n-800)" />
+          <stop offset="1" stop-color="var(--n-800)" />
+        </linearGradient>
+      </defs>
+      <path d="M 160,265 Q 320,360 400,380 Q 520,400 655,340"
+            stroke="rgba(var(--a-rgb), 0.55)"
+            stroke-width="6"
+            fill="none"
+            stroke-linecap="round"/>
+      <path d="M 160,265 Q 320,360 400,380 Q 520,400 655,340"
+            stroke="rgba(var(--a-rgb), 1)"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-dasharray="4 8"/>
+    </svg>
+
+    <div class="marker origin" data-n="A"></div>
+    <div class="marker dest" data-n="B"></div>
+    <div class="marker mid active" data-n="1" style="top:47%;left:50%"></div>
+    <div class="marker mid faded" data-n="2" style="top:40%;left:60%"></div>
+    <div class="marker mid faded" data-n="3" style="top:55%;left:42%"></div>
+    <div class="marker mid faded" data-n="4" style="top:52%;left:65%"></div>
+    <div class="marker mid faded" data-n="5" style="top:60%;left:55%"></div>
+
+    <div class="map-pill">
+      <span class="dot"></span>
+      <span>12개 경유지 · 2분 전 검색</span>
+    </div>
+
+    <div class="map-controls">
+      <div class="map-ctrl-group">
+        <button class="map-ctrl" title="확대">＋</button>
+        <button class="map-ctrl" title="축소">－</button>
+      </div>
+      <button class="map-ctrl" title="내 위치">🎯</button>
+      <button class="map-ctrl" title="나침반">🧭</button>
+      <button class="map-ctrl" title="거리뷰">🏙️</button>
+    </div>
+
+    <div class="map-bento">
+      <div class="mb-pod">
+        <div class="l">원본</div>
+        <div class="v">12.5<span class="u">km</span></div>
+      </div>
+      <div class="mb-pod">
+        <div class="l">원본 시간</div>
+        <div class="v">20<span class="u">분</span></div>
+      </div>
+      <div class="mb-pod best">
+        <div class="l">최적 이탈</div>
+        <div class="v">+4<span class="u">분</span></div>
+      </div>
+      <div class="mb-pod">
+        <div class="l">발견</div>
+        <div class="v">12<span class="u">개</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: DETAIL -->
+  <div class="detail" id="detail">
+    <div class="dt-hero">
+      <div class="dt-cat">🥇 베스트픽 · 생활용품</div>
+      <button class="dt-close" onclick="toggleDetail()">✕</button>
+      <div class="dt-hero-info">
+        <div class="dt-hero-name">다이소 강남역점</div>
+        <div class="dt-hero-sub">
+          <span class="rating"><span class="star">★</span> 4.3</span>
+          <span>·</span>
+          <span>리뷰 1,284</span>
+          <span>·</span>
+          <span>🔥 3명 관심</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dt-body">
+      <div class="dt-actions">
+        <button class="dt-act fav">
+          <span class="ico">⭐</span>
+          <span>저장</span>
+        </button>
+        <button class="dt-act">
+          <span class="ico">📞</span>
+          <span>전화</span>
+        </button>
+        <button class="dt-act">
+          <span class="ico">🔗</span>
+          <span>공유</span>
+        </button>
+        <button class="dt-act">
+          <span class="ico">📋</span>
+          <span>복사</span>
+        </button>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-t">경유 비용</div>
+        <div class="dt-stats">
+          <div class="dt-stat primary">
+            <div class="l">Detour Cost</div>
+            <div class="v">+4<span class="u">분</span></div>
+            <div class="d">원래 20분 → 24분</div>
+          </div>
+          <div class="dt-stat">
+            <div class="l">추가 거리</div>
+            <div class="v">+0.8<span class="u">km</span></div>
+            <div class="d">원래 12.5km → 13.3km</div>
+          </div>
+          <div class="dt-stat">
+            <div class="l">종합 점수</div>
+            <div class="v">96<span class="u">점</span></div>
+            <div class="d">상위 1% · 12개 중 1위</div>
+          </div>
+          <div class="dt-stat">
+            <div class="l">경로 위치</div>
+            <div class="v">52<span class="u">%</span></div>
+            <div class="d">중간 지점 · 진행 방향</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-t">영업 시간</div>
+        <div class="oh-status">
+          <span class="k">● 영업중</span>
+          <span class="r">23:00에 영업 종료</span>
+        </div>
+        <div class="oh-timeline">
+          <div class="oh-open current" style="left:41.6%;width:54.2%"></div>
+          <div class="oh-now" style="left:59%"></div>
+        </div>
+        <div class="oh-labels">
+          <span>00</span><span>06</span><span>10</span><span>14</span><span>18</span><span>23</span>
+        </div>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-t">위치</div>
+        <div class="addr-card">
+          <div class="ic">📍</div>
+          <div class="t">
+            <div class="main">서울 강남구 역삼동 823-5</div>
+            <div class="sub">강남역 11번 출구 도보 3분</div>
+          </div>
+          <button class="ac-btn">복사</button>
+        </div>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-t">점수 분해</div>
+        <div class="sb-row">
+          <div class="l">이탈비용</div>
+          <div class="bar"><div class="fill" style="width:98%"></div></div>
+          <div class="v">98</div>
+        </div>
+        <div class="sb-row">
+          <div class="l">근접도</div>
+          <div class="bar"><div class="fill" style="width:91%"></div></div>
+          <div class="v">91</div>
+        </div>
+        <div class="sb-row" style="font-weight:700">
+          <div class="l" style="color:var(--ink-1)">최종</div>
+          <div class="bar"><div class="fill" style="width:96%;background:linear-gradient(90deg, var(--a-500), var(--a-400))"></div></div>
+          <div class="v" style="color:var(--a-600)">96</div>
+        </div>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-t">근처 다른 카테고리</div>
+        <div class="rel-scroll">
+          <div class="rel-card">
+            <div class="n">스타벅스 강남점</div>
+            <div class="d">0.2km · 도보 3분</div>
+            <div class="s">+2분</div>
+          </div>
+          <div class="rel-card">
+            <div class="n">올리브영 강남</div>
+            <div class="d">0.3km · 도보 4분</div>
+            <div class="s">+3분</div>
+          </div>
+          <div class="rel-card">
+            <div class="n">CU 강남역점</div>
+            <div class="d">0.1km · 도보 1분</div>
+            <div class="s">+1분</div>
+          </div>
+          <div class="rel-card">
+            <div class="n">맘스터치 강남</div>
+            <div class="d">0.4km · 도보 5분</div>
+            <div class="s">+4분</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dt-cta-wrap">
+      <button class="dt-cta">
+        <span>🚀 바로 네비로 출발</span>
+        <span style="opacity:0.8;font-weight:500;font-size:12px">· 24분 · 13.3km</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script src="theme.js"></script>
+<script>
+  // Card selection
+  document.querySelectorAll('.lcard').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.lcard').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.getElementById('app').classList.remove('no-detail');
+    });
+  });
+
+  function toggleDetail() {
+    document.getElementById('app').classList.toggle('no-detail');
+  }
+</script>
+
+</body>
+</html>

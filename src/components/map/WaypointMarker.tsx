@@ -10,7 +10,22 @@
 
 import { useEffect, useRef } from 'react';
 import type { DetourResult } from '@/types/detour';
-import { getAccentColor, getSuccessColor } from '@/lib/theme-colors';
+import { escapeHtml } from '@/lib/utils/escape-html';
+import {
+  getAccentColor,
+  getAccentWeakColor,
+  getShadow1,
+  getShadow3,
+  getSuccessColor,
+  getSuccessWeakColor,
+  getSurface1,
+  getSurface2,
+  getTextOnAccent,
+  getTextPrimary,
+  getTextSecondary,
+  getWarningColor,
+  getWarningWeakColor,
+} from '@/lib/theme-colors';
 
 interface WaypointMarkerProps {
   /** Naver Maps 인스턴스 */
@@ -86,6 +101,9 @@ export default function WaypointMarker({
     const markers: naver.maps.Marker[] = [];
     const accentColor = getAccentColor();
     const successColor = getSuccessColor();
+    const surfaceColor = getSurface1();
+    const textOnAccent = getTextOnAccent();
+    const markerShadow = getShadow3();
     waypoints.forEach((waypoint, index) => {
       const isSelected = selectedId === waypoint.place.id;
 
@@ -106,15 +124,15 @@ export default function WaypointMarker({
                 width: 40px;
                 height: 40px;
                 background-color: ${isSelected ? successColor : accentColor};
-                border: 3px solid white;
+                border: 3px solid ${surfaceColor};
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
+                color: ${textOnAccent};
                 font-weight: bold;
                 font-size: 15px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+                box-shadow: ${markerShadow};
               ">
                 ${index + 1}
               </div>
@@ -133,36 +151,48 @@ export default function WaypointMarker({
         // 정보창 표시
         const detourDistance = (waypoint.detourCost.distance / 1000).toFixed(1);
         const detourTime = Math.round(waypoint.detourCost.duration / 60);
+        const safeName = escapeHtml(waypoint.place.name);
+        const safeAddress = escapeHtml(waypoint.place.roadAddress || waypoint.place.address);
+        const accentWeakColor = getAccentWeakColor();
+        const warningColor = getWarningColor();
+        const warningWeakColor = getWarningWeakColor();
+        const successWeakColor = getSuccessWeakColor();
+        const infoSurface = getSurface2();
+        const infoShadow = getShadow3();
+        const textPrimary = getTextPrimary();
+        const textSecondary = getTextSecondary();
 
         const infoWindow = new window.naver.maps.InfoWindow({
           content: `
             <div style="
               padding: 12px;
               min-width: 200px;
+              background: ${infoSurface};
+              box-shadow: ${infoShadow};
+              border-radius: 12px;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             ">
               <h4 style="
                 margin: 0 0 8px 0;
                 font-size: 14px;
                 font-weight: bold;
-                color: #1a1a1a;
-              ">${waypoint.place.name}</h4>
+                color: ${textPrimary};
+              ">${safeName}</h4>
               <p style="
                 margin: 0 0 8px 0;
                 font-size: 12px;
-                color: #666;
+                color: ${textSecondary};
                 line-height: 1.4;
-              ">${waypoint.place.address}</p>
+              ">${safeAddress}</p>
               <div style="
                 display: flex;
                 gap: 12px;
                 font-size: 12px;
-                color: ${accentColor};
                 font-weight: 500;
               ">
-                <span>+${detourDistance}km</span>
-                <span>+${detourTime}분</span>
-                <span>${waypoint.finalScore.toFixed(0)}점</span>
+                <span style="color: ${accentColor}; background: ${accentWeakColor}; padding: 2px 8px; border-radius: 10px;">+${detourDistance}km</span>
+                <span style="color: ${warningColor}; background: ${warningWeakColor}; padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
+                <span style="color: ${successColor}; background: ${successWeakColor}; padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
               </div>
             </div>
           `,
@@ -194,12 +224,12 @@ export default function WaypointMarker({
             height: '40px',
             background: accentColor,
             borderRadius: '50%',
-            color: '#fff',
+            color: textOnAccent,
             textAlign: 'center',
             lineHeight: '41px',
             fontWeight: 'bold',
-            border: '2px solid white',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            border: `2px solid ${surfaceColor}`,
+            boxShadow: getShadow1(),
           },
         ],
       });

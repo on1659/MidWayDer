@@ -11,7 +11,21 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { DetourResult } from '@/types/detour';
 import { escapeHtml } from '@/lib/utils/escape-html';
-import { getAccentColor, getAccentWeakColor, getSuccessColor } from '@/lib/theme-colors';
+import {
+  getAccentColor,
+  getAccentWeakColor,
+  getShadow1,
+  getShadow3,
+  getSuccessColor,
+  getSuccessWeakColor,
+  getSurface1,
+  getSurface2,
+  getTextOnAccent,
+  getTextPrimary,
+  getTextSecondary,
+  getWarningColor,
+  getWarningWeakColor,
+} from '@/lib/theme-colors';
 
 interface KakaoWaypointMarkerProps {
   map: kakao.maps.Map | null;
@@ -53,7 +67,7 @@ export default function KakaoWaypointMarker({
   // 정보창 표시 함수
   const showInfoWindow = useCallback((waypoint: DetourResult) => {
     if (!map) return;
-    
+
     closeInfoWindow();
 
     const detourDistance = (waypoint.detourCost.distance / 1000).toFixed(1);
@@ -61,13 +75,20 @@ export default function KakaoWaypointMarker({
     const accentColor = getAccentColor();
     const accentWeakColor = getAccentWeakColor();
     const successColor = getSuccessColor();
+    const successWeakColor = getSuccessWeakColor();
+    const warningColor = getWarningColor();
+    const warningWeakColor = getWarningWeakColor();
+    const surfaceColor = getSurface2();
+    const shadowColor = getShadow3();
+    const textPrimary = getTextPrimary();
+    const textSecondary = getTextSecondary();
 
     const infoContent = document.createElement('div');
     infoContent.style.cssText = `
       position: relative;
-      background: white;
+      background: ${surfaceColor};
       border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      box-shadow: ${shadowColor};
       padding: 14px 16px;
       min-width: 200px;
       max-width: 260px;
@@ -86,12 +107,12 @@ export default function KakaoWaypointMarker({
           margin: 0 0 6px 0;
           font-size: 15px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: ${textPrimary};
         ">${safeName}</h4>
         <p style="
           margin: 0 0 10px 0;
           font-size: 12px;
-          color: #666;
+          color: ${textSecondary};
           line-height: 1.4;
         ">${safeAddress}</p>
         <div style="
@@ -101,8 +122,8 @@ export default function KakaoWaypointMarker({
           font-weight: 600;
         ">
           <span style="background: ${accentWeakColor}; color: ${accentColor}; padding: 2px 8px; border-radius: 10px;">+${detourDistance}km</span>
-          <span style="background: #FFF7ED; color: #C2410C; padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
-          <span style="background: #DCFCE7; color: ${successColor}; padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
+          <span style="background: ${warningWeakColor}; color: ${warningColor}; padding: 2px 8px; border-radius: 10px;">+${detourTime}분</span>
+          <span style="background: ${successWeakColor}; color: ${successColor}; padding: 2px 8px; border-radius: 10px;">${waypoint.finalScore.toFixed(0)}점</span>
         </div>
         <div style="
           position: absolute;
@@ -113,7 +134,7 @@ export default function KakaoWaypointMarker({
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid white;
+          border-top: 10px solid ${surfaceColor};
         "></div>
       </div>
     `;
@@ -182,6 +203,9 @@ export default function KakaoWaypointMarker({
     const markers: kakao.maps.Marker[] = [];
     const accentColor = getAccentColor();
     const successColor = getSuccessColor();
+    const surfaceColor = getSurface1();
+    const textOnAccent = getTextOnAccent();
+    const shadowColor = getShadow3();
     waypoints.forEach((waypoint, index) => {
       const isSelected = selectedId === waypoint.place.id;
 
@@ -191,15 +215,15 @@ export default function KakaoWaypointMarker({
           width: 40px;
           height: 40px;
           background-color: ${isSelected ? successColor : accentColor};
-          border: 3px solid white;
+          border: 3px solid ${surfaceColor};
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: ${textOnAccent};
           font-weight: bold;
           font-size: 15px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+          box-shadow: ${shadowColor};
           transition: transform 0.15s ease;
         ">${index + 1}</div>
       `;
@@ -269,12 +293,12 @@ export default function KakaoWaypointMarker({
             height: '40px',
             background: getAccentColor(),
             borderRadius: '50%',
-            color: '#fff',
+            color: getTextOnAccent(),
             textAlign: 'center',
             lineHeight: '41px',
             fontWeight: 'bold',
-            border: '2px solid white',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            border: `2px solid ${getSurface1()}`,
+            boxShadow: getShadow1(),
           },
         ],
         disableClickZoom: false,
@@ -330,20 +354,23 @@ export default function KakaoWaypointMarker({
       const scale = isSelected ? 1 : isHovered ? 1.25 : 1;
       const accentColor = getAccentColor();
       const successColor = getSuccessColor();
+      const surfaceColor = getSurface1();
+      const textOnAccent = getTextOnAccent();
+      const shadowColor = getShadow3();
       const markerImageContent = `
         <div style="
           width: 40px;
           height: 40px;
           background-color: ${isSelected ? successColor : accentColor};
-          border: 3px solid white;
+          border: 3px solid ${surfaceColor};
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: ${textOnAccent};
           font-weight: bold;
           font-size: 15px;
-          box-shadow: 0 ${isHovered ? '6px 18px' : '2px 8px'} rgba(0,0,0,${isHovered ? '0.45' : '0.35'});
+          box-shadow: ${shadowColor};
           transition: transform 0.15s ease;
           transform: scale(${scale});
         ">${index + 1}</div>

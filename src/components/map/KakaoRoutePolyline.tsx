@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { getAccentColor, getSuccessColor, getWarningColor, subscribeToThemeColorChanges } from '@/lib/theme-colors';
 import type { Route } from '@/types/location';
 
 interface KakaoRoutePolylineProps {
@@ -30,6 +31,11 @@ export default function KakaoRoutePolyline({
 }: KakaoRoutePolylineProps) {
   const originalPolylineRef = useRef<kakao.maps.Polyline[]>([]);
   const detourPolylineRef = useRef<kakao.maps.Polyline[]>([]);
+  const [themeColorVersion, setThemeColorVersion] = useState(0);
+
+  useEffect(() => (
+    subscribeToThemeColorChanges(() => setThemeColorVersion((version) => version + 1))
+  ), []);
 
   // 원본 경로 그리기
   useEffect(() => {
@@ -38,6 +44,9 @@ export default function KakaoRoutePolyline({
     // 기존 폴리라인 제거
     originalPolylineRef.current.forEach((p) => p.setMap(null));
     originalPolylineRef.current = [];
+
+    const routeColor = getAccentColor();
+    const highwayColor = getWarningColor();
 
     // 세그먼트가 있으면 도로 종류별로 색상 분기
     if (originalRoute.segments && originalRoute.segments.length > 0) {
@@ -48,8 +57,8 @@ export default function KakaoRoutePolyline({
         return new window.kakao.maps.Polyline({
           map,
           path,
-          strokeColor: segment.isHighway ? 'var(--orange-600)' : 'var(--blue-800)', // 저채도 주황/블루
-          strokeWeight: 8,
+          strokeColor: segment.isHighway ? highwayColor : routeColor,
+          strokeWeight: 6,
           strokeOpacity: 0.85,
           strokeStyle: 'solid',
         });
@@ -65,8 +74,8 @@ export default function KakaoRoutePolyline({
       const polyline = new window.kakao.maps.Polyline({
         map,
         path,
-        strokeColor: 'var(--blue-800)', // 저채도 블루
-        strokeWeight: 8,
+        strokeColor: routeColor,
+        strokeWeight: 6,
         strokeOpacity: 0.85,
         strokeStyle: 'solid',
       });
@@ -85,7 +94,7 @@ export default function KakaoRoutePolyline({
       originalPolylineRef.current.forEach((p) => p.setMap(null));
       originalPolylineRef.current = [];
     };
-  }, [map, originalRoute]);
+  }, [map, originalRoute, themeColorVersion]);
 
   // 경유지 경로 그리기
   useEffect(() => {
@@ -99,6 +108,8 @@ export default function KakaoRoutePolyline({
 
     if (!detourRoute) return;
 
+    const detourColor = getSuccessColor();
+
     // A→C 경로
     const toWaypointPath = detourRoute.toWaypoint.path.map(
       (point) => new window.kakao.maps.LatLng(point.lat, point.lng)
@@ -106,8 +117,8 @@ export default function KakaoRoutePolyline({
     const toWaypointPolyline = new window.kakao.maps.Polyline({
       map,
       path: toWaypointPath,
-      strokeColor: 'var(--green-600)', // 초록색
-      strokeWeight: 5,
+      strokeColor: detourColor,
+      strokeWeight: 4,
       strokeOpacity: 0.8,
       strokeStyle: 'solid',
     });
@@ -119,8 +130,8 @@ export default function KakaoRoutePolyline({
     const fromWaypointPolyline = new window.kakao.maps.Polyline({
       map,
       path: fromWaypointPath,
-      strokeColor: 'var(--green-600)', // 초록색
-      strokeWeight: 5,
+      strokeColor: detourColor,
+      strokeWeight: 4,
       strokeOpacity: 0.8,
       strokeStyle: 'solid',
     });
@@ -132,7 +143,7 @@ export default function KakaoRoutePolyline({
         polyline.setMap(null);
       });
     };
-  }, [map, detourRoute]);
+  }, [map, detourRoute, themeColorVersion]);
 
   return null; // 렌더링 없음 (지도에 직접 그림)
 }

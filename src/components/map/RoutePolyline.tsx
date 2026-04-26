@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { getAccentColor, getSuccessColor, subscribeToThemeColorChanges } from '@/lib/theme-colors';
 import type { Route } from '@/types/location';
 
 interface RoutePolylineProps {
@@ -30,6 +31,11 @@ export default function RoutePolyline({
 }: RoutePolylineProps) {
   const originalPolylineRef = useRef<naver.maps.Polyline | null>(null);
   const detourPolylineRef = useRef<naver.maps.Polyline[]>([]);
+  const [themeColorVersion, setThemeColorVersion] = useState(0);
+
+  useEffect(() => (
+    subscribeToThemeColorChanges(() => setThemeColorVersion((version) => version + 1))
+  ), []);
 
   // 원본 경로 그리기
   useEffect(() => {
@@ -48,8 +54,8 @@ export default function RoutePolyline({
     const polyline = new window.naver.maps.Polyline({
       map,
       path,
-      strokeColor: 'var(--accent)', // 파란색
-      strokeWeight: 5,
+      strokeColor: getAccentColor(),
+      strokeWeight: 6,
       strokeOpacity: 0.7,
     });
 
@@ -67,7 +73,7 @@ export default function RoutePolyline({
         originalPolylineRef.current.setMap(null);
       }
     };
-  }, [map, originalRoute]);
+  }, [map, originalRoute, themeColorVersion]);
 
   // 경유지 경로 그리기
   useEffect(() => {
@@ -81,6 +87,8 @@ export default function RoutePolyline({
 
     if (!detourRoute) return;
 
+    const detourColor = getSuccessColor();
+
     // A→C 경로
     const toWaypointPath = detourRoute.toWaypoint.path.map(
       (point) => new window.naver.maps.LatLng(point.lat, point.lng)
@@ -88,8 +96,8 @@ export default function RoutePolyline({
     const toWaypointPolyline = new window.naver.maps.Polyline({
       map,
       path: toWaypointPath,
-      strokeColor: 'var(--green-600)', // 초록색
-      strokeWeight: 5,
+      strokeColor: detourColor,
+      strokeWeight: 4,
       strokeOpacity: 0.8,
     });
 
@@ -100,8 +108,8 @@ export default function RoutePolyline({
     const fromWaypointPolyline = new window.naver.maps.Polyline({
       map,
       path: fromWaypointPath,
-      strokeColor: 'var(--green-600)', // 초록색
-      strokeWeight: 5,
+      strokeColor: detourColor,
+      strokeWeight: 4,
       strokeOpacity: 0.8,
     });
 
@@ -112,7 +120,7 @@ export default function RoutePolyline({
         polyline.setMap(null);
       });
     };
-  }, [map, detourRoute]);
+  }, [map, detourRoute, themeColorVersion]);
 
   return null; // 렌더링 없음 (지도에 직접 그림)
 }

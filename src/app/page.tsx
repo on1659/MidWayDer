@@ -9,7 +9,7 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Search, Share2, LocateFixed, Sun, Moon, Star, Wifi, Settings } from 'lucide-react';
+import { LocateFixed, Moon, RefreshCw, Search, Settings, Share2, Star, Sun, Wifi } from 'lucide-react';
 import Link from 'next/link';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import MapContainer from '@/components/map/MapContainer';
@@ -217,12 +217,12 @@ export default function HomePage() {
     // 출발지/도착지 설정
     setStart({ address: route.startAddress, coordinates: route.startCoords });
     setEnd({ address: route.endAddress, coordinates: route.endCoords });
-    
+
     // 카테고리 설정 (있는 경우)
     if (route.category) {
       setCategory(route.category);
     }
-    
+
     // 자동 검색 실행
     search(
       { address: route.startAddress, coordinates: route.startCoords },
@@ -231,7 +231,7 @@ export default function HomePage() {
     ).then(() => {
       setBottomSheetSnap('half');
     });
-    
+
     // 오버레이 닫기
     setSearchOverlayOpen(false);
   }, [setStart, setEnd, setCategory, search, category, setBottomSheetSnap]);
@@ -327,7 +327,7 @@ export default function HomePage() {
 
         {/* 지도 영역 재검색 */}
         {(mapPanned || mapZoomed) && hasSearched && !isLoading && (
-          <button className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all active:scale-95 hover:shadow-xl" style={{ background: 'var(--bg-surface)', color: 'var(--accent)', border: '1.5px solid var(--accent)' }}
+          <button className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold backdrop-blur transition-all active:scale-95" style={{ background: 'var(--bg-overlay)', color: 'var(--accent)', border: '1.5px solid var(--border-accent)', boxShadow: 'var(--shadow-3)' }}
             onClick={async () => {
               setMapPanned(false);
               if (!start?.address || !end?.address) return;
@@ -335,7 +335,10 @@ export default function HomePage() {
               await search({ address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) }, { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) }, category);
               setBottomSheetSnap('half');
             }}
-          >🔄 이 지역 재검색</button>
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            이 지역 재검색
+          </button>
         )}
 
         {/* Settings Button — z-50: BottomSheet(z-40) 위에 표시, 바텀시트 상태에 따라 위치 조정 */}
@@ -365,9 +368,16 @@ export default function HomePage() {
 
         {/* Legend */}
         {originalRoute && (
-          <div className="hidden md:block absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-4 space-y-2">
+          <div
+            className="hidden md:block absolute bottom-6 left-6 backdrop-blur-sm rounded-2xl p-4 space-y-2"
+            style={{
+              background: 'var(--bg-overlay)',
+              border: '1px solid var(--border-soft)',
+              boxShadow: 'var(--shadow-1)',
+            }}
+          >
             <div className="flex items-center gap-2"><div className="w-8 h-1 rounded-full" style={{ background: 'var(--accent)' }} /><span className="text-xs" style={{ color: 'var(--text-muted)' }}>원본 경로</span></div>
-            {selectedWaypoint && <div className="flex items-center gap-2"><div className="w-8 h-1 rounded-full" style={{ background: 'var(--green-600)' }} /><span className="text-xs" style={{ color: 'var(--text-muted)' }}>경유지 경로</span></div>}
+            {selectedWaypoint && <div className="flex items-center gap-2"><div className="w-8 h-1 rounded-full" style={{ background: 'var(--success)' }} /><span className="text-xs" style={{ color: 'var(--text-muted)' }}>경유지 경로</span></div>}
           </div>
         )}
 
@@ -426,7 +436,7 @@ export default function HomePage() {
                   <span className="flex-1 text-left text-sm truncate" style={{ color: 'var(--text-strong)' }}>{start?.address || '출발지 선택'}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--pink-500)' }}>도</div>
+                  <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--success)' }}>도</div>
                   <span className="flex-1 text-left text-sm truncate" style={{ color: 'var(--text-strong)' }}>{end?.address || '도착지 선택'}</span>
                 </div>
               </button>

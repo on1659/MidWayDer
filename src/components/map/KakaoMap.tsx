@@ -8,6 +8,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Minus, Plus } from 'lucide-react';
 import type { Coordinates } from '@/types/location';
 
 interface KakaoMapProps {
@@ -110,30 +111,46 @@ export default function KakaoMap({
 
   return (
     <div ref={mapRef} className="w-full h-full relative">
-      {/* Custom zoom controls — 48px touch targets with 12px gap */}
+      {/* Custom zoom controls — desktop only; mobile keeps native map pinch/gesture controls unobstructed. */}
       {map && (
-        <div className="absolute right-3 bottom-24 flex flex-col gap-3 z-10">
+        <div className="absolute right-3 bottom-24 hidden md:flex flex-col gap-3 z-10">
           <button
             onClick={() => map.setLevel(map.getLevel() - 1)}
-            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+            style={{
+              background: 'var(--surface-2)',
+              boxShadow: 'var(--shadow-1)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-soft)',
+            }}
             aria-label="확대"
-          >+</button>
+          >
+            <Plus className="w-5 h-5" aria-hidden="true" />
+          </button>
           <button
             onClick={() => map.setLevel(map.getLevel() + 1)}
-            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-xl font-bold active:scale-95 transition-transform"
+            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+            style={{
+              background: 'var(--surface-2)',
+              boxShadow: 'var(--shadow-1)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-soft)',
+            }}
             aria-label="축소"
-          >−</button>
+          >
+            <Minus className="w-5 h-5" aria-hidden="true" />
+          </button>
         </div>
       )}
       {!isLoaded && (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-surface-muted)' }}>
           {loadError ? (
             <div className="text-center p-4">
-              <p className="text-red-500 font-medium mb-2">지도 로드 실패</p>
-              <p className="text-sm text-gray-500">{loadError}</p>
+              <p className="font-medium mb-2" style={{ color: 'var(--color-error-current)' }}>지도 로드 실패</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{loadError}</p>
             </div>
           ) : (
-            <p className="text-gray-500">지도를 불러오는 중...</p>
+            <p style={{ color: 'var(--text-secondary)' }}>지도를 불러오는 중...</p>
           )}
         </div>
       )}

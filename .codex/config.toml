@@ -1,0 +1,19 @@
+# MidWayDer Codex adapter.
+#
+# Source of truth:
+# - AGENTS.md
+# - docs/harness/*
+# - .claude/rules/*
+#
+# Codex currently loads runtime hooks from CODEX_HOME in some clients.
+# Keep this repo-local file as the project adapter manifest, and mirror the
+# hook wiring into ~/.codex when using Codex clients that require global hooks.
+
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+
+[features]
+codex_hooks = true
+
+[projects."/Users/radar/Work/MidWayDer"]
+trust_level = "trusted"

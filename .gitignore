@@ -1,6 +1,9 @@
 node_modules
 .next
 out
+.DS_Store
+.bkit/
+.claude/worktrees/
 
 # Keep environment variables out of version control
 .env

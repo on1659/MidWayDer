@@ -8,6 +8,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Minus, Plus } from 'lucide-react';
 import type { Coordinates } from '@/types/location';
 import { logger } from '@/lib/logger';
 
@@ -28,6 +29,7 @@ export default function NaverMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<naver.maps.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(zoom);
 
   // Naver Maps SDK 스크립트 로드
   useEffect(() => {
@@ -66,10 +68,7 @@ export default function NaverMap({
     const mapInstance = new window.naver.maps.Map(mapRef.current, {
       center: new window.naver.maps.LatLng(center.lat, center.lng),
       zoom,
-      zoomControl: true,
-      zoomControlOptions: {
-        position: window.naver.maps.Position.TOP_RIGHT,
-      },
+      zoomControl: false,
       mapTypeControl: true,
       mapTypeControlOptions: {
         position: window.naver.maps.Position.TOP_LEFT,
@@ -81,10 +80,48 @@ export default function NaverMap({
   }, [isLoaded, center, zoom, map, onMapReady]);
 
   return (
-    <div ref={mapRef} className="w-full h-full">
+    <div ref={mapRef} className="w-full h-full relative">
+      {map && (
+        <div className="absolute right-3 bottom-24 hidden md:flex flex-col gap-3 z-10">
+          <button
+            onClick={() => {
+              const nextZoom = zoomLevel + 1;
+              setZoomLevel(nextZoom);
+              map.setZoom(nextZoom);
+            }}
+            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+            style={{
+              background: 'var(--surface-2)',
+              boxShadow: 'var(--shadow-1)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-soft)',
+            }}
+            aria-label="확대"
+          >
+            <Plus className="w-5 h-5" aria-hidden="true" />
+          </button>
+          <button
+            onClick={() => {
+              const nextZoom = zoomLevel - 1;
+              setZoomLevel(nextZoom);
+              map.setZoom(nextZoom);
+            }}
+            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+            style={{
+              background: 'var(--surface-2)',
+              boxShadow: 'var(--shadow-1)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-soft)',
+            }}
+            aria-label="축소"
+          >
+            <Minus className="w-5 h-5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
       {!isLoaded && (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-          <p className="text-gray-500">지도를 불러오는 중...</p>
+        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-surface-muted)' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>지도를 불러오는 중...</p>
         </div>
       )}
     </div>

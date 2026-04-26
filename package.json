@@ -16,7 +16,15 @@
     "test:smoke": "tsx scripts/smoke-test.ts",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test tests/e2e/smoke.spec.ts",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:mobile": "playwright test --project=mobile-chrome",
+    "test:e2e:mobile:ui": "playwright test --project=mobile-chrome tests/e2e/mobile-ui.spec.ts",
+    "test:e2e:mobile:visual": "playwright test --project=mobile-chrome tests/e2e/mobile-visual.spec.ts",
+    "test:e2e:mobile:update": "playwright test --project=mobile-chrome --update-snapshots",
+    "test:prod": "playwright test --config=playwright.prod.config.ts",
+    "test:prod:desktop": "playwright test --config=playwright.prod.config.ts --project=chromium-desktop",
+    "test:prod:mobile": "playwright test --config=playwright.prod.config.ts --project=mobile-chrome",
+    "test:prod:headed": "playwright test --config=playwright.prod.config.ts --headed"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",

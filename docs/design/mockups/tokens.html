@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MidWayDer Design Tokens 2026</title>
+<style>
+:root {
+  --n-0:#ffffff; --n-50:#fafafa; --n-100:#f4f4f5; --n-200:#e4e4e7;
+  --n-300:#d4d4d8; --n-400:#a1a1aa; --n-500:#71717a; --n-600:#52525b;
+  --n-700:#3f3f46; --n-800:#27272a; --n-900:#18181b; --n-950:#09090b;
+  --success:#10b981; --warn:#f59e0b; --error:#ef4444; --info:#3b82f6;
+  --a-50:#eef2ff;  --a-100:#e0e7ff; --a-200:#c7d2fe; --a-300:#a5b4fc;
+  --a-400:#818cf8; --a-500:#6366f1; --a-600:#4f46e5; --a-700:#4338ca;
+  --a-800:#3730a3; --a-900:#312e81; --a-950:#1e1b4b;
+  --a-rgb: 99, 102, 241;
+}
+[data-theme="teal"]    { --a-50:#ecfeff; --a-100:#cffafe; --a-200:#a5f3fc; --a-300:#67e8f9; --a-400:#22d3ee; --a-500:#06b6d4; --a-600:#0891b2; --a-700:#0e7490; --a-800:#155e75; --a-900:#164e63; --a-950:#083344; --a-rgb:6,182,212; }
+[data-theme="violet"]  { --a-50:#f5f3ff; --a-100:#ede9fe; --a-200:#ddd6fe; --a-300:#c4b5fd; --a-400:#a78bfa; --a-500:#8b5cf6; --a-600:#7c3aed; --a-700:#6d28d9; --a-800:#5b21b6; --a-900:#4c1d95; --a-950:#2e1065; --a-rgb:139,92,246; }
+[data-theme="emerald"] { --a-50:#ecfdf5; --a-100:#d1fae5; --a-200:#a7f3d0; --a-300:#6ee7b7; --a-400:#34d399; --a-500:#10b981; --a-600:#059669; --a-700:#047857; --a-800:#065f46; --a-900:#064e3b; --a-950:#022c22; --a-rgb:16,185,129; }
+[data-theme="blue"]    { --a-50:#eff6ff; --a-100:#dbeafe; --a-200:#bfdbfe; --a-300:#93c5fd; --a-400:#60a5fa; --a-500:#3b82f6; --a-600:#2563eb; --a-700:#1d4ed8; --a-800:#1e40af; --a-900:#1e3a8a; --a-950:#172554; --a-rgb:59,130,246; }
+[data-theme="rose"]    { --a-50:#fff1f2; --a-100:#ffe4e6; --a-200:#fecdd3; --a-300:#fda4af; --a-400:#fb7185; --a-500:#f43f5e; --a-600:#e11d48; --a-700:#be123c; --a-800:#9f1239; --a-900:#881337; --a-950:#4c0519; --a-rgb:244,63,94; }
+[data-theme="slate"]   { --a-50:#f8fafc; --a-100:#f1f5f9; --a-200:#e2e8f0; --a-300:#cbd5e1; --a-400:#94a3b8; --a-500:#64748b; --a-600:#475569; --a-700:#334155; --a-800:#1e293b; --a-900:#0f172a; --a-950:#020617; --a-rgb:100,116,139; }
+
+:root {
+  --bg: var(--n-50);
+  --text: var(--n-900);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0b0b0e; --text: var(--n-50); }
+}
+[data-mode="dark"] { --bg: #0b0b0e; --text: var(--n-50); color-scheme: dark; }
+[data-mode="light"] { --bg: var(--n-50); --text: var(--n-900); color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Pretendard", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding: 80px 24px 40px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1200px; margin: 0 auto; }
+h1 {
+  font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--a-500), var(--a-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 8px;
+}
+.sub { color: var(--n-500); margin-bottom: 40px; }
+h2 {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 48px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--n-200);
+}
+@media (prefers-color-scheme: dark) { h2 { border-bottom-color: #26262c; } }
+[data-mode="dark"] h2 { border-bottom-color: #26262c; }
+
+/* Theme picker */
+.theme-picker {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 999px;
+  padding: 5px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+@media (prefers-color-scheme: dark) {
+  .theme-picker { background: rgba(24,24,27,0.88); border-color: rgba(255,255,255,0.08); }
+}
+.tp-swatch {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.32,0.72,0,1);
+}
+.tp-swatch:hover { transform: scale(1.15); }
+.tp-swatch.active { border-color: var(--text); transform: scale(1.1); }
+.tp-swatch[data-t="indigo"]  { background: #6366f1; }
+.tp-swatch[data-t="teal"]    { background: #06b6d4; }
+.tp-swatch[data-t="violet"]  { background: #8b5cf6; }
+.tp-swatch[data-t="emerald"] { background: #10b981; }
+.tp-swatch[data-t="blue"]    { background: #3b82f6; }
+.tp-swatch[data-t="rose"]    { background: #f43f5e; }
+.tp-swatch[data-t="slate"]   { background: #64748b; }
+.tp-sep { width: 1px; height: 20px; background: rgba(128,128,128,0.3); margin: 0 4px; align-self: center; }
+.tp-mode {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.tp-mode.active { background: rgba(128,128,128,0.15); opacity: 1; }
+
+/* Dark tuning for shadow boxes (흰 카드가 다크에서 쨍함) */
+[data-mode="dark"] .shadow-box { background: #17171c; color: var(--n-300); }
+[data-mode="dark"] .motion-box { background: #17171c; border-color: #26262c; }
+[data-mode="dark"] .sem-card { border-color: #26262c; }
+[data-mode="dark"] .type-row { border-color: #26262c; }
+
+.scale {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.swatch {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.swatch:hover { transform: scale(1.05); z-index: 1; box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
+.swatch-lbl {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: white;
+  mix-blend-mode: difference;
+}
+
+.type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--n-200);
+}
+@media (prefers-color-scheme: dark) { .type-row { border-color: var(--n-800); } }
+.type-lbl {
+  width: 100px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--n-500);
+  font-weight: 600;
+}
+
+.radius-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+}
+.radius-box {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, var(--a-500), var(--a-400));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  box-shadow: 0 4px 8px rgba(var(--a-rgb), 0.25);
+}
+
+.shadow-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 24px;
+  padding: 24px 0;
+}
+.shadow-box {
+  aspect-ratio: 1;
+  background: var(--n-0);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--n-600);
+  font-family: ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { .shadow-box { background: var(--n-800); color: var(--n-300); } }
+.e1 { box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06); }
+.e2 { box-shadow: 0 4px 8px -2px rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.04); }
+.e3 { box-shadow: 0 12px 20px -6px rgba(0,0,0,0.1), 0 4px 8px -2px rgba(0,0,0,0.06); }
+.e4 { box-shadow: 0 24px 40px -12px rgba(0,0,0,0.14), 0 8px 16px -4px rgba(0,0,0,0.08); }
+.e-glow { box-shadow: 0 0 32px rgba(var(--a-rgb), 0.4); }
+
+.sem-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.sem-card {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--n-200);
+}
+@media (prefers-color-scheme: dark) { .sem-card { border-color: var(--n-800); } }
+.sem-card .bar { height: 8px; border-radius: 4px; margin-bottom: 12px; }
+.sem-card .k { font-size: 12px; font-family: ui-monospace, monospace; color: var(--n-500); }
+.sem-card .v { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+.motion-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.motion-box {
+  padding: 20px;
+  background: var(--n-0);
+  border-radius: 16px;
+  border: 1px solid var(--n-200);
+  text-align: center;
+  cursor: pointer;
+  transition-duration: 220ms;
+}
+@media (prefers-color-scheme: dark) { .motion-box { background: var(--n-900); border-color: var(--n-800); } }
+.motion-box:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+.motion-box.standard { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+.motion-box.emphasized { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+.motion-box.spring { transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.motion-box .n { font-weight: 700; margin-bottom: 4px; }
+.motion-box .m { font-size: 11px; color: var(--n-500); font-family: ui-monospace, monospace; }
+
+.back { margin-bottom: 24px; }
+.back a { color: var(--a-500); text-decoration: none; font-weight: 600; font-size: 14px; }
+</style>
+</head>
+<body data-theme="indigo">
+
+<div class="theme-picker">
+  <div class="tp-swatch active" data-t="indigo" title="Indigo"></div>
+  <div class="tp-swatch" data-t="teal" title="Teal"></div>
+  <div class="tp-swatch" data-t="violet" title="Violet"></div>
+  <div class="tp-swatch" data-t="emerald" title="Emerald"></div>
+  <div class="tp-swatch" data-t="blue" title="Blue"></div>
+  <div class="tp-swatch" data-t="rose" title="Rose"></div>
+  <div class="tp-swatch" data-t="slate" title="Slate"></div>
+  <div class="tp-sep"></div>
+  <button class="tp-mode" data-m="light">Light</button>
+  <button class="tp-mode" data-m="dark">Dark</button>
+</div>
+
+<div class="wrap">
+<div class="back"><a href="index.html">← 인덱스</a></div>
+
+<h1>Design Tokens 2026</h1>
+<p class="sub">Tailwind 4 <code>@theme</code> 기반 · 상단 색상 스위처로 7가지 팔레트 미리보기</p>
+
+<h2>🎨 Neutral Scale</h2>
+<div class="scale">
+  <div class="swatch" style="background:var(--n-0)"><span class="swatch-lbl" style="color:#000">0</span></div>
+  <div class="swatch" style="background:var(--n-50)"><span class="swatch-lbl" style="color:#000">50</span></div>
+  <div class="swatch" style="background:var(--n-100)"><span class="swatch-lbl" style="color:#000">100</span></div>
+  <div class="swatch" style="background:var(--n-200)"><span class="swatch-lbl" style="color:#000">200</span></div>
+  <div class="swatch" style="background:var(--n-300)"><span class="swatch-lbl" style="color:#000">300</span></div>
+  <div class="swatch" style="background:var(--n-400)"><span class="swatch-lbl">400</span></div>
+  <div class="swatch" style="background:var(--n-500)"><span class="swatch-lbl">500</span></div>
+  <div class="swatch" style="background:var(--n-600)"><span class="swatch-lbl">600</span></div>
+  <div class="swatch" style="background:var(--n-700)"><span class="swatch-lbl">700</span></div>
+  <div class="swatch" style="background:var(--n-800)"><span class="swatch-lbl">800</span></div>
+  <div class="swatch" style="background:var(--n-900)"><span class="swatch-lbl">900</span></div>
+  <div class="swatch" style="background:var(--n-950)"><span class="swatch-lbl">950</span></div>
+</div>
+
+<h2>🎯 Accent Scale (Brand)</h2>
+<div class="scale">
+  <div class="swatch" style="background:var(--a-50)"><span class="swatch-lbl" style="color:#000">50</span></div>
+  <div class="swatch" style="background:var(--a-100)"><span class="swatch-lbl" style="color:#000">100</span></div>
+  <div class="swatch" style="background:var(--a-200)"><span class="swatch-lbl" style="color:#000">200</span></div>
+  <div class="swatch" style="background:var(--a-300)"><span class="swatch-lbl" style="color:#000">300</span></div>
+  <div class="swatch" style="background:var(--a-400)"><span class="swatch-lbl">400</span></div>
+  <div class="swatch" style="background:var(--a-500)"><span class="swatch-lbl">500</span></div>
+  <div class="swatch" style="background:var(--a-600)"><span class="swatch-lbl">600</span></div>
+  <div class="swatch" style="background:var(--a-700)"><span class="swatch-lbl">700</span></div>
+  <div class="swatch" style="background:var(--a-800)"><span class="swatch-lbl">800</span></div>
+  <div class="swatch" style="background:var(--a-900)"><span class="swatch-lbl">900</span></div>
+  <div class="swatch" style="background:var(--a-950)"><span class="swatch-lbl">950</span></div>
+</div>
+
+<h2>🚦 Semantic Colors (모든 테마 공통)</h2>
+<div class="sem-row">
+  <div class="sem-card">
+    <div class="bar" style="background:var(--success)"></div>
+    <div class="k">--success</div>
+    <div class="v">#10b981 · 영업중, 확정</div>
+  </div>
+  <div class="sem-card">
+    <div class="bar" style="background:var(--warn)"></div>
+    <div class="k">--warn</div>
+    <div class="v">#f59e0b · 마감 임박, 주의</div>
+  </div>
+  <div class="sem-card">
+    <div class="bar" style="background:var(--error)"></div>
+    <div class="k">--error</div>
+    <div class="v">#ef4444 · 오류, 인기(🔥)</div>
+  </div>
+  <div class="sem-card">
+    <div class="bar" style="background:var(--info)"></div>
+    <div class="k">--info</div>
+    <div class="v">#3b82f6 · 정보, 경로 근접</div>
+  </div>
+</div>
+
+<h2>✍️ Typography (Fluid Scale)</h2>
+<div>
+  <div class="type-row"><div class="type-lbl">text-xs</div><div style="font-size:clamp(0.75rem, 0.72rem + 0.1vw, 0.78rem)">The quick brown fox jumps · 가나다라마바사</div></div>
+  <div class="type-row"><div class="type-lbl">text-sm</div><div style="font-size:clamp(0.875rem, 0.85rem + 0.12vw, 0.91rem)">The quick brown fox jumps · 가나다라마바사</div></div>
+  <div class="type-row"><div class="type-lbl">text-base</div><div style="font-size:clamp(1rem, 0.97rem + 0.15vw, 1.0625rem)">The quick brown fox jumps · 가나다라마바사</div></div>
+  <div class="type-row"><div class="type-lbl">text-lg</div><div style="font-size:clamp(1.125rem, 1.08rem + 0.22vw, 1.2rem);font-weight:500">The quick brown fox · 가나다라마바사</div></div>
+  <div class="type-row"><div class="type-lbl">text-xl</div><div style="font-size:clamp(1.375rem, 1.3rem + 0.4vw, 1.55rem);font-weight:600;letter-spacing:-0.02em">The quick brown · 가나다라마바</div></div>
+  <div class="type-row"><div class="type-lbl">text-2xl</div><div style="font-size:clamp(1.75rem, 1.6rem + 0.75vw, 2rem);font-weight:700;letter-spacing:-0.025em">The quick brown · 가나다라</div></div>
+  <div class="type-row"><div class="type-lbl">text-3xl</div><div style="font-size:clamp(2.25rem, 2rem + 1.25vw, 2.75rem);font-weight:800;letter-spacing:-0.03em">The quick · 가나다라</div></div>
+</div>
+
+<h2>⏹ Radius</h2>
+<div class="radius-row">
+  <div class="radius-box" style="border-radius:0">none<br><span style="opacity:0.7">0</span></div>
+  <div class="radius-box" style="border-radius:4px">sm<br><span style="opacity:0.7">4px</span></div>
+  <div class="radius-box" style="border-radius:8px">base<br><span style="opacity:0.7">8px</span></div>
+  <div class="radius-box" style="border-radius:12px">md<br><span style="opacity:0.7">12px</span></div>
+  <div class="radius-box" style="border-radius:16px">lg<br><span style="opacity:0.7">16px</span></div>
+  <div class="radius-box" style="border-radius:20px">xl<br><span style="opacity:0.7">20px</span></div>
+  <div class="radius-box" style="border-radius:24px">2xl<br><span style="opacity:0.7">24px</span></div>
+  <div class="radius-box" style="border-radius:9999px">full<br><span style="opacity:0.7">999</span></div>
+</div>
+
+<h2>☁️ Shadow Elevation</h2>
+<div class="shadow-row">
+  <div class="shadow-box e1">e1<br>—<br>card</div>
+  <div class="shadow-box e2">e2<br>—<br>hover</div>
+  <div class="shadow-box e3">e3<br>—<br>sheet</div>
+  <div class="shadow-box e4">e4<br>—<br>modal</div>
+  <div class="shadow-box e-glow">glow<br>—<br>accent</div>
+</div>
+
+<h2>✨ Motion (마우스 오버로 체감)</h2>
+<div class="motion-row">
+  <div class="motion-box standard">
+    <div class="n">Standard</div>
+    <div class="m">cubic-bezier(0.4, 0, 0.2, 1)</div>
+  </div>
+  <div class="motion-box emphasized">
+    <div class="n">Emphasized</div>
+    <div class="m">cubic-bezier(0.32, 0.72, 0, 1)</div>
+  </div>
+  <div class="motion-box spring">
+    <div class="n">Spring</div>
+    <div class="m">cubic-bezier(0.175, 0.885, 0.32, 1.275)</div>
+  </div>
+</div>
+
+<p style="margin:60px 0 40px;color:var(--n-500);font-size:14px;text-align:center">
+  기본 duration: <code>220ms</code> · <code>prefers-reduced-motion</code> 시 자동 무력화
+</p>
+
+</div>
+
+<script src="theme.js"></script>
+
+</body>
+</html>

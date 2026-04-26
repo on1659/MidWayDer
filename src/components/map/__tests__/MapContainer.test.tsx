@@ -47,9 +47,9 @@ describe('MapContainer', () => {
   it('renders with default kakao provider selected', () => {
     render(<MapContainer {...defaultProps} />);
 
-    // 카카오 버튼이 활성화 상태 (노란색 배경)
+    // 카카오 버튼이 활성화 상태
     const kakaoButton = screen.getByText('카카오');
-    expect(kakaoButton).toHaveClass('bg-yellow-400');
+    expect(kakaoButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('accepts all props without errors', () => {
