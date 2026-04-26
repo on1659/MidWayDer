@@ -1,4 +1,4 @@
-const CACHE_NAME = 'midwayder-v0.67.1';
+const CACHE_NAME = 'midwayder-v0.67.2';
 const OFFLINE_URL = '/offline.html';
 
 // 캐시할 정적 자산

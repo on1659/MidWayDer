@@ -9,7 +9,7 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { LocateFixed, Moon, RefreshCw, Search, Settings, Share2, Star, Sun, Wifi } from 'lucide-react';
+import { Compass, History, LocateFixed, MapPinned, Moon, RefreshCw, Search, Settings, Share2, Star, Sun, Wifi } from 'lucide-react';
 import Link from 'next/link';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import MapContainer from '@/components/map/MapContainer';
@@ -298,6 +298,59 @@ export default function HomePage() {
       )}
 
       {/* ========== DESKTOP SIDE PANEL (md+) ========== */}
+      <aside
+        className="hidden md:flex w-14 shrink-0 flex-col items-center gap-2 py-3 z-20"
+        style={{
+          background: 'var(--bg-surface)',
+          borderRight: '1px solid var(--border-soft)',
+        }}
+        aria-label="데스크톱 내비게이션"
+      >
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black"
+          style={{
+            background: 'linear-gradient(135deg, var(--accent), var(--color-accent-400))',
+            color: 'var(--text-on-accent)',
+            boxShadow: 'var(--shadow-3)',
+          }}
+          aria-hidden="true"
+        >
+          M
+        </div>
+        {[
+          { label: '검색', icon: Search, active: true },
+          { label: '지도', icon: MapPinned, active: false },
+          { label: '추천', icon: Compass, active: false },
+          { label: '기록', icon: History, active: false },
+        ].map(({ label, icon: Icon, active }) => (
+          <button
+            key={label}
+            type="button"
+            aria-label={label}
+            aria-pressed={active}
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform active:scale-95"
+            style={{
+              background: active ? 'var(--overlay-selected)' : 'transparent',
+              color: active ? 'var(--accent)' : 'var(--text-muted)',
+              border: `1px solid ${active ? 'var(--border-accent)' : 'transparent'}`,
+            }}
+          >
+            <Icon className="w-5 h-5" aria-hidden="true" />
+          </button>
+        ))}
+        <div className="flex-1" />
+        <Link
+          href="/settings"
+          aria-label="설정"
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{
+            color: 'var(--text-muted)',
+            border: '1px solid var(--border-soft)',
+          }}
+        >
+          <Settings className="w-5 h-5" aria-hidden="true" />
+        </Link>
+      </aside>
       <DesktopSidePanel
         theme={theme}
         toggleTheme={toggleTheme}
@@ -309,6 +362,17 @@ export default function HomePage() {
 
       {/* ========== MAP ========== */}
       <main id="main-content" className="flex-1 relative" role="main">
+        <div
+          className="hidden md:flex absolute top-5 left-1/2 -translate-x-1/2 z-20 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold backdrop-blur"
+          style={{
+            background: 'color-mix(in srgb, var(--text-strong) 88%, transparent)',
+            color: 'var(--text-on-accent)',
+            boxShadow: 'var(--shadow-3)',
+          }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success)', boxShadow: '0 0 8px var(--success)' }} />
+          {hasSearched ? `${filteredResults.length}개 추천 경로 표시 중` : '경유지 추천 대기 중'}
+        </div>
         <MapContainer
           center={mapCenter}
           zoom={12}
@@ -391,6 +455,34 @@ export default function HomePage() {
           </div>
         )}
 
+        {originalRoute && (
+          <div
+            className="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 z-20 rounded-2xl overflow-hidden backdrop-blur"
+            style={{
+              background: 'var(--bg-overlay)',
+              border: '1px solid var(--border-soft)',
+              boxShadow: 'var(--shadow-3)',
+            }}
+          >
+            {[
+              { label: '기본 거리', value: (originalRoute.distance / 1000).toFixed(1), unit: 'km' },
+              { label: '예상 시간', value: String(Math.round(originalRoute.duration / 60)), unit: '분' },
+              { label: '추천', value: String(filteredResults.length), unit: '곳' },
+            ].map((pod, index) => (
+              <div
+                key={pod.label}
+                className="min-w-24 px-4 py-3 text-center"
+                style={{ borderLeft: index === 0 ? 'none' : '1px solid var(--border-soft)' }}
+              >
+                <div className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--text-muted)' }}>{pod.label}</div>
+                <div className="text-base font-bold tabular-nums" style={{ color: index === 2 ? 'var(--accent)' : 'var(--text-strong)' }}>
+                  {pod.value}<span className="ml-0.5 text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>{pod.unit}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Map Click Sheet */}
         {mapClickInfo && !selectedWaypoint && (
           <MapClickSheet name={mapClickInfo.name} address={mapClickInfo.address} category={mapClickInfo.category} phone={mapClickInfo.phone} placeUrl={mapClickInfo.placeUrl} coords={mapClickInfo.coords}
@@ -402,7 +494,9 @@ export default function HomePage() {
 
         {/* Place Detail */}
         {selectedWaypoint && (
-          <PlaceDetail waypoint={selectedWaypoint} onClose={() => selectWaypoint(null)} onConfirm={(wp) => { selectWaypoint(wp); if (wp.routes.original) setOriginalRoute(wp.routes.original); }} />
+          <div className="md:hidden">
+            <PlaceDetail waypoint={selectedWaypoint} onClose={() => selectWaypoint(null)} onConfirm={(wp) => { selectWaypoint(wp); if (wp.routes.original) setOriginalRoute(wp.routes.original); }} />
+          </div>
         )}
 
         {/* Mobile Search Bar - 카카오맵 스타일 (상단 고정) */}
@@ -619,6 +713,10 @@ export default function HomePage() {
           <BottomQuickBar favorites={favorites} setBottomSheetSnap={setBottomSheetSnap} setSearchOverlayOpen={setSearchOverlayOpen} onRoutineApply={handleRoutineApply} />
         )}
       </main>
+
+      {selectedWaypoint && (
+        <PlaceDetail variant="desktop-pane" waypoint={selectedWaypoint} onClose={() => selectWaypoint(null)} onConfirm={(wp) => { selectWaypoint(wp); if (wp.routes.original) setOriginalRoute(wp.routes.original); }} />
+      )}
 
       {/* Compare Panel */}
       {compareMode && (

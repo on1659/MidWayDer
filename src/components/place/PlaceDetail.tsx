@@ -19,6 +19,7 @@ interface PlaceDetailProps {
   waypoint: DetourResult;
   onClose: () => void;
   onConfirm: (waypoint: DetourResult) => void;
+  variant?: 'floating' | 'desktop-pane';
 }
 
 function formatDistance(meters: number): string {
@@ -32,7 +33,7 @@ function formatDuration(seconds: number): string {
   return `+${mins}분`;
 }
 
-export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetailProps) {
+export default function PlaceDetail({ waypoint, onClose, onConfirm, variant = 'floating' }: PlaceDetailProps) {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -42,6 +43,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   const end = useRouteStore((s) => s.end);
   const { place, detourCost, finalScore } = waypoint;
   const address = place.roadAddress || place.address;
+  const isDesktopPane = variant === 'desktop-pane';
 
   // 경로 해시 계산
   const routeHash = start?.coordinates && end?.coordinates 
@@ -161,28 +163,41 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
   return (
     <>
       {/* Backdrop */}
-      <div
-        className={`md:hidden fixed inset-0 z-40 bg-black/20 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={handleClose}
-      />
+      {!isDesktopPane && (
+        <div
+          className={`md:hidden fixed inset-0 z-40 bg-black/20 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          onClick={handleClose}
+        />
+      )}
 
       {/* Card */}
       <div
-        className={[
-          'z-50 bg-white rounded-2xl shadow-lg transition-all duration-300 ease-out',
-          'fixed inset-x-0 bottom-0 md:inset-auto',
-          'md:absolute md:left-6 md:bottom-6 md:w-[360px]',
-          visible
-            ? 'translate-y-0 opacity-100'
-            : 'translate-y-full md:translate-y-4 opacity-0',
-        ].join(' ')}
+        className={
+          isDesktopPane
+            ? 'hidden md:block md:w-[440px] md:shrink-0 z-20 h-dvh overflow-y-auto'
+            : [
+                'z-50 rounded-2xl shadow-lg transition-all duration-300 ease-out',
+                'fixed inset-x-0 bottom-0 md:inset-auto',
+                'md:absolute md:left-6 md:bottom-6 md:w-[360px]',
+                visible
+                  ? 'translate-y-0 opacity-100'
+                  : 'translate-y-full md:translate-y-4 opacity-0',
+              ].join(' ')
+        }
+        style={{
+          background: 'var(--surface-1)',
+          borderLeft: isDesktopPane ? '1px solid var(--border-soft)' : undefined,
+          boxShadow: isDesktopPane ? 'var(--shadow-2)' : undefined,
+        }}
       >
         {/* Drag handle */}
-        <div className="md:hidden flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-gray-200" />
-        </div>
+        {!isDesktopPane && (
+          <div className="md:hidden flex justify-center pt-3 pb-1">
+            <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border-soft)' }} />
+          </div>
+        )}
 
-        <div className="px-5 pt-3 pb-5 md:p-5">
+        <div className={isDesktopPane ? 'px-6 py-6' : 'px-5 pt-3 pb-5 md:p-5'}>
           {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="min-w-0">
@@ -203,7 +218,8 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
                   </p>
                   <button
                     onClick={handleCopyAddress}
-                    className="shrink-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
+                    className="shrink-0 p-1.5 rounded-lg hover:opacity-80 transition-colors active:scale-95"
+                    style={{ background: 'var(--bg-surface-muted)' }}
                     title="주소 복사"
                   >
                     {copied ? (
@@ -217,7 +233,8 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm }: PlaceDetai
             </div>
             <button
               onClick={handleClose}
-              className="shrink-0 p-1.5 -m-1.5 rounded-full hover:bg-gray-50 transition-colors"
+              className="shrink-0 p-1.5 -m-1.5 rounded-full hover:opacity-80 transition-colors"
+              style={{ background: 'var(--bg-surface-muted)' }}
               aria-label="닫기"
             >
               <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />

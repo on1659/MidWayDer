@@ -57,7 +57,11 @@ describe('CategorySelect', () => {
     render(<CategorySelect selected="카페" onChange={mockOnChange} />);
 
     const 카페Button = screen.getByText('카페').closest('button');
-    expect(카페Button).toHaveStyle({ color: 'var(--bg-surface)' });
+    expect(카페Button).toHaveStyle({
+      background: 'var(--overlay-selected)',
+      color: 'var(--accent)',
+    });
+    expect(카페Button).toHaveAttribute('style', expect.stringContaining('border: 1px solid var(--border-accent)'));
   });
 
   it('직접 입력 버튼 클릭 시 입력 모드 전환', () => {

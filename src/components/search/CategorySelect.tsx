@@ -40,20 +40,22 @@ interface CategorySelectProps {
   selected: string;
   /** 카테고리 변경 시 호출되는 콜백 */
   onChange: (category: string) => void;
+  /** 데스크톱 사이드패널용 축소형 */
+  density?: 'default' | 'compact';
 }
 
 const categories = [
-  { name: '주유소', emoji: '⛽', query: '주유소', bg: 'var(--red-100)', activeBg: 'var(--red-500)' },
-  { name: '카페', emoji: '☕', query: '카페', bg: 'var(--blue-100)', activeBg: 'var(--accent)' },
-  { name: '편의점', emoji: '🏪', query: 'CU', bg: 'var(--orange-100)', activeBg: 'var(--orange-500)' },
-  { name: '다이소', emoji: '🛒', query: '다이소', bg: 'var(--green-100)', activeBg: 'var(--green-600)' },
-  { name: '올리브영', emoji: '💄', query: '올리브영', bg: 'var(--pink-100)', activeBg: 'var(--pink-500)' },
-  { name: '스타벅스', emoji: '⭐', query: '스타벅스', bg: 'var(--blue-100)', activeBg: 'var(--accent)' },
-  { name: '이디야', emoji: '🏠', query: '이디야', bg: 'var(--purple-100)', activeBg: 'var(--blue-600)' },
-  { name: '휴게소', emoji: '🛣️', query: '휴게소', bg: 'var(--gray-100)', activeBg: 'var(--gray-600)' },
+  { name: '주유소', emoji: '⛽', query: '주유소' },
+  { name: '카페', emoji: '☕', query: '카페' },
+  { name: '편의점', emoji: '🏪', query: 'CU' },
+  { name: '다이소', emoji: '🛒', query: '다이소' },
+  { name: '올리브영', emoji: '💄', query: '올리브영' },
+  { name: '스타벅스', emoji: '⭐', query: '스타벅스' },
+  { name: '이디야', emoji: '🏠', query: '이디야' },
+  { name: '휴게소', emoji: '🛣️', query: '휴게소' },
 ];
 
-const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) => {
+const CategorySelectComponent = ({ selected, onChange, density = 'default' }: CategorySelectProps) => {
   const [isInputMode, setIsInputMode] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
@@ -95,7 +97,7 @@ const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) =>
     <div>
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {/* 기본 카테고리 칩 */}
-        {categories.map(({ name, emoji, query, bg, activeBg }) => {
+        {categories.map(({ name, emoji, query }) => {
           const isSelected = selected === query;
           return (
             <button
@@ -103,15 +105,17 @@ const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) =>
               onClick={() => onChange(query)}
               aria-label={name}
               aria-pressed={isSelected}
-              className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
-                transition-all active:scale-95 shrink-0 text-base font-semibold"
+              className={`flex items-center rounded-full whitespace-nowrap transition-all active:scale-95 shrink-0 font-semibold ${
+                density === 'compact' ? 'gap-1.5 px-3 py-1.5 text-xs' : 'gap-2 px-5 py-3 text-base'
+              }`}
               style={{
-                background: isSelected ? activeBg : bg,
-                color: isSelected ? 'var(--bg-surface)' : 'var(--text-strong)',
-                boxShadow: isSelected ? `0 2px 8px ${activeBg}40` : 'none',
+                background: isSelected ? 'var(--overlay-selected)' : 'var(--bg-surface-muted)',
+                color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
+                border: `1px solid ${isSelected ? 'var(--border-accent)' : 'transparent'}`,
+                boxShadow: isSelected ? 'var(--shadow-1)' : 'none',
               }}
             >
-              <span className="text-lg">{emoji}</span>
+              <span className={density === 'compact' ? 'text-sm' : 'text-lg'}>{emoji}</span>
               <span>{name}</span>
             </button>
           );
@@ -126,15 +130,17 @@ const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) =>
               onClick={() => onChange(cat)}
               aria-label={`${cat}, 최근 사용`}
               aria-pressed={isSelected}
-              className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
-                transition-all active:scale-95 shrink-0 text-base font-semibold"
+              className={`flex items-center rounded-full whitespace-nowrap transition-all active:scale-95 shrink-0 font-semibold ${
+                density === 'compact' ? 'gap-1.5 px-3 py-1.5 text-xs' : 'gap-2 px-5 py-3 text-base'
+              }`}
               style={{
-                background: isSelected ? 'var(--purple-500, #8b5cf6)' : 'var(--purple-100)',
-                color: isSelected ? 'var(--bg-surface)' : 'var(--purple-700, #6d28d9)',
-                boxShadow: isSelected ? '0 2px 8px rgba(139,92,246,0.35)' : 'none',
+                background: isSelected ? 'var(--overlay-selected)' : 'var(--bg-surface-muted)',
+                color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
+                border: `1px solid ${isSelected ? 'var(--border-accent)' : 'transparent'}`,
+                boxShadow: isSelected ? 'var(--shadow-1)' : 'none',
               }}
             >
-              <span className="text-lg">🔍</span>
+              <span className={density === 'compact' ? 'text-sm' : 'text-lg'}>🔍</span>
               <span>{cat}</span>
             </button>
           );
@@ -144,16 +150,17 @@ const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) =>
           onClick={() => setIsInputMode(true)}
           data-testid="custom-category-toggle"
           aria-label="직접 입력"
-          className="flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap
-            transition-all active:scale-95 shrink-0 text-base font-semibold"
+          className={`flex items-center rounded-full whitespace-nowrap transition-all active:scale-95 shrink-0 font-semibold ${
+            density === 'compact' ? 'gap-1.5 px-3 py-1.5 text-xs' : 'gap-2 px-5 py-3 text-base'
+          }`}
           style={{
-            background: 'var(--purple-100)',
-            color: 'var(--purple-700, #6d28d9)',
-            border: '1.5px dashed var(--purple-300, #c4b5fd)',
+            background: 'var(--bg-surface-muted)',
+            color: 'var(--text-secondary)',
+            border: '1px dashed var(--border-soft)',
           }}
           title="원하는 카테고리를 직접 입력하세요"
         >
-          <span className="text-lg">✏️</span>
+          <span className={density === 'compact' ? 'text-sm' : 'text-lg'}>✏️</span>
           <span>직접 입력</span>
         </button>
       </div>
@@ -172,9 +179,9 @@ const CategorySelectComponent = ({ selected, onChange }: CategorySelectProps) =>
             maxLength={20}
             className="w-full px-4 py-3 rounded-2xl text-base font-semibold outline-none"
             style={{
-              background: 'var(--purple-100)',
-              color: 'var(--purple-700, #6d28d9)',
-              border: '2px solid var(--purple-400, #a78bfa)',
+              background: 'var(--overlay-selected)',
+              color: 'var(--accent)',
+              border: '1px solid var(--border-accent)',
             }}
           />
         </div>

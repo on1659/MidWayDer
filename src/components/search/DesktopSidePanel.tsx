@@ -2,7 +2,7 @@
 
 /**
  * Desktop Side Panel - 데스크톱 검색/결과 패널 (md+ only)
- * page.tsx에서 분리된 440px 고정 좌측 패널
+ * page.tsx에서 분리된 380px 고정 좌측 패널
  */
 
 import { useCallback } from 'react';
@@ -119,51 +119,60 @@ export default function DesktopSidePanel({
 
   return (
     <aside
-      className="hidden md:flex md:w-[420px] md:shrink-0 flex-col z-10"
+      className="hidden md:flex md:w-[380px] md:shrink-0 flex-col z-10"
       style={{
-        background: 'var(--bg-surface)',
+        background: 'var(--surface-1)',
         borderRight: '1px solid var(--border-soft)'
       }}
     >
-      <header className="px-6 pt-6 pb-4">
+      <header className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border-soft)' }}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-strong)' }}>🗺️ MidWayDer</h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>가는 길에 어디 들를까?</p>
+            <h1 className="text-lg font-bold tracking-tight" style={{ color: 'var(--text-strong)' }}>MidWayDer</h1>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>가는 길에 어디 들를까?</p>
           </div>
-          <button onClick={toggleTheme} aria-label="테마 변경" className="w-9 h-9 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)' }}>
+          <button onClick={toggleTheme} aria-label="테마 변경" className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors" style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-muted)', border: '1px solid var(--border-soft)' }}>
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           <LanguageSelector />
         </div>
       </header>
 
-      <div className="px-5 pb-5 space-y-5 border-b border-gray-100">
-        <div className="space-y-2">
+      <div className="px-4 py-4 space-y-3" style={{ borderBottom: '1px solid var(--border-soft)' }}>
+        <div
+          className="rounded-[14px] p-3 space-y-2"
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-soft)',
+            boxShadow: 'var(--shadow-1)',
+          }}
+        >
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ background: 'var(--accent)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>출발</span>
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>출발</span>
           </div>
-          <AddressInput label="" value={start?.address || ''} onChange={handleStartChange} onSelect={handleStartSelect} placeholder="출발하는 곳" mapCenter={mapCenter} testId="origin-input" />
+          <AddressInput density="compact" label="" value={start?.address || ''} onChange={handleStartChange} onSelect={handleStartSelect} placeholder="출발하는 곳" mapCenter={mapCenter} testId="origin-input" />
         </div>
         <div className="flex justify-center -my-1">
-          <button onClick={handleSwap} disabled={!start?.address && !end?.address} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:bg-blue-50 active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed" style={{ border: '1px solid var(--border-soft)' }} title="출발지↔도착지 바꾸기">
-            <ArrowUpDown className="w-5 h-5 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
+          <button onClick={handleSwap} disabled={!start?.address && !end?.address} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed" style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }} title="출발지↔도착지 바꾸기">
+            <ArrowUpDown className="w-4 h-4 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: 'var(--pink-500)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>도착</span>
+            <div className="w-3 h-3 rounded-full" style={{ background: 'var(--success)' }} />
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-strong)' }}>도착</span>
           </div>
-          <AddressInput label="" value={end?.address || ''} onChange={handleEndChange} onSelect={handleEndSelect} placeholder="가고 싶은 곳" mapCenter={mapCenter} testId="destination-input" />
+          <AddressInput density="compact" label="" value={end?.address || ''} onChange={handleEndChange} onSelect={handleEndSelect} placeholder="가고 싶은 곳" mapCenter={mapCenter} testId="destination-input" />
+        </div>
         </div>
         <div className="space-y-2">
-          <span className="text-sm font-semibold" style={{ color: 'var(--text-strong)' }}>어디 들를까?</span>
-          <CategorySelect selected={category} onChange={handleCategoryChange} />
+          <span className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--text-muted)' }}>어디 들를까?</span>
+          <CategorySelect density="compact" selected={category} onChange={handleCategoryChange} />
         </div>
         {/* previewRoute is always null; RoutePreview rendered via useMapState when available */}
-        <button data-testid="search-route-btn" onClick={handleSearch} disabled={isLoading || !canSearch} className="w-full py-3.5 text-white rounded-2xl font-bold text-base active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md" style={{ background: isLoading || !canSearch ? undefined : 'var(--accent)' }}>
+        <button data-testid="search-route-btn" onClick={handleSearch} disabled={isLoading || !canSearch} className="w-full py-3 rounded-xl font-bold text-sm active:scale-[0.97] disabled:opacity-45 transition-all" style={{ background: isLoading || !canSearch ? 'var(--bg-surface-muted)' : 'var(--accent)', color: isLoading || !canSearch ? 'var(--text-muted)' : 'var(--text-on-accent)', boxShadow: isLoading || !canSearch ? 'none' : 'var(--shadow-3)' }}>
           {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
         </button>
         {!results.length && !isLoading && (
@@ -171,7 +180,16 @@ export default function DesktopSidePanel({
             <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>빠른 선택</p>
             <div className="flex flex-wrap gap-2">
               {[{ emoji: '☕', label: '카페' }, { emoji: '🏪', label: '편의점' }, { emoji: '🛒', label: '다이소' }, { emoji: '💄', label: '올리브영' }, { emoji: '⭐', label: '스타벅스' }].map((item) => (
-                <button key={item.label} onClick={() => setCategory(item.label)} className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95 ${category === item.label ? 'ring-2' : ''}`} style={{ background: category === item.label ? 'var(--accent)' : 'var(--blue-150)', color: category === item.label ? 'white' : 'var(--blue-700)' }}>
+                <button
+                  key={item.label}
+                  onClick={() => setCategory(item.label)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                  style={{
+                    background: category === item.label ? 'var(--overlay-selected)' : 'var(--bg-surface-muted)',
+                    color: category === item.label ? 'var(--accent)' : 'var(--text-secondary)',
+                    border: `1px solid ${category === item.label ? 'var(--border-accent)' : 'transparent'}`,
+                  }}
+                >
                   <span className="text-base">{item.emoji}</span>{item.label}
                 </button>
               ))}
@@ -183,15 +201,15 @@ export default function DesktopSidePanel({
             {originalRoute && (
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>기본 경로{' '}<span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{(originalRoute.distance / 1000).toFixed(1)}km · {Math.round(originalRoute.duration / 60)}분</span></p>
-                {isCached && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'var(--blue-100)', color: 'var(--blue-600)' }}>⚡ 캐시</span>}
+                {isCached && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'var(--overlay-selected)', color: 'var(--accent)' }}>⚡ 캐시</span>}
               </div>
             )}
             <div className="flex items-center justify-between">
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{totalCandidates}개 중 {results.length}개 추천</p>
               <div className="flex items-center gap-2">
-                <button onClick={onOpenSaveDialog} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50" style={{ color: 'var(--accent)' }}><Star className="w-3.5 h-3.5" />저장</button>
-                <button onClick={handleShare} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50" style={{ color: 'var(--accent)' }}><Share2 className="w-3.5 h-3.5" />공유</button>
-                <button onClick={() => { if (filteredResults.length < 2) { showToast('비교할 경유지가 2개 이상 있어야 해요', 'info'); return; } onStartCompare(filteredResults.slice(0, 3)); }} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:bg-gray-50" style={{ color: 'var(--green-600)' }}>⚖️ 비교</button>
+                <button onClick={onOpenSaveDialog} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80" style={{ color: 'var(--accent)', background: 'var(--bg-surface-muted)' }}><Star className="w-3.5 h-3.5" />저장</button>
+                <button onClick={handleShare} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80" style={{ color: 'var(--accent)', background: 'var(--bg-surface-muted)' }}><Share2 className="w-3.5 h-3.5" />공유</button>
+                <button onClick={() => { if (filteredResults.length < 2) { showToast('비교할 경유지가 2개 이상 있어야 해요', 'info'); return; } onStartCompare(filteredResults.slice(0, 3)); }} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80" style={{ color: 'var(--success)', background: 'var(--bg-surface-muted)' }}>⚖️ 비교</button>
               </div>
             </div>
             <RouteTypeFilter selected={routeTypeFilter} onChange={setRouteTypeFilter} counts={routeTypeCounts} />
@@ -209,17 +227,17 @@ export default function DesktopSidePanel({
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>최근 검색</p>
-                  <button onClick={() => { if (confirm(`${recentSearches.length}개의 최근 검색 기록을 모두 삭제하시겠어요?`)) { clearAllRecentSearches(); setRecentSearches([]); showToast(`${recentSearches.length}개 검색 기록 삭제됨`, 'success'); } }} className="text-xs px-2 py-1 rounded-lg transition-colors hover:bg-gray-100" style={{ color: 'var(--text-muted)' }}>전체 삭제</button>
+                  <button onClick={() => { if (confirm(`${recentSearches.length}개의 최근 검색 기록을 모두 삭제하시겠어요?`)) { clearAllRecentSearches(); setRecentSearches([]); showToast(`${recentSearches.length}개 검색 기록 삭제됨`, 'success'); } }} className="text-xs px-2 py-1 rounded-lg transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface-muted)' }}>전체 삭제</button>
                 </div>
                 <div className="space-y-2">
                   {recentSearches.map((item) => (
-                    <div key={item.id} className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div key={item.id} className="flex items-center gap-2 p-3 rounded-xl transition-colors" style={{ background: 'var(--bg-surface-muted)' }}>
                       <button className="flex-1 text-left min-w-0" onClick={() => { setStart({ address: item.startAddress, coordinates: item.startCoords }); setEnd({ address: item.endAddress, coordinates: item.endCoords }); setCategory(item.category); }}>
                         <p className="text-sm font-medium truncate" style={{ color: 'var(--text-strong)' }}>{item.startAddress} → {item.endAddress}</p>
                         <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
                       </button>
-                      <button onClick={() => handleInstantSearch(item)} className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95" style={{ background: 'var(--accent)', color: 'white' }} title="바로 검색">▶</button>
-                      <button onClick={() => { removeRecentSearch(item.id); setRecentSearches(getRecentSearches()); }} className="shrink-0 p-2 rounded-full hover:bg-gray-200 transition-colors"><X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
+                      <button onClick={() => handleInstantSearch(item)} className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-bold transition-all active:scale-95" style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }} title="바로 검색">▶</button>
+                      <button onClick={() => { removeRecentSearch(item.id); setRecentSearches(getRecentSearches()); }} className="shrink-0 p-2 rounded-full hover:opacity-80 transition-colors" style={{ background: 'var(--surface-1)' }}><X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
                     </div>
                   ))}
                 </div>

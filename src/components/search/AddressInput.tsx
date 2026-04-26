@@ -27,6 +27,8 @@ interface AddressInputProps {
   dotColor?: string;
   /** E2E 테스트용 식별자 */
   testId?: string;
+  /** 데스크톱 패널처럼 밀도 높은 곳에서 쓰는 축소형 */
+  density?: 'default' | 'compact';
 }
 
 export default function AddressInput({
@@ -39,6 +41,7 @@ export default function AddressInput({
   mapCenter,
   dotColor,
   testId,
+  density = 'default',
 }: AddressInputProps) {
   const hintId = testId ? `${testId}-hint` : undefined;
   const [localValue, setLocalValue] = useState(value);
@@ -177,13 +180,15 @@ export default function AddressInput({
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
-          className="w-full px-4 py-4 rounded-2xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-12 gpu-accelerate"
+          className={`w-full rounded-2xl placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-12 gpu-accelerate ${
+            density === 'compact' ? 'px-3 py-2.5 text-[13px]' : 'px-4 py-4 text-base'
+          }`}
           style={{
-            background: 'var(--bg-surface)',
+            background: density === 'compact' ? 'var(--bg-surface-muted)' : 'var(--bg-surface)',
             color: 'var(--text-primary)',
-            border: '2px solid var(--border-strong)',
+            border: density === 'compact' ? '1px solid transparent' : '2px solid var(--border-strong)',
             fontSize: '16px', // iOS 자동 줌 방지
-            minHeight: '56px', // 모바일 터치 영역 확보
+            minHeight: density === 'compact' ? '40px' : '56px', // 모바일 터치 영역 확보
           }}
           onFocusCapture={(e) => {
             e.currentTarget.style.borderColor = 'var(--accent)';
