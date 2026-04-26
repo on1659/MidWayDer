@@ -344,9 +344,14 @@ export default function HomePage() {
         {/* Settings Button — z-50: BottomSheet(z-40) 위에 표시, 바텀시트 상태에 따라 위치 조정 */}
         <Link
           href="/settings"
-          className={`absolute right-4 z-50 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 ${
+          className={`absolute right-4 z-50 w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-all backdrop-blur ${
             hasResults && bottomSheetSnap !== 'full' ? 'bottom-52' : 'bottom-44'
           }`}
+          style={{
+            background: 'var(--bg-overlay)',
+            border: '1px solid var(--border-soft)',
+            boxShadow: 'var(--shadow-3)',
+          }}
           title="설정"
           aria-label="설정"
         >
@@ -357,9 +362,14 @@ export default function HomePage() {
         <button
           onClick={handleGPS}
           disabled={gpsLoading}
-          className={`absolute right-4 z-50 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:bg-gray-50 disabled:opacity-50 ${
+          className={`absolute right-4 z-50 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all backdrop-blur disabled:opacity-50 ${
             hasResults && bottomSheetSnap !== 'full' ? 'bottom-32' : 'bottom-24'
           }`}
+          style={{
+            background: 'var(--bg-overlay)',
+            border: '1px solid var(--border-soft)',
+            boxShadow: 'var(--shadow-3)',
+          }}
           title="현재 위치"
           aria-label="현재 위치로 이동"
         >
@@ -412,12 +422,20 @@ export default function HomePage() {
           )}
 
           {/* 카카오맵 스타일: 검색창 + 태그가 상단에 */}
-          <div className="bg-white rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
+          <div
+            className="rounded-2xl overflow-hidden backdrop-blur"
+            style={{
+              background: 'var(--bg-overlay)',
+              border: '1px solid var(--border-soft)',
+              boxShadow: 'var(--shadow-3)',
+            }}
+          >
             {/* 검색창 */}
             <button
               data-testid="open-search-overlay-btn"
               onClick={() => setSearchOverlayOpen(true)}
-              className="w-full flex items-center gap-3 px-4 py-4 border-b border-gray-100 active:bg-gray-50 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-4 transition-colors"
+              style={{ borderBottom: '1px solid var(--border-soft)' }}
             >
               <Search className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
               <span className="flex-1 text-left text-base font-medium" style={{ color: 'var(--text-secondary)' }}>
@@ -429,7 +447,7 @@ export default function HomePage() {
             {(start?.address || end?.address) && (
               <button
                 onClick={() => setSearchOverlayOpen(true)}
-                className="w-full flex flex-col gap-2 px-4 py-3 active:bg-gray-50 transition-colors"
+                className="w-full flex flex-col gap-2 px-4 py-3 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--accent)' }}>출</div>
@@ -443,7 +461,7 @@ export default function HomePage() {
             )}
 
             {/* 카테고리 태그 (카카오맵처럼 상단에) */}
-            <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide border-t border-gray-100">
+            <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide" style={{ borderTop: '1px solid var(--border-soft)' }}>
               {['카페', '편의점', '다이소', '올리브영', '스타벅스'].map((cat) => (
                 <button
                   key={cat}
@@ -457,12 +475,13 @@ export default function HomePage() {
                       setSearchOverlayOpen(true);
                     }
                   }}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 ${
-                    category === cat
-                      ? 'text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  style={category === cat ? { background: 'var(--accent)' } : {}}
+                  className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95"
+                  style={{
+                    background: category === cat ? 'var(--accent)' : 'var(--bg-surface-muted)',
+                    color: category === cat ? 'var(--text-on-accent)' : 'var(--text-secondary)',
+                    border: `1px solid ${category === cat ? 'var(--border-accent)' : 'var(--border-soft)'}`,
+                    boxShadow: category === cat ? 'var(--shadow-1)' : 'none',
+                  }}
                 >
                   {cat}
                 </button>
@@ -472,7 +491,17 @@ export default function HomePage() {
 
           {/* 테마/언어 버튼 */}
           <div className="flex items-center gap-2 mt-2">
-            <button onClick={toggleTheme} aria-label="테마 변경" className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-black/5 bg-white" style={{ color: 'var(--text-muted)' }}>
+            <button
+              onClick={toggleTheme}
+              aria-label="테마 변경"
+              className="w-12 h-12 rounded-full flex items-center justify-center backdrop-blur"
+              style={{
+                background: 'var(--bg-overlay)',
+                border: '1px solid var(--border-soft)',
+                boxShadow: 'var(--shadow-1)',
+                color: 'var(--text-muted)',
+              }}
+            >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <LanguageSelector />
