@@ -29,6 +29,8 @@ import AddressInput from '@/components/search/AddressInput';
 import MapContainer from '@/components/map/MapContainer';
 import SearchOverlay from '@/components/search/SearchOverlay';
 import MapClickSheet from '@/components/place/MapClickSheet';
+import HomeShell from '@/components/home/HomeShell';
+import MobileHomeShell from '@/components/home/MobileHomeShell';
 import ToastContainer from '@/components/ui/ToastContainer';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
@@ -428,7 +430,12 @@ export default function HomePage() {
         </div>
       )}
 
-      <main id="main-content" className="relative h-full" role="main">
+      <HomeShell
+        appReady={appReady}
+        isLoading={isLoading}
+        resultCount={results.length}
+        error={error}
+      >
         <MapContainer
           center={mapCenter}
           zoom={12}
@@ -701,28 +708,23 @@ export default function HomePage() {
           </div>
         </section>
 
-        <button
-          data-testid="open-search-overlay-btn"
-          type="button"
-          onClick={() => setSearchOverlayOpen(true)}
-          className="absolute inset-x-4 z-[1000] hidden min-h-14 items-center gap-3 rounded-2xl px-3 text-left text-sm font-semibold max-md:flex"
-          style={{ ...controlSurface, top: 'max(0.75rem, env(safe-area-inset-top))' }}
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: 'color-mix(in srgb, var(--accent) 12%, var(--bg-surface) 88%)' }}>
-            <Search className="h-4 w-4" style={{ color: 'var(--accent)' }} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-bold" style={{ color: 'var(--text-strong)' }}>
-              {start?.address && end?.address ? `${start.address} → ${end.address}` : '출발지와 도착지 입력'}
-            </span>
-            <span className="mt-0.5 block truncate text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-              {isLoading ? '찾는 중...' : hasVisibleResults ? `${category} · 경로 주변 추천` : '가는 길에 들를 곳을 찾아요'}
-            </span>
-          </span>
-          <span className="shrink-0 rounded-full px-2.5 py-1.5 text-xs font-bold" style={{ background: 'var(--bg-surface-muted)', color: 'var(--accent)' }}>
-            수정
-          </span>
-        </button>
+        <MobileHomeShell
+          categories={CATEGORIES}
+          category={category}
+          startAddress={start?.address}
+          endAddress={end?.address}
+          isLoading={isLoading}
+          error={error}
+          results={filteredResults}
+          selectedWaypointId={selectedWaypoint?.place.id || null}
+          totalCandidates={totalCandidates}
+          onOpenSearch={() => setSearchOverlayOpen(true)}
+          onCategoryChange={handleCategoryChange}
+          onSaveRoute={() => setSaveDialogOpen(true)}
+          onResultSelect={handleWaypointSelect}
+          onResultHover={setHoveredWaypointId}
+          onRetry={() => void runSearch()}
+        />
 
         <div className="md:hidden" role="search" aria-label="경로 검색">
           <SearchOverlay
@@ -756,85 +758,6 @@ export default function HomePage() {
             onRouteSelect={handleRouteSelect}
           />
         </div>
-
-        {hasVisibleResults && !isLoading && (
-          <section
-            data-testid="mobile-result-sheet"
-            className="absolute inset-x-0 bottom-0 z-[1000] max-h-[58dvh] isolate overflow-hidden rounded-t-3xl md:hidden"
-            style={{ ...controlSurface, borderBottom: 'none', paddingBottom: 'env(safe-area-inset-bottom)' }}
-          >
-            <div className="flex justify-center pt-2" aria-hidden="true">
-              <div className="h-1.5 w-12 rounded-full" style={{ background: 'var(--border-soft)' }} />
-            </div>
-            <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-2" style={{ borderBottom: '1px solid var(--border-soft)' }}>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>경로 주변 추천</p>
-                <p className="mt-0.5 text-base font-bold" style={{ color: 'var(--text-strong)' }}>
-                  {isLoading ? '검색 중' : error ? '검색 실패' : `추천 ${filteredResults.length}곳`}
-                </p>
-                <p className="mt-0.5 truncate text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {start?.address && end?.address ? `${start.address} → ${end.address}` : category}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {results.length > 0 && !isLoading && !error && (
-                  <button
-                    type="button"
-                    onClick={() => setSaveDialogOpen(true)}
-                    className="min-h-10 rounded-full px-3 text-xs font-bold"
-                    style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-secondary)', border: '1px solid var(--border-soft)' }}
-                  >
-                    경로 저장
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setSearchOverlayOpen(true)}
-                  className="min-h-10 rounded-full px-3 text-xs font-bold"
-                  style={{ background: 'var(--accent)', color: 'var(--text-on-accent)', border: '1px solid var(--accent)' }}
-                >
-                  조건 수정
-                </button>
-              </div>
-            </div>
-            <div data-testid="mobile-result-list" className="max-h-[calc(58dvh_-_96px_-_env(safe-area-inset-bottom))] overflow-y-auto px-4 py-3 scrollbar-hide">
-              {isLoading && (
-                <div className="space-y-3">
-                  {[0, 1].map((item) => (
-                    <div key={item} className="h-24 animate-pulse rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />
-                  ))}
-                </div>
-              )}
-              {error && !isLoading && (
-                <div className="rounded-2xl p-4" style={{ background: 'var(--bg-surface-muted)' }}>
-                  <p className="text-sm font-bold" style={{ color: 'var(--text-strong)' }}>다시 검색해볼게요</p>
-                  <button
-                    type="button"
-                    onClick={() => runSearch()}
-                    className="mt-3 min-h-10 rounded-xl px-4 text-sm font-bold"
-                    style={{ background: 'var(--accent)', color: 'white' }}
-                  >
-                    다시 검색
-                  </button>
-                </div>
-              )}
-              {!isLoading && !error && (
-                <div className="space-y-3">
-                  {filteredResults.slice(0, 6).map((result, index) => (
-                    <SimpleResultCard
-                      key={result.place.id}
-                      result={result}
-                      index={index}
-                      selected={selectedWaypoint?.place.id === result.place.id}
-                      onSelect={handleWaypointSelect}
-                      onHover={setHoveredWaypointId}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
         <div data-testid="desktop-floating-actions" className={`${hasVisibleResults ? 'hidden md:flex' : 'hidden'} absolute bottom-4 right-4 z-30 gap-2`}>
           <Link
@@ -893,7 +816,7 @@ export default function HomePage() {
             />
           </div>
         )}
-      </main>
+      </HomeShell>
 
       {selectedWaypoint && (
         <PlaceDetail

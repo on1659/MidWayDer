@@ -181,9 +181,13 @@ test.describe('Mobile UI', () => {
     await mockAllAPIs(page, []);
     await waitAppReady(page);
 
+    await expect(page.getByTestId('mobile-home-shell')).toBeAttached();
     await expect(page.getByTestId('open-search-overlay-btn')).toBeVisible();
+    await expect(page.getByTestId('mobile-idle-sheet')).toBeVisible();
+    await expect(page.getByTestId('mobile-category-rail')).toBeVisible();
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
     await expect(page.getByText('출발지와 도착지 입력')).toBeVisible();
+    await expect(page.getByText('가는 길에 어디 들를까요?')).toBeVisible();
   });
 
   test('모바일 검색 중에는 대형 단계 카드와 skeleton 바텀시트를 보여주지 않아야 한다', async ({ page, isMobile }) => {
@@ -304,11 +308,12 @@ test.describe('Mobile UI', () => {
     await mockAllAPIs(page);
     const sheet = await gotoWithSearch(page);
 
-    await expect(sheet.getByText('경로 주변 추천').first()).toBeVisible();
-    await expect(sheet.getByRole('button', { name: '경로 저장' })).toBeVisible();
+    await expect(sheet.getByText('추천 경유지').first()).toBeVisible();
+    await expect(sheet.getByText('5개 발견')).toBeVisible();
+    await expect(sheet.getByRole('button', { name: '저장' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '조건 수정' })).toBeVisible();
-    await expect(sheet.getByText('추가 시간').first()).toBeVisible();
-    await expect(sheet.getByText('우회 거리').first()).toBeVisible();
+    await expect(sheet.getByText('추가').first()).toBeVisible();
+    await expect(sheet.getByText('거리').first()).toBeVisible();
     await expect(sheet.getByText('지도에서 보기').first()).toBeVisible();
   });
 
