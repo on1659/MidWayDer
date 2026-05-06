@@ -231,7 +231,7 @@ export default function MobileHomeShell({
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <h3 className="line-clamp-2 text-lg font-black leading-snug" style={{ color: resultText }}>{result.place.name}</h3>
+                              <h3 className="line-clamp-2 text-xl font-black leading-snug" style={{ color: resultText }}>{result.place.name}</h3>
                               <p className="mt-1 line-clamp-2 text-sm font-bold leading-snug" style={{ color: resultSubtext }}>{address}</p>
                             </div>
                             {index === 0 && (
@@ -248,11 +248,11 @@ export default function MobileHomeShell({
                             ].map(([label, value]) => (
                               <span key={label} className="px-2 py-2.5 text-center" style={{ background: resultCardMuted, borderRight: label !== '점수' ? `1px solid ${resultBorder}` : 'none' }}>
                                 <span className="block text-[11px] font-black" style={{ color: resultSubtext }}>{label}</span>
-                                <span className="mt-0.5 block text-lg font-black tabular-nums" style={{ color: resultText }}>{value}</span>
+                                <span className="mt-0.5 block text-xl font-black tabular-nums" style={{ color: resultText }}>{value}</span>
                               </span>
                             ))}
                           </div>
-                          <div className="mt-3 flex min-h-11 items-center justify-center gap-2 rounded-2xl text-base font-black" style={{ background: selected ? '#2563eb' : '#eaf2ff', color: selected ? '#ffffff' : '#1d4ed8', border: selected ? '1px solid #2563eb' : '1px solid #bfdbfe' }}>
+                          <div className="mt-3 flex min-h-11 items-center justify-center gap-2 rounded-2xl text-lg font-black" style={{ background: selected ? '#2563eb' : '#eaf2ff', color: selected ? '#ffffff' : '#1d4ed8', border: selected ? '1px solid #2563eb' : '1px solid #bfdbfe' }}>
                             <Navigation className="h-4 w-4" aria-hidden="true" />
                             {selected ? '지도에 표시 중' : '지도에서 보기'}
                           </div>
