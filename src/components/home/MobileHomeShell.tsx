@@ -55,6 +55,8 @@ export default function MobileHomeShell({
   const resultSubtext = '#334155';
   const resultMuted = '#64748b';
   const resultBorder = '#dbe7f5';
+  const resultSheetMaxHeight = '58dvh';
+  const resultSheetHeaderHeight = '118px';
 
   return (
     <div data-testid="mobile-home-shell" className="md:hidden">
@@ -135,8 +137,9 @@ export default function MobileHomeShell({
       {(hasResults || error) && !isLoading && (
         <section
           data-testid="mobile-result-sheet"
-          className="absolute inset-x-2 bottom-0 z-[1000] isolate max-h-[66dvh] overflow-hidden rounded-t-[1.75rem]"
+          className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem]"
           style={{
+            maxHeight: resultSheetMaxHeight,
             paddingBottom: 'env(safe-area-inset-bottom)',
             background: resultSurface,
             border: `1px solid ${resultBorder}`,
@@ -190,7 +193,7 @@ export default function MobileHomeShell({
             )}
           </div>
 
-          <div data-testid="mobile-result-list" className="max-h-[calc(66dvh_-_126px_-_env(safe-area-inset-bottom))] overflow-y-auto px-3.5 py-3 scrollbar-hide">
+          <div data-testid="mobile-result-list" className="overflow-y-auto px-3.5 py-3 scrollbar-hide" style={{ maxHeight: `calc(${resultSheetMaxHeight} - ${resultSheetHeaderHeight} - env(safe-area-inset-bottom))` }}>
             {error ? (
               <div className="rounded-3xl p-4" style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }}>
                 <p className="text-sm font-extrabold" style={{ color: 'var(--text-strong)' }}>검색이 막혔어요</p>

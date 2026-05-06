@@ -145,6 +145,8 @@ test.describe('Mobile UI', () => {
 
     await expect(sheet).toBeVisible();
     await expect(contentArea).toBeVisible();
+    await expect(contentArea.getByText('다이소 강남점')).toBeVisible();
+    await contentArea.evaluate((el) => { el.scrollTop = el.scrollHeight; });
     await expect(contentArea.getByText('다이소 코엑스점')).toBeVisible();
 
     const overflowY = await contentArea.evaluate((el) => window.getComputedStyle(el).overflowY);
@@ -173,7 +175,9 @@ test.describe('Mobile UI', () => {
     expect(sheetBox).toBeTruthy();
     expect(searchBox!.y + searchBox!.height).toBeLessThan(sheetBox!.y);
     expect(Math.round(sheetBox!.y + sheetBox!.height)).toBeGreaterThanOrEqual(viewportSize!.height - 1);
-    expect(sheetBox!.height).toBeGreaterThanOrEqual(viewportSize!.height * 0.5);
+    expect(sheetBox!.height).toBeGreaterThanOrEqual(viewportSize!.height * 0.46);
+    expect(sheetBox!.height).toBeLessThanOrEqual(viewportSize!.height * 0.6);
+    expect(sheetBox!.y).toBeGreaterThanOrEqual(viewportSize!.height * 0.38);
   });
 
   test('결과가 없을 때는 단순 검색 진입점만 보여야 한다', async ({ page, isMobile }) => {
