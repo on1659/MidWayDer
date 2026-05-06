@@ -156,7 +156,7 @@ describe('ResultList', () => {
     expect(screen.getByText(/이 경로에는/)).toBeTruthy();
   });
 
-  it('isLoading=true일 때 로딩 인디케이터(로딩 단계 텍스트) 표시', () => {
+  it('isLoading=true일 때 큰 단계 카드 대신 작은 진행 상태만 표시', () => {
     render(
       <ResultList
         results={[]}
@@ -165,8 +165,9 @@ describe('ResultList', () => {
         {...defaultProps}
       />
     );
-    // LOADING_STAGES 중 첫 번째 텍스트 확인
-    expect(screen.getByText(/경로 분석 중/)).toBeTruthy();
+    expect(screen.getByText('찾는 중...')).toBeTruthy();
+    expect(screen.getByText(/결과가 준비되면/)).toBeTruthy();
+    expect(screen.queryByText(/경로 분석 중/)).toBeNull();
   });
 
   it('results 2개가 카드로 렌더링됨 (role=listitem)', () => {

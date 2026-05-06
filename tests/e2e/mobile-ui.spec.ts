@@ -54,8 +54,11 @@ const MOCK_RESULTS_5 = [
   makeMockResult('mock-5', '다이소 코엑스점'),
 ];
 
-async function mockAllAPIs(page: Page, results = MOCK_RESULTS_5) {
+async function mockAllAPIs(page: Page, results = MOCK_RESULTS_5, searchDelayMs = 0) {
   await page.route('**/api/search', async (route) => {
+    if (searchDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, searchDelayMs));
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -181,6 +184,30 @@ test.describe('Mobile UI', () => {
     await expect(page.getByTestId('open-search-overlay-btn')).toBeVisible();
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
     await expect(page.getByText('출발지와 도착지 입력')).toBeVisible();
+  });
+
+  test('모바일 검색 중에는 대형 단계 카드와 skeleton 바텀시트를 보여주지 않아야 한다', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'mobile project only');
+
+    await mockAllAPIs(page, MOCK_RESULTS_5, 1500);
+    await waitAppReady(page, {
+      start: '강남역',
+      slat: 37.4979,
+      slng: 127.0276,
+      end: '잠실역',
+      elat: 37.5133,
+      elng: 127.0998,
+    });
+
+    await expect(page.getByTestId('open-search-overlay-btn')).toBeVisible();
+    await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
+    await expect(page.getByTestId('open-search-overlay-btn').getByText('찾는 중...')).toBeVisible();
+    await expect(page.getByText('경로 분석 중')).not.toBeVisible();
+    await expect(page.getByText('장소 탐색 중')).not.toBeVisible();
+    await expect(page.getByText('비용 계산 중')).not.toBeVisible();
+
+    const sheet = page.getByTestId('mobile-result-sheet');
+    await expect(sheet.getByText('다이소 강남점')).toBeVisible({ timeout: 5000 });
   });
 
   test('다크 모드에서 인라인 흰색 배경을 강제하지 않아야 한다', async ({ page, isMobile }) => {

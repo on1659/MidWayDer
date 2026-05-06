@@ -716,7 +716,7 @@ export default function HomePage() {
               {start?.address && end?.address ? `${start.address} → ${end.address}` : '출발지와 도착지 입력'}
             </span>
             <span className="mt-0.5 block truncate text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-              {hasVisibleResults ? `${category} · 경로 주변 추천` : '가는 길에 들를 곳을 찾아요'}
+              {isLoading ? '찾는 중...' : hasVisibleResults ? `${category} · 경로 주변 추천` : '가는 길에 들를 곳을 찾아요'}
             </span>
           </span>
           <span className="shrink-0 rounded-full px-2.5 py-1.5 text-xs font-bold" style={{ background: 'var(--bg-surface-muted)', color: 'var(--accent)' }}>
@@ -757,7 +757,7 @@ export default function HomePage() {
           />
         </div>
 
-        {hasVisibleResults && (
+        {hasVisibleResults && !isLoading && (
           <section
             data-testid="mobile-result-sheet"
             className="absolute inset-x-0 bottom-0 z-[1000] max-h-[58dvh] isolate overflow-hidden rounded-t-3xl md:hidden"

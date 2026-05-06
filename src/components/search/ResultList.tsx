@@ -39,14 +39,12 @@ import { useStickyObserver } from './result-list/hooks/useStickyObserver';
 import { useCardData } from './result-list/hooks/useCardData';
 import { useETA } from './result-list/hooks/useETA';
 import { useGPSProximity } from './result-list/hooks/useGPSProximity';
-import { useLoadingStages } from './result-list/hooks/useLoadingStages';
 import { useA11yAnnounce } from '@/hooks/useA11yAnnounce';
 
 // 유틸
 import {
   getRoutePositionLabel,
   getSegmentEmoji,
-  LOADING_STAGES,
 } from './result-list/utils';
 import type { RenderItem } from './result-list/utils';
 
@@ -113,7 +111,6 @@ export default function ResultList({
   const cardData = useCardData(results, routeHash);
   const eta = useETA(currentCategory);
   const gps = useGPSProximity(results);
-  const { loadingStage } = useLoadingStages(isLoading);
   const { message: a11yMessage, announceResults, announceError, announceLoading } = useA11yAnnounce();
 
   // ── Destructure 안정 참조 (cardData) ──
@@ -563,63 +560,29 @@ export default function ResultList({
   // ── Render: Loading ──
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <div className="px-4 py-5 rounded-2xl" style={{ background: 'linear-gradient(135deg, var(--blue-50), var(--accent-weak))', border: '1px solid var(--blue-200)' }}>
-          <div className="flex justify-between items-start mb-3">
-            {LOADING_STAGES.map((stage, i) => (
-              <div key={i} className={`flex flex-col items-center gap-1.5 flex-1 transition-all duration-500 ${i <= loadingStage ? 'opacity-100' : 'opacity-30'}`}>
-                <div
-                  className={`w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-300 ${i < loadingStage ? 'bg-green-100' : i === loadingStage ? 'shadow-md scale-110' : 'bg-gray-100'}`}
-                  style={i === loadingStage ? { background: 'var(--accent-weak)' } : {}}
-                >
-                  {i < loadingStage ? '✅' : stage.icon}
-                </div>
-                <span
-                  className={`text-[11px] font-semibold text-center leading-tight ${i === loadingStage ? 'font-bold' : ''}`}
-                  style={{ color: i <= loadingStage ? 'var(--text-primary)' : 'var(--text-muted)' }}
-                >
-                  {stage.text}
-                </span>
-              </div>
-            ))}
+      <div
+        className="rounded-2xl px-4 py-3"
+        style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }}
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold" style={{ color: 'var(--text-strong)' }}>찾는 중...</p>
+            <p className="mt-0.5 truncate text-xs" style={{ color: 'var(--text-muted)' }}>
+              결과가 준비되면 바로 보여줄게요.
+            </p>
           </div>
-          <div className="relative mx-6 h-1 rounded-full mb-3" style={{ background: 'var(--border-soft)' }}>
-            <div
-              className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
-              style={{ width: `${(loadingStage / (LOADING_STAGES.length - 1)) * 100}%`, background: 'var(--accent)' }}
-            />
-          </div>
-          <p className="text-center text-sm font-medium animate-pulse" style={{ color: 'var(--text-secondary)' }}>
-            {LOADING_STAGES[loadingStage].sub}
-          </p>
           {onCancel && (
-            <div className="flex justify-center mt-3">
-              <button
-                onClick={onCancel}
-                className="px-5 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
-                style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-soft)' }}
-              >
-                취소
-              </button>
-            </div>
+            <button
+              onClick={onCancel}
+              className="min-h-9 shrink-0 rounded-full px-3 text-xs font-bold transition-all active:scale-95"
+              style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border-soft)' }}
+            >
+              취소
+            </button>
           )}
         </div>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="relative overflow-hidden p-4 bg-white rounded-2xl shadow-sm">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
-            <div className="flex items-start gap-3">
-              <div className="w-11 h-11 bg-gray-200 rounded-full animate-pulse shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded-lg w-2/3" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
-                <div className="flex gap-2 mt-3">
-                  <div className="h-6 bg-gray-200 rounded-full w-16" />
-                  <div className="h-6 bg-gray-200 rounded-full w-16" />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     );
   }

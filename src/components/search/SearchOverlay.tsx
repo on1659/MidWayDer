@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Home, Briefcase, Mic, MicOff, Star, Trash2, Bookmark } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
@@ -14,7 +14,6 @@ import { getSavedLocationByLabel } from '@/lib/smart-location';
 import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice-search';
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
-import { useSearchStore } from '@/store/search-store';
 import { useCacheStore } from '@/store/cache-store';
 import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
 import dynamic from 'next/dynamic';
@@ -85,17 +84,20 @@ export default function SearchOverlay({
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState<string>('');
-
-  // 검색 진행 단계 (v0.36.0)
-  const searchPhase = useSearchStore((state) => state.searchPhase);
-  const phaseMessages: Record<string, string> = {
-    route: '경로 분석 중...',
-    places: '주변 매장 검색 중...',
-    detour: '최적 경유지 계산 중...',
-  };
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   // 캐시 상태 (v0.51.0)
   const { cacheSize, setCacheSize } = useCacheStore();
+
+  const closeOverlay = useCallback(() => {
+    onClose();
+    requestAnimationFrame(() => {
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
+    });
+  }, [onClose]);
 
   useEffect(() => {
     if (open) {
@@ -105,6 +107,17 @@ export default function SearchOverlay({
       getCacheStats().then((stats) => setCacheSize(stats.size));
     }
   }, [open, setCacheSize]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+
+    const frame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
 
   const handlePlaceFavDelete = (placeId: string) => {
     removePlaceFavorite(placeId);
@@ -123,12 +136,33 @@ export default function SearchOverlay({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        closeOverlay();
+        return;
+      }
+
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.offsetParent !== null);
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
+  }, [closeOverlay, open]);
 
   // 카테고리 선택 핸들러 (useCallback으로 최적화)
   const handleCategorySelect = useCallback((selectedCategory: string) => {
@@ -139,7 +173,7 @@ export default function SearchOverlay({
 
   const handleSearch = () => {
     onSearch();
-    onClose();
+    closeOverlay();
   };
 
   const handleRecentSelect = (item: RecentSearch) => {
@@ -153,7 +187,7 @@ export default function SearchOverlay({
   const handleInstantSearchClick = (item: RecentSearch) => {
     if (onInstantSearch) {
       onInstantSearch(item);
-      onClose();
+      closeOverlay();
     } else {
       handleRecentSelect(item);
       handleSearch();
@@ -211,22 +245,25 @@ export default function SearchOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col animate-slide-up gpu-accelerate"
+      ref={dialogRef}
+      className="fixed inset-0 z-[1100] flex flex-col animate-slide-up gpu-accelerate"
       style={{ backgroundColor: 'var(--bg-primary)' }}
-      role="search"
-      aria-label="경유지 검색"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="search-overlay-title"
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 safe-top" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <button
-          onClick={onClose}
+          ref={closeButtonRef}
+          onClick={closeOverlay}
           className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
           style={{ backgroundColor: 'var(--bg-hover)' }}
           aria-label="뒤로 가기"
         >
           <ArrowLeft className="w-6 h-6" style={{ color: 'var(--text-strong)' }} />
         </button>
-        <h2 className="text-xl font-bold flex-1" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
+        <h2 id="search-overlay-title" className="text-xl font-bold flex-1" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
         
         {/* 음성 검색 버튼 */}
         <button
@@ -306,8 +343,13 @@ export default function SearchOverlay({
           <button
             onClick={() => { onGPS(); }}
             disabled={gpsLoading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 mb-3"
-            style={{ background: 'var(--accent-light, #ede9fe)', color: 'var(--accent)' }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 mb-3"
+            style={{
+              minHeight: '48px',
+              background: 'color-mix(in srgb, var(--accent) 12%, var(--bg-surface) 88%)',
+              color: 'var(--accent)',
+              border: '1px solid var(--border-accent)',
+            }}
             aria-label="현재 위치를 출발지로 설정"
           >
             <LocateFixed className={`w-4 h-4 ${gpsLoading ? 'animate-spin' : ''}`} />
@@ -428,11 +470,12 @@ export default function SearchOverlay({
                 <button
                   key={hint.category}
                   onClick={() => onCategoryChange(hint.category)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95"
+                  className="flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-all active:scale-95"
                   style={{
                     background: category === hint.category ? 'var(--accent)' : 'var(--bg-hover)',
-                    color: category === hint.category ? 'white' : 'var(--text-secondary)',
+                    color: category === hint.category ? 'var(--text-on-accent)' : 'var(--text-primary)',
                     border: `1px solid ${category === hint.category ? 'var(--accent)' : 'var(--border-soft)'}`,
+                    minHeight: '36px',
                   }}
                   title={hint.reason}
                 >
@@ -579,7 +622,7 @@ export default function SearchOverlay({
               aria-label="검색 진행 중"
             >
               <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-              <span>{phaseMessages[searchPhase] || '검색 중...'}</span>
+              <span>찾는 중...</span>
             </div>
             {onCancel && (
               <button
@@ -599,7 +642,10 @@ export default function SearchOverlay({
             onClick={handleSearch}
             disabled={!canSearch}
             className="w-full max-w-[calc(100%-32px)] mx-auto py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md box-border"
-            style={{ background: canSearch ? 'var(--accent)' : undefined }}
+            style={{
+              minHeight: '56px',
+              background: canSearch ? 'var(--accent)' : undefined,
+            }}
           >
             경유지 찾기 🔍
           </button>
