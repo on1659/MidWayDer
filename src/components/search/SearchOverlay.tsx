@@ -246,19 +246,19 @@ export default function SearchOverlay({
   return (
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-[1100] flex flex-col animate-slide-up gpu-accelerate"
-      style={{ backgroundColor: 'var(--bg-primary)' }}
+      className="fixed inset-0 z-[2147483000] flex flex-col overflow-hidden animate-slide-up gpu-accelerate"
+      style={{ backgroundColor: 'var(--bg-app)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="search-overlay-title"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 safe-top" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="flex items-center gap-3 px-4 py-3 safe-top" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-soft)' }}>
         <button
           ref={closeButtonRef}
           onClick={closeOverlay}
           className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
-          style={{ backgroundColor: 'var(--bg-hover)' }}
+          style={{ backgroundColor: 'var(--bg-surface-muted)' }}
           aria-label="뒤로 가기"
         >
           <ArrowLeft className="w-6 h-6" style={{ color: 'var(--text-strong)' }} />
@@ -271,7 +271,7 @@ export default function SearchOverlay({
           disabled={isListening}
           className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
           style={{ 
-            backgroundColor: isListening ? 'var(--accent)' : 'var(--bg-hover)',
+            backgroundColor: isListening ? 'var(--accent)' : 'var(--bg-surface-muted)',
             color: isListening ? 'white' : 'var(--text-strong)',
           }}
           aria-label="음성으로 경로 입력"
@@ -288,7 +288,7 @@ export default function SearchOverlay({
           <button
             onClick={onToggleTheme}
             className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
-            style={{ backgroundColor: 'var(--bg-hover)' }}
+            style={{ backgroundColor: 'var(--bg-surface-muted)' }}
             aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
           >
             {theme === 'dark' ? (
@@ -300,7 +300,7 @@ export default function SearchOverlay({
         )}
       </div>
 
-      {/* Voice error/success message */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
       {voiceError && (
         <div className={`mx-4 mt-2 px-4 py-2.5 rounded-xl text-sm font-medium text-center ${voiceError.startsWith('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {voiceError}
@@ -663,6 +663,7 @@ export default function SearchOverlay({
             <span>캐시 삭제 ({cacheSize}개)</span>
           </button>
         )}
+      </div>
       </div>
     </div>
   );

@@ -290,6 +290,15 @@ test.describe('Mobile UI', () => {
     expect(overlayBox!.width).toBeGreaterThanOrEqual(viewportSize!.width - 2);
     expect(overlayBox!.height).toBeGreaterThanOrEqual(viewportSize!.height - 2);
 
+    const overlayPaint = await overlay.evaluate((el) => {
+      const bg = window.getComputedStyle(el).backgroundColor;
+      const topHit = document.elementsFromPoint(window.innerWidth / 2, 24)
+        .some((node) => node === el || el.contains(node));
+      return { bg, topHit };
+    });
+    expect(overlayPaint.bg).not.toBe('rgba(0, 0, 0, 0)');
+    expect(overlayPaint.topHit).toBe(true);
+
     await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
     await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
 
