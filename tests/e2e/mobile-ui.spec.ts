@@ -116,8 +116,9 @@ async function waitAppReady(
       }).toString()
     : '';
   await page.goto(`/${params ? '?' + params : ''}`);
-  await expect(page.getByTestId('splash-screen')).toBeVisible();
-  await expect(page.getByTestId('splash-screen')).toBeHidden({ timeout: 4000 });
+  const splash = page.getByTestId('splash-screen').first();
+  await expect(splash).toBeVisible();
+  await expect(splash).toBeHidden({ timeout: 4000 });
 }
 
 async function gotoWithSearch(page: Page) {
@@ -214,7 +215,7 @@ test.describe('Mobile UI', () => {
     await expect(sheet.getByText('다이소 강남점')).toBeVisible({ timeout: 5000 });
   });
 
-  test('다크 모드에서 인라인 흰색 배경을 강제하지 않아야 한다', async ({ page, isMobile }) => {
+  test('다크 모드에서도 모바일 결과 시트 정보 대비를 유지해야 한다', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile project only');
 
     await mockAllAPIs(page);
@@ -225,19 +226,22 @@ test.describe('Mobile UI', () => {
     await expect(page.locator('html.theme-dark')).toBeVisible({ timeout: 3000 });
     await page.locator('[aria-label="뒤로 가기"]').click();
 
-    const hardcodedWhiteCount = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll('*')).filter((el) => {
-        const style = (el as HTMLElement).style;
-        const inlineBg = style.background || style.backgroundColor;
-        return /^white$/i.test(inlineBg.trim())
-          || /^#fff(fff)?$/i.test(inlineBg.trim())
-          || /^rgb\(\s*255\s*,\s*255\s*,\s*255\s*\)$/i.test(inlineBg.trim());
-      }).length;
+    const readability = await sheet.evaluate((el) => {
+      const bg = window.getComputedStyle(el).backgroundColor;
+      const title = el.querySelector('h2');
+      const firstCard = el.querySelector('[data-result-index="0"]');
+      const firstTitle = firstCard?.querySelector('h3');
+      return {
+        bg,
+        titleColor: title ? window.getComputedStyle(title).color : '',
+        firstCardBg: firstCard ? window.getComputedStyle(firstCard).backgroundColor : '',
+        firstTitleColor: firstTitle ? window.getComputedStyle(firstTitle).color : '',
+      };
     });
-    expect(hardcodedWhiteCount).toBe(0);
-
-    const computedBg = await sheet.evaluate((el) => window.getComputedStyle(el).backgroundColor);
-    expect(computedBg).not.toBe('rgb(255, 255, 255)');
+    expect(readability.bg).toBe('rgb(248, 250, 252)');
+    expect(readability.titleColor).toBe('rgb(15, 23, 42)');
+    expect(readability.firstCardBg).toBe('rgb(255, 255, 255)');
+    expect(readability.firstTitleColor).toBe('rgb(15, 23, 42)');
   });
 
   test('터치 타겟과 모바일 줌 접근성 기준을 만족해야 한다', async ({ page, isMobile }) => {
@@ -324,6 +328,23 @@ test.describe('Mobile UI', () => {
     await expect(sheet.getByText('추가').first()).toBeVisible();
     await expect(sheet.getByText('거리').first()).toBeVisible();
     await expect(sheet.getByText('지도에서 보기').first()).toBeVisible();
+
+    const sheetPaint = await sheet.evaluate((el) => {
+      const bg = window.getComputedStyle(el).backgroundColor;
+      const title = el.querySelector('h2');
+      const firstCard = el.querySelector('[data-result-index="0"]');
+      const firstTitle = firstCard?.querySelector('h3');
+      return {
+        bg,
+        titleColor: title ? window.getComputedStyle(title).color : '',
+        cardBg: firstCard ? window.getComputedStyle(firstCard).backgroundColor : '',
+        firstTitleFontSize: firstTitle ? window.getComputedStyle(firstTitle).fontSize : '',
+      };
+    });
+    expect(sheetPaint.bg).toBe('rgb(248, 250, 252)');
+    expect(sheetPaint.titleColor).toBe('rgb(15, 23, 42)');
+    expect(sheetPaint.cardBg).toBe('rgb(255, 255, 255)');
+    expect(parseFloat(sheetPaint.firstTitleFontSize)).toBeGreaterThanOrEqual(18);
   });
 
   test('PWA 카테고리 shortcut URL이 검색 상태에 반영되어야 한다', async ({ page, isMobile }) => {

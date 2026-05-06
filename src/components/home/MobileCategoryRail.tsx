@@ -38,11 +38,11 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
               style={{
                 scrollSnapAlign: 'start',
                 background: active
-                  ? 'linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #8b5cf6))'
-                  : 'color-mix(in srgb, var(--bg-surface) 76%, transparent)',
-                color: active ? 'var(--text-on-accent)' : 'var(--text-secondary)',
-                border: active ? '1px solid var(--accent)' : '1px solid color-mix(in srgb, var(--border-soft) 72%, transparent)',
-                boxShadow: active ? '0 12px 28px -16px rgba(var(--color-accent-rgb), 0.75)' : '0 8px 22px -18px rgba(0,0,0,0.5)',
+                  ? 'linear-gradient(135deg, #3b82f6, #5b5cf6)'
+                  : 'rgba(255,255,255,0.94)',
+                color: active ? '#ffffff' : '#0f172a',
+                border: active ? '1px solid #2563eb' : '1px solid rgba(15,23,42,0.14)',
+                boxShadow: active ? '0 12px 28px -16px rgba(37,99,235,0.75)' : '0 10px 24px -18px rgba(15,23,42,0.45)',
                 backdropFilter: 'blur(18px) saturate(160%)',
                 WebkitBackdropFilter: 'blur(18px) saturate(160%)',
               }}
