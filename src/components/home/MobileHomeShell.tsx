@@ -135,7 +135,7 @@ export default function MobileHomeShell({
       {(hasResults || error) && !isLoading && (
         <section
           data-testid="mobile-result-sheet"
-          className="absolute inset-x-0 bottom-0 z-[1000] isolate max-h-[66dvh] overflow-hidden rounded-t-[1.75rem]"
+          className="absolute inset-x-2 bottom-0 z-[1000] isolate max-h-[66dvh] overflow-hidden rounded-t-[1.75rem]"
           style={{
             paddingBottom: 'env(safe-area-inset-bottom)',
             background: resultSurface,
