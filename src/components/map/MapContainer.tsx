@@ -7,15 +7,44 @@
 
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import NaverMap from './NaverMap';
-import KakaoMap from './KakaoMap';
-import RoutePolyline from './RoutePolyline';
-import KakaoRoutePolyline from './KakaoRoutePolyline';
-import WaypointMarker from './WaypointMarker';
-import KakaoWaypointMarker from './KakaoWaypointMarker';
+import dynamic from 'next/dynamic';
+import { useCallback, useEffect, useState } from 'react';
 import type { Coordinates, Route } from '@/types/location';
 import type { DetourResult } from '@/types/detour';
+
+function MapLoading({ label = '지도를 준비하는 중...' }: { label?: string }) {
+  return (
+    <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-surface-muted)' }}>
+      <p style={{ color: 'var(--text-secondary)' }}>{label}</p>
+    </div>
+  );
+}
+
+const NaverMap = dynamic(() => import('./NaverMap'), {
+  ssr: false,
+  loading: () => <MapLoading label="네이버 지도를 준비하는 중..." />,
+});
+
+const KakaoMap = dynamic(() => import('./KakaoMap'), {
+  ssr: false,
+  loading: () => <MapLoading label="카카오 지도를 준비하는 중..." />,
+});
+
+const RoutePolyline = dynamic(() => import('./RoutePolyline'), {
+  ssr: false,
+});
+
+const KakaoRoutePolyline = dynamic(() => import('./KakaoRoutePolyline'), {
+  ssr: false,
+});
+
+const WaypointMarker = dynamic(() => import('./WaypointMarker'), {
+  ssr: false,
+});
+
+const KakaoWaypointMarker = dynamic(() => import('./KakaoWaypointMarker'), {
+  ssr: false,
+});
 
 interface MapContainerProps {
   /** 지도 중심 좌표 */
@@ -64,9 +93,7 @@ export default function MapContainer({
   onMapInteraction,
   onResetInteraction,
 }: MapContainerProps) {
-  // 환경 변수 기본값 + 런타임 전환 가능
-  const defaultProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER || 'kakao';
-  const [mapProvider, setMapProvider] = useState<string>(defaultProvider);
+  const mapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER === 'naver' ? 'naver' : 'kakao';
 
   // 지도 인스턴스 상태 (타입을 union으로 관리)
   const [naverMap, setNaverMap] = useState<naver.maps.Map | null>(null);
@@ -194,47 +221,9 @@ export default function MapContainer({
   // Kakao Maps 사용 시 줌 레벨 조정 (Naver: 12 ≈ Kakao: 7)
   const kakaoZoom = zoom ? Math.max(1, 13 - zoom) : 7;
 
-  // 프로바이더 토글 버튼
-  const providerToggle = (
-    <div
-      className="absolute top-4 left-4 z-10 rounded-lg p-1 flex gap-1 md:top-4 max-md:top-[140px]"
-      style={{
-        background: 'var(--surface-2)',
-        border: '1px solid var(--border-soft)',
-        boxShadow: 'var(--shadow-1)',
-      }}
-    >
-      <button
-        onClick={() => { setMapProvider('kakao'); setNaverMap(null); }}
-        aria-pressed={mapProvider === 'kakao'}
-        className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-        style={{
-          background: mapProvider === 'kakao' ? 'var(--overlay-selected)' : 'transparent',
-          color: mapProvider === 'kakao' ? 'var(--accent)' : 'var(--text-secondary)',
-          border: `1px solid ${mapProvider === 'kakao' ? 'var(--border-accent)' : 'transparent'}`,
-        }}
-      >
-        카카오
-      </button>
-      <button
-        onClick={() => { setMapProvider('naver'); setKakaoMap(null); }}
-        aria-pressed={mapProvider === 'naver'}
-        className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-        style={{
-          background: mapProvider === 'naver' ? 'var(--overlay-selected)' : 'transparent',
-          color: mapProvider === 'naver' ? 'var(--accent)' : 'var(--text-secondary)',
-          border: `1px solid ${mapProvider === 'naver' ? 'var(--border-accent)' : 'transparent'}`,
-        }}
-      >
-        네이버
-      </button>
-    </div>
-  );
-
   if (mapProvider === 'naver') {
     return (
       <div className="relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
-        {providerToggle}
         <NaverMap
           center={center}
           zoom={zoom}
@@ -261,26 +250,7 @@ export default function MapContainer({
 
   // 기본값: Kakao Maps
   return (
-    <div className="relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
-      {providerToggle}
-      <div
-        className="absolute top-16 right-4 z-10 rounded-lg px-3 py-2 text-xs backdrop-blur md:top-4"
-        style={{
-          background: 'var(--surface-2)',
-          border: '1px solid var(--border-soft)',
-          boxShadow: 'var(--shadow-1)',
-          color: 'var(--text-primary)',
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--accent)' }} />
-          <span className="text-sm">일반도로</span>
-        </div>
-        <div className="flex items-center gap-2 mt-1.5">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: 'var(--warning)' }} />
-          <span className="text-sm">고속화/고속도로</span>
-        </div>
-      </div>
+    <div className="map-contrast-canvas relative w-full h-full" aria-label="경로를 보여주는 지도" role="application">
       <KakaoMap
         center={center}
         zoom={kakaoZoom}

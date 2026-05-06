@@ -302,13 +302,13 @@
   --surface-4: #202a4d;
   --surface-5: #2a3560;
 
-  /* Text */
-  --text-primary:   #e5e7eb;
-  --text-secondary: #94a3b8;
-  --text-tertiary:  #64748b;
-  --text-strong:    #f1f5f9;
-  --text-muted:     #94a3b8;
-  --text-disabled:  #475569;
+  /* Text — contrast floor tuned for map overlay readability */
+  --text-primary:   #f8fafc;
+  --text-secondary: #d7dee8;
+  --text-tertiary:  #b6c2d3;
+  --text-strong:    #ffffff;
+  --text-muted:     #cbd5e1;
+  --text-disabled:  #64748b;
   --text-loading:   #cbd5e1;
   --text-on-accent: #ffffff;
   --text-link:      var(--color-accent-400);
@@ -341,7 +341,7 @@
   /* Backward compat overrides */
   --bg-app:           var(--surface-0);
   --bg-surface:       var(--surface-1);
-  --bg-surface-muted: #111827;
+  --bg-surface-muted: #1e293b;
   --bg-main:          var(--surface-0);
 
   --accent:       var(--color-accent-400);
@@ -401,53 +401,13 @@
   --kakao-shadow:     var(--shadow-2);
 }
 
-/* ── OS dark fallback (when .theme-dark not set explicitly) ── */
+/* ── OS dark fallback intentionally disabled for app chrome.
+ * The app now applies explicit `.theme-light` / `.theme-dark` classes at startup.
+ * Keeping token-only OS fallback caused white utility surfaces to combine with dark text tokens.
+ */
 @media (prefers-color-scheme: dark) {
   :root:not(.theme-dark):not(.theme-light) {
-    --surface-0: #0b1020;
-    --surface-1: #0f172a;
-    --surface-2: #131b30;
-    --surface-3: #1a2340;
-    --surface-4: #202a4d;
-    --surface-5: #2a3560;
-
-    --text-primary:   #e5e7eb;
-    --text-secondary: #94a3b8;
-    --text-tertiary:  #64748b;
-    --text-strong:    #f1f5f9;
-    --text-muted:     #94a3b8;
-    --text-disabled:  #475569;
-    --text-on-accent: #ffffff;
-    --text-link:      var(--color-accent-400);
-
-    --border-soft:   #1f2937;
-    --border-strong: #334155;
-    --bg-overlay:    rgba(15, 23, 42, 0.88);
-
-    --color-accent-current: var(--color-accent-400);
-    --color-accent-current-light: rgba(var(--color-accent-rgb), 0.15);
-    --color-success-current: #22c55e;
-    --color-warning-current: #f59e0b;
-    --color-error-current:   #f87171;
-    --color-info-current:    #38bdf8;
-
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 3px rgba(0, 0, 0, 0.30);
-    --shadow-2: 0 4px 6px -2px rgba(0, 0, 0, 0.20), 0 2px 4px -1px rgba(0, 0, 0, 0.30);
-    --shadow-3: 0 10px 15px -3px rgba(0, 0, 0, 0.30), 0 4px 6px -2px rgba(0, 0, 0, 0.20);
-    --shadow-4: 0 20px 25px -5px rgba(0, 0, 0, 0.40), 0 10px 10px -5px rgba(0, 0, 0, 0.20);
-    --shadow-5: 0 25px 50px -12px rgba(0, 0, 0, 0.60);
-
-    --bg-app:           var(--surface-0);
-    --bg-surface:       var(--surface-1);
-    --bg-surface-muted: #111827;
-    --bg-main:          var(--surface-0);
-
-    --accent:      var(--color-accent-400);
-    --accent-weak: #1e293b;
-    --warning: #FF8C42;
-    --success: #34D399;
-    --shadow-sm: var(--shadow-2);
-    --shadow-md: var(--shadow-3);
+    color-scheme: light;
   }
 }
 

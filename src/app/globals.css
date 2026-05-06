@@ -56,6 +56,14 @@ video,
   transition: none !important;
 }
 
+.map-contrast-canvas {
+  filter: contrast(1.18) saturate(1.28) brightness(0.99);
+}
+
+.theme-dark .map-contrast-canvas {
+  filter: contrast(1.22) saturate(1.35) brightness(1.02);
+}
+
 /* Bottom Sheet drag handle */
 .bottom-sheet-handle {
   width: 36px;

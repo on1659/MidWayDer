@@ -71,16 +71,15 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'MidWayDer',
   },
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
 };
 
@@ -96,7 +95,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#3274f9" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <Script
           id="theme-init"
@@ -107,9 +106,12 @@ export default function RootLayout({
     const autoTheme = localStorage.getItem('auto-theme');
     if (autoTheme === 'true') {
       const h = new Date().getHours();
-      if (h < 6 || h >= 18) document.documentElement.classList.add('theme-dark');
+      const isDark = h < 6 || h >= 18;
+      document.documentElement.classList.add(isDark ? 'theme-dark' : 'theme-light');
     } else if (theme === 'dark') {
       document.documentElement.classList.add('theme-dark');
+    } else {
+      document.documentElement.classList.add('theme-light');
     }
     const color = localStorage.getItem('color-theme');
     const allowed = ['blue','indigo','violet','teal','emerald','rose','slate'];

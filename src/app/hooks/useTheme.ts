@@ -50,19 +50,19 @@ export function useTheme(): UseThemeReturn {
         const hour = new Date().getHours();
         const shouldBeDark = hour < 6 || hour >= 18;
         document.documentElement.classList.toggle('theme-dark', shouldBeDark);
+        document.documentElement.classList.toggle('theme-light', !shouldBeDark);
         setTheme(shouldBeDark ? 'dark' : 'light');
       } else if (saved === 'dark') {
         document.documentElement.classList.add('theme-dark');
+        document.documentElement.classList.remove('theme-light');
         setTheme('dark');
       } else if (saved === 'light') {
         document.documentElement.classList.remove('theme-dark');
+        document.documentElement.classList.add('theme-light');
         setTheme('light');
       } else {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-          document.documentElement.classList.add('theme-dark');
-          setTheme('dark');
-        }
+        document.documentElement.classList.add('theme-light');
+        setTheme('light');
       }
 
       // Color theme 초기화
@@ -85,6 +85,7 @@ export function useTheme(): UseThemeReturn {
         if (saved || autoSaved === 'true') return;
         const prefersDark = e.matches;
         document.documentElement.classList.toggle('theme-dark', prefersDark);
+        document.documentElement.classList.toggle('theme-light', !prefersDark);
         setTheme(prefersDark ? 'dark' : 'light');
       } catch {
         // localStorage 접근 불가 시 무시 (Private 모드, 저장 공간 부족 등)
@@ -107,6 +108,7 @@ export function useTheme(): UseThemeReturn {
       if ((shouldBeDark && currentTheme === 'light') || (!shouldBeDark && currentTheme === 'dark')) {
         const newTheme = shouldBeDark ? 'dark' : 'light';
         document.documentElement.classList.toggle('theme-dark', shouldBeDark);
+        document.documentElement.classList.toggle('theme-light', !shouldBeDark);
         setTheme(newTheme);
       }
     };
@@ -134,6 +136,7 @@ export function useTheme(): UseThemeReturn {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     document.documentElement.classList.toggle('theme-dark', next === 'dark');
+    document.documentElement.classList.toggle('theme-light', next === 'light');
     try { localStorage.setItem('theme', next); } catch {
       // localStorage 접근 불가 시 무시
     }
@@ -151,6 +154,7 @@ export function useTheme(): UseThemeReturn {
         const hour = new Date().getHours();
         const shouldBeDark = hour < 6 || hour >= 18;
         document.documentElement.classList.toggle('theme-dark', shouldBeDark);
+        document.documentElement.classList.toggle('theme-light', !shouldBeDark);
         setTheme(shouldBeDark ? 'dark' : 'light');
       } else {
         localStorage.removeItem('auto-theme');

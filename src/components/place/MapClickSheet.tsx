@@ -41,7 +41,13 @@ export default function MapClickSheet({
 
   return (
     <div className="absolute bottom-0 inset-x-0 z-40 animate-slide-up md:inset-x-auto md:left-6 md:bottom-6 md:w-[380px]">
-      <div className="mx-3 mb-3 md:mx-0 bg-white rounded-2xl shadow-lg shadow-black/10 overflow-hidden">
+      <div
+        className="mx-3 mb-3 overflow-hidden rounded-2xl shadow-lg shadow-black/10 md:mx-0"
+        style={{
+          background: 'var(--surface-1)',
+          border: '1px solid var(--border-soft)',
+        }}
+      >
         {/* Header: name + close */}
         <div className="px-5 pt-4 pb-2 flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -58,7 +64,7 @@ export default function MapClickSheet({
               <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{category}</p>
             )}
           </div>
-          <button onClick={onClose} className="shrink-0 p-1.5 -m-1.5 rounded-full hover:bg-gray-50 transition-colors">
+          <button onClick={onClose} className="shrink-0 p-1.5 -m-1.5 rounded-full hover:bg-gray-50 transition-colors" aria-label="장소 정보 닫기">
             <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
           </button>
         </div>
@@ -88,19 +94,19 @@ export default function MapClickSheet({
 
         {/* Action icons row (카카오맵 스타일) */}
         <div className="flex items-center justify-around px-5 py-3">
-          <button onClick={onSetStart} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
+          <button onClick={onSetStart} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform" aria-label={`${name}을 출발지로 설정`}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--blue-100)' }}>
               <Navigation className="w-6 h-6" style={{ color: 'var(--accent)' }} />
             </div>
             <span className="text-xs font-medium" style={{ color: 'var(--text-strong)' }}>출발</span>
           </button>
-          <button onClick={onSetEnd} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
+          <button onClick={onSetEnd} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform" aria-label={`${name}을 도착지로 설정`}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--pink-100)' }}>
               <MapPin className="w-6 h-6" style={{ color: 'var(--pink-500)' }} />
             </div>
             <span className="text-xs font-medium" style={{ color: 'var(--text-strong)' }}>도착</span>
           </button>
-          <button onClick={handleShare} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
+          <button onClick={handleShare} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform" aria-label={`${name} 공유`}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--blue-150)' }}>
               <Share2 className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
             </div>
