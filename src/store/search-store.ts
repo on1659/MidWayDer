@@ -13,6 +13,31 @@ import { hashRoute } from '@/lib/utils/route-hash';
 import type { Coordinates } from '@/types/location';
 import { logger } from '@/lib/logger';
 
+function isCoordinates(value: unknown): value is Coordinates {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<Coordinates>;
+  return (
+    typeof candidate.lat === 'number' &&
+    Number.isFinite(candidate.lat) &&
+    typeof candidate.lng === 'number' &&
+    Number.isFinite(candidate.lng)
+  );
+}
+
+let activePhaseInterval: ReturnType<typeof setInterval> | null = null;
+let activeSearchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function clearSearchTimers() {
+  if (activePhaseInterval) {
+    clearInterval(activePhaseInterval);
+    activePhaseInterval = null;
+  }
+  if (activeSearchTimeout) {
+    clearTimeout(activeSearchTimeout);
+    activeSearchTimeout = null;
+  }
+}
+
 // 검색 필터 타입 (v0.61.0)
 export interface SearchFilters {
   /** 최대 이탈 거리 (미터) | null = 전체 */
@@ -108,20 +133,24 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   setCategory: (category) => set({ category }),
 
   search: async (start, end, category, extraOptions) => {
-    // 이전 검색 취소
+    // 이전 검색 취소 및 이전 타이머 정리
     const prevController = get().abortController;
     if (prevController) {
       prevController.abort();
     }
+    clearSearchTimers();
 
     // 새 AbortController 생성
     const controller = new AbortController();
+    const isCurrentSearch = () => get().abortController === controller;
+    let didTimeout = false;
     
     // 검색 시작 시간 (단계별 메시지용)
     const searchStartTime = Date.now();
     
     // 단계별 메시지 업데이트 interval
-    const phaseInterval = setInterval(() => {
+    activePhaseInterval = setInterval(() => {
+      if (!isCurrentSearch()) return;
       const elapsed = Date.now() - searchStartTime;
       if (elapsed < 1000) {
         set({ searchPhase: 'route' });
@@ -144,17 +173,17 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       searchPhase: 'route',
     });
 
-    // 좌표 추출
-    const startCoords: Coordinates = ('coordinates' in start && start.coordinates) ? start.coordinates : start as Coordinates;
-    const endCoords: Coordinates = ('coordinates' in end && end.coordinates) ? end.coordinates : end as Coordinates;
+    // 좌표가 있는 요청만 클라이언트 캐시를 사용한다. 주소-only 요청은 API route에서 geocoding한다.
+    const startCoords = isCoordinates(start.coordinates) ? start.coordinates : isCoordinates(start) ? start : null;
+    const endCoords = isCoordinates(end.coordinates) ? end.coordinates : isCoordinates(end) ? end : null;
+    const routeHash = startCoords && endCoords ? hashRoute(startCoords, endCoords) : null;
 
     // 1. 캐시 확인
-    const routeHash = hashRoute(startCoords, endCoords);
-    const cached = getCachedSearch(routeHash, category);
+    const cached = routeHash ? getCachedSearch(routeHash, category) : null;
 
     if (cached) {
       logger.debug('✅ Cache HIT:', routeHash, category);
-      clearInterval(phaseInterval);
+      clearSearchTimers();
       set({
         results: cached.data.results,
         totalCandidates: cached.data.totalCandidates,
@@ -168,7 +197,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       return;
     }
 
-    logger.debug('❌ Cache MISS:', routeHash, category);
+    logger.debug(routeHash ? '❌ Cache MISS:' : '⏭️ Cache SKIP (missing coordinates):', routeHash, category);
 
     try {
       const requestBody: SearchWaypointsRequest = {
@@ -181,7 +210,10 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         },
       };
 
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+      activeSearchTimeout = setTimeout(() => {
+        didTimeout = true;
+        controller.abort();
+      }, 30000); // fetch + json body까지 30초 타임아웃
 
       const response = await fetch('/api/search', {
         method: 'POST',
@@ -192,13 +224,13 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
       const data: SearchWaypointsResponse | SearchWaypointsErrorResponse = await response.json();
+
+      if (!isCurrentSearch()) return;
 
       if (!data.success) {
         const friendlyError = getAPIErrorMessage(response.status, data.error.message);
-        clearInterval(phaseInterval);
+        clearSearchTimers();
         set({
           error: friendlyError,
           isLoading: false,
@@ -210,10 +242,12 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       }
 
       // 2. 캐시 저장
-      setCachedSearch(routeHash, category, data);
+      if (routeHash) {
+        setCachedSearch(routeHash, category, data);
+      }
 
       // 3. 상태 업데이트
-      clearInterval(phaseInterval);
+      clearSearchTimers();
       set({
         results: data.data.results,
         totalCandidates: data.data.totalCandidates,
@@ -225,13 +259,15 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         searchPhase: 'idle',
       });
     } catch (error) {
+      if (!isCurrentSearch()) return;
+
       let errorMessage: string;
       
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          // 취소 시 에러 메시지 표시하지 않음
-          clearInterval(phaseInterval);
+          clearSearchTimers();
           set({
+            error: didTimeout ? '검색이 오래 걸려 중단했어요. 다시 시도해주세요.' : null,
             isLoading: false,
             isCached: false,
             abortController: null,
@@ -247,7 +283,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         errorMessage = getAPIErrorMessage();
       }
       
-      clearInterval(phaseInterval);
+      clearSearchTimers();
       set({
         error: errorMessage,
         isLoading: false,
@@ -284,11 +320,16 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     const controller = get().abortController;
     if (controller) {
       controller.abort();
-      set({
-        abortController: null,
-        isLoading: false,
-      });
     }
+
+    clearSearchTimers();
+    set({
+      abortController: null,
+      isLoading: false,
+      error: null,
+      isCached: false,
+      searchPhase: 'idle',
+    });
   },
 
   // === 단일 선택 액션 ===

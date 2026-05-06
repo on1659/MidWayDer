@@ -2,8 +2,9 @@
  * search-store.test.ts
  * Zustand useSearchStore 상태 전이 테스트
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useSearchStore } from '../search-store';
+import { hashRoute } from '@/lib/utils/route-hash';
 
 // 캐시 모듈 mock (항상 miss)
 vi.mock('@/lib/cache/search-cache', () => ({
@@ -40,10 +41,18 @@ const mockResult = {
   routeType: 'fastest' as const,
 };
 
+const mockHashRoute = vi.mocked(hashRoute);
+
 describe('useSearchStore', () => {
   beforeEach(() => {
+    useSearchStore.getState().cancelSearch();
     useSearchStore.getState().clearResults();
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    useSearchStore.getState().cancelSearch();
+    vi.useRealTimers();
   });
 
   it('초기 상태: isLoading=false, results=[], hasSearched=false', () => {
@@ -126,5 +135,86 @@ describe('useSearchStore', () => {
     expect(state.results).toHaveLength(1);
     expect(state.isLoading).toBe(false);
     expect(state.error).toBeNull();
+  });
+
+  it('search() 주소-only 요청은 route hash 캐시를 건너뛰고 API 요청한다', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          success: true,
+          data: {
+            results: [mockResult],
+            totalCandidates: 5,
+            apiCallsUsed: 3,
+          },
+        }),
+    });
+
+    await useSearchStore.getState().search(
+      { address: '서울시청' },
+      { address: '강남역' },
+      '카페'
+    );
+
+    expect(mockHashRoute).not.toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/search',
+      expect.objectContaining({
+        body: expect.stringContaining('"address":"서울시청"'),
+      })
+    );
+    expect(useSearchStore.getState().results).toHaveLength(1);
+  });
+
+  it('cancelSearch()는 응답이 안 오는 검색도 즉시 로딩을 해제한다', async () => {
+    global.fetch = vi.fn((_url, init) => new Promise<Response>((_resolve, reject) => {
+      const signal = (init as RequestInit).signal as AbortSignal | undefined;
+      signal?.addEventListener('abort', () => {
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
+    }));
+
+    const searchPromise = useSearchStore.getState().search(
+      { address: '명지대학교 인문캠퍼스' },
+      { address: '강남역' },
+      '다이소'
+    );
+
+    expect(useSearchStore.getState().isLoading).toBe(true);
+    useSearchStore.getState().cancelSearch();
+
+    expect(useSearchStore.getState().isLoading).toBe(false);
+    expect(useSearchStore.getState().abortController).toBeNull();
+    expect(useSearchStore.getState().searchPhase).toBe('idle');
+
+    await searchPromise;
+    expect(useSearchStore.getState().isLoading).toBe(false);
+  });
+
+  it('30초 타임아웃은 검색을 실패 상태로 종료한다', async () => {
+    vi.useFakeTimers();
+    global.fetch = vi.fn((_url, init) => new Promise<Response>((_resolve, reject) => {
+      const signal = (init as RequestInit).signal as AbortSignal | undefined;
+      signal?.addEventListener('abort', () => {
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
+    }));
+
+    const searchPromise = useSearchStore.getState().search(
+      { address: '명지대학교 인문캠퍼스' },
+      { address: '강남역' },
+      '다이소'
+    );
+
+    expect(useSearchStore.getState().isLoading).toBe(true);
+    await vi.advanceTimersByTimeAsync(30000);
+    await searchPromise;
+
+    const state = useSearchStore.getState();
+    expect(state.isLoading).toBe(false);
+    expect(state.abortController).toBeNull();
+    expect(state.error).toContain('검색이 오래 걸려');
   });
 });

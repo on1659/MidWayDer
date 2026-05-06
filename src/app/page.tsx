@@ -737,9 +737,9 @@ export default function HomePage() {
             onEndSelect={handleEndSelect}
             mapCenter={mapCenter}
             onCategoryChange={handleCategoryChange}
-            onSearch={async () => {
-              await runSearch();
+            onSearch={() => {
               setSearchOverlayOpen(false);
+              void runSearch();
             }}
             onSwap={handleSwap}
             isLoading={isLoading}
