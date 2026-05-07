@@ -232,6 +232,10 @@ test.describe('Mobile UI', () => {
       });
     });
     expect(railOverflow).toBe(false);
+    const railMaxButtonHeight = await page.getByTestId('mobile-category-rail').evaluate((rail) => {
+      return Math.max(...Array.from(rail.querySelectorAll('button')).map((button) => button.getBoundingClientRect().height));
+    });
+    expect(railMaxButtonHeight).toBeLessThanOrEqual(38);
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
     await expect(page.getByText('출발지와 도착지 입력')).toBeVisible();
     await expect(page.getByText('가는 길에 어디 들를까요?')).toBeVisible();

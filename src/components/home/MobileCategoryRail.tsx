@@ -17,7 +17,7 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
   return (
     <div
       data-testid="mobile-category-rail"
-      className="absolute inset-x-0 z-[990] hidden overflow-x-auto px-4 pb-2 max-md:block scrollbar-hide"
+      className="absolute inset-x-0 z-[990] hidden overflow-x-auto px-4 pb-1 max-md:block scrollbar-hide"
       style={{
         top: 'calc(max(0.75rem, env(safe-area-inset-top)) + 4.75rem)',
         scrollSnapType: 'x mandatory',
@@ -34,7 +34,7 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
               aria-pressed={active}
               disabled={disabled}
               onClick={() => onSelect(item)}
-              className="flex min-h-11 max-w-[9.25rem] items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full px-4 text-sm font-extrabold transition active:scale-[0.97] disabled:opacity-60"
+              className="flex h-9 max-w-[9rem] items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full px-3.5 text-[13px] font-extrabold leading-none transition active:scale-[0.97] disabled:opacity-60"
               style={{
                 scrollSnapAlign: 'start',
                 background: active
@@ -47,7 +47,7 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
                 WebkitBackdropFilter: 'blur(18px) saturate(160%)',
               }}
             >
-              <span className="shrink-0 text-[11px] font-bold opacity-70">{CATEGORY_META[item] || '추천'}</span>
+              <span className="shrink-0 text-[10px] font-bold leading-none opacity-70">{CATEGORY_META[item] || '추천'}</span>
               <span className="min-w-0 truncate">{item}</span>
             </button>
           );
