@@ -255,7 +255,7 @@ export default function SearchOverlay({
       <div className="px-4 pb-2 pt-3 safe-top" style={{ background: 'var(--bg-app)' }}>
         <h2 id="search-overlay-title" className="sr-only">경로 설정</h2>
         <div
-          className="flex h-14 items-center gap-1.5 rounded-full px-2 shadow-sm"
+          className="flex h-12 items-center gap-1 rounded-full px-1.5 shadow-sm"
           style={{
             background: 'rgba(255,255,255,0.97)',
             border: '1px solid rgba(15,23,42,0.1)',
@@ -265,7 +265,7 @@ export default function SearchOverlay({
           <button
             ref={closeButtonRef}
             onClick={closeOverlay}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
             aria-label="뒤로 가기"
           >
             <ArrowLeft className="h-5 w-5 text-slate-900" />
@@ -273,14 +273,14 @@ export default function SearchOverlay({
           <button
             type="button"
             onClick={() => document.getElementById('mobile-origin-input-input')?.focus()}
-            className="min-w-0 flex-1 truncate text-left text-[16px] font-extrabold leading-none text-slate-900"
+            className="min-w-0 flex-1 truncate text-left text-[15px] font-extrabold leading-none text-slate-900"
           >
             {startAddress || endAddress || category ? [startAddress, endAddress, category].filter(Boolean).join(' · ') : '장소, 버스, 지하철, 주소 검색'}
           </button>
           <button
             onClick={handleVoiceSearch}
             disabled={isListening}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
             aria-label="음성으로 경로 입력"
             title="음성으로 경로 입력"
           >
@@ -292,7 +292,7 @@ export default function SearchOverlay({
           </button>
           <button
             onClick={closeOverlay}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
             aria-label="검색 닫기"
           >
             <X className="h-5 w-5 text-slate-700" />
@@ -300,7 +300,7 @@ export default function SearchOverlay({
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
               aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
             >
               {theme === 'dark' ? <Sun className="h-5 w-5 text-blue-600" /> : <Moon className="h-5 w-5 text-slate-600" />}
@@ -339,7 +339,7 @@ export default function SearchOverlay({
       )}
 
       {/* Route inputs */}
-      <section className="mx-4 mt-2 overflow-hidden rounded-[1.25rem] shadow-sm" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.12)' }} data-testid="mobile-route-input-card">
+      <section className="mt-2 overflow-hidden rounded-[1.25rem] shadow-sm" style={{ marginLeft: '1rem', marginRight: '1rem', backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.12)' }} data-testid="mobile-route-input-card">
         <div className="grid grid-cols-[2.25rem_1fr_2.75rem] items-center gap-2 px-3 py-3">
           <button
             type="button"
@@ -400,7 +400,7 @@ export default function SearchOverlay({
         </div>
       </section>
 
-      <nav data-testid="mobile-transport-tabs" className="mx-4 mt-3 grid grid-cols-4 overflow-hidden rounded-[1.25rem]" aria-label="이동 수단" style={{ background: '#eef2f7' }}>
+      <nav data-testid="mobile-transport-tabs" className="mt-3 grid grid-cols-4 overflow-hidden rounded-[1.25rem]" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
         {[
           { label: '버스', icon: Bus, active: true },
           { label: '자동차', icon: Car, active: false },
@@ -424,7 +424,7 @@ export default function SearchOverlay({
       </nav>
 
       {/* Category chips */}
-      <section className="mx-4 mt-3 rounded-[1.25rem] p-3" style={{ background: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-category-input-card">
+      <section className="mt-3 rounded-[1.25rem] p-3" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
           const timeHints = getTimeBasedCategoryHints();

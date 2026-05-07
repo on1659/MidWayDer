@@ -11,7 +11,7 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
       data-testid="mobile-category-rail"
       className="absolute inset-x-0 z-[990] hidden overflow-x-auto px-4 pb-1 max-md:block scrollbar-hide"
       style={{
-        top: 'calc(max(0.75rem, env(safe-area-inset-top)) + 4.25rem)',
+        top: 'calc(max(0.75rem, env(safe-area-inset-top)) + 3.85rem)',
         scrollSnapType: 'x mandatory',
       }}
       aria-label="들를 곳 카테고리"

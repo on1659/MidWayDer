@@ -25,7 +25,7 @@ export default function MobileSearchEntry({
       data-testid="open-search-overlay-btn"
       type="button"
       onClick={onOpen}
-      className="absolute inset-x-4 z-[1000] hidden h-14 items-center gap-2 rounded-full px-3 text-left text-sm font-semibold max-md:flex"
+      className="absolute inset-x-4 z-[1000] hidden h-12 items-center gap-1.5 rounded-full px-2.5 text-left text-sm font-semibold max-md:flex"
       style={{
         top: 'max(0.75rem, env(safe-area-inset-top))',
         background: 'rgba(255,255,255,0.96)',
@@ -36,7 +36,7 @@ export default function MobileSearchEntry({
         WebkitBackdropFilter: 'blur(18px) saturate(160%)',
       }}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-700">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-700">
         <Search className="h-5 w-5" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
