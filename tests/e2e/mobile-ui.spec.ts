@@ -316,6 +316,7 @@ test.describe('Mobile UI', () => {
     const footerBox = await page.getByTestId('mobile-search-sticky-footer').boundingBox();
     expect(footerBox).toBeTruthy();
     expect(footerBox!.y + footerBox!.height).toBeGreaterThanOrEqual(viewportSize!.height - 2);
+    expect(footerBox!.y + footerBox!.height).toBeLessThanOrEqual(viewportSize!.height + 2);
 
     await overlay.locator('[aria-label="뒤로 가기"]').click();
     await expect(overlay).not.toBeVisible({ timeout: 3000 });

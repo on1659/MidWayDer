@@ -246,7 +246,7 @@ export default function SearchOverlay({
   return (
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-[2147483000] flex flex-col overflow-hidden animate-slide-up gpu-accelerate"
+      className="fixed inset-0 z-[2147483000] flex flex-col overflow-hidden"
       style={{ backgroundColor: 'var(--bg-app)' }}
       role="dialog"
       aria-modal="true"
@@ -303,7 +303,7 @@ export default function SearchOverlay({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2" data-testid="mobile-search-overlay-scroll">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-28" data-testid="mobile-search-overlay-scroll">
       {voiceError && (
         <div className={`mx-4 mt-2 rounded-xl px-4 py-2.5 text-center text-sm font-bold ${voiceError.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {voiceError}
@@ -587,12 +587,10 @@ export default function SearchOverlay({
           </div>
         </div>
       )}
-
-      {/* Spacer */}
-      {recentSearches.length === 0 && placeFavorites.length === 0 && <div className="flex-1" />}
+      </div>
 
       {/* Search button */}
-      <div className="sticky bottom-0 z-[90] px-4 py-4 safe-bottom keyboard-aware" style={{ background: 'color-mix(in srgb, var(--bg-app) 92%, transparent)', borderTop: '1px solid var(--border-soft)', boxShadow: '0 -18px 42px -30px rgba(0,0,0,0.35)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)' }} data-testid="mobile-search-sticky-footer">
+      <div className="absolute inset-x-0 bottom-0 z-[90] px-4 py-4 safe-bottom" style={{ background: 'color-mix(in srgb, var(--bg-app) 96%, transparent)', borderTop: '1px solid var(--border-soft)', boxShadow: '0 -18px 42px -30px rgba(0,0,0,0.35)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)' }} data-testid="mobile-search-sticky-footer">
         {isLoading ? (
           /* 로딩 중: 취소 버튼 */
           <div className="space-y-3">
@@ -645,7 +643,6 @@ export default function SearchOverlay({
             <span>캐시 삭제 ({cacheSize}개)</span>
           </button>
         )}
-      </div>
       </div>
     </div>
   );
