@@ -537,7 +537,7 @@ export default function SearchOverlay({
       </div>
 
       {/* Search button */}
-      <div className="absolute inset-x-0 bottom-0 z-[90] px-4 py-3 safe-bottom" style={{ background: 'color-mix(in srgb, var(--bg-app) 96%, transparent)', borderTop: '1px solid var(--border-soft)', boxShadow: '0 -18px 42px -30px rgba(0,0,0,0.35)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)' }} data-testid="mobile-search-sticky-footer">
+      <div className="absolute inset-x-0 bottom-0 z-[90] px-4 py-2 safe-bottom" style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--bg-app) 96%, transparent), color-mix(in srgb, var(--bg-app) 72%, transparent), transparent)', pointerEvents: 'none' }} data-testid="mobile-search-sticky-footer">
         {isLoading ? (
           /* 로딩 중: 취소 버튼 */
           <div className="space-y-3">
@@ -568,10 +568,11 @@ export default function SearchOverlay({
             data-testid="mobile-search-route-btn"
             onClick={handleSearch}
             disabled={!canSearch}
-            className="mx-auto flex h-12 w-full items-center justify-center rounded-full text-[16px] font-black text-white shadow-md transition-all active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400"
+            className="ml-auto flex h-11 min-w-[7rem] items-center justify-center rounded-full px-5 text-[14px] font-black text-white shadow-md transition-all active:scale-[0.97] disabled:bg-white disabled:text-gray-400 disabled:shadow-sm"
             style={{
-              minHeight: '48px',
+              minHeight: '44px',
               background: canSearch ? 'var(--accent)' : undefined,
+              pointerEvents: 'auto',
             }}
           >
             경유지 찾기
