@@ -1,4 +1,7 @@
-import { MapPin, Navigation, SlidersHorizontal } from 'lucide-react';
+'use client';
+
+import { useRef, useState } from 'react';
+import { ChevronDown, ChevronUp, MapPin, Navigation, SlidersHorizontal } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import MobileCategoryRail from './MobileCategoryRail';
 import MobileSearchEntry from './MobileSearchEntry';
@@ -46,6 +49,8 @@ export default function MobileHomeShell({
   onResultHover,
   onRetry,
 }: MobileHomeShellProps) {
+  const [isResultSheetExpanded, setIsResultSheetExpanded] = useState(true);
+  const dragStartYRef = useRef<number | null>(null);
   const hasResults = results.length > 0;
   const routeLabel = startAddress && endAddress ? `${startAddress} → ${endAddress}` : '경로를 입력하면 추천을 시작해요';
   const resultSurface = '#f8fafc';
@@ -55,8 +60,21 @@ export default function MobileHomeShell({
   const resultSubtext = '#334155';
   const resultMuted = '#64748b';
   const resultBorder = '#dbe7f5';
-  const resultSheetMaxHeight = '58dvh';
+  const resultSheetMaxHeight = isResultSheetExpanded ? '58dvh' : '34dvh';
   const resultSheetHeaderHeight = '118px';
+
+  const handleResultSheetDragEnd = (clientY: number) => {
+    if (dragStartYRef.current === null) return;
+    const deltaY = clientY - dragStartYRef.current;
+    dragStartYRef.current = null;
+
+    if (Math.abs(deltaY) < 28) {
+      setIsResultSheetExpanded((current) => !current);
+      return;
+    }
+
+    setIsResultSheetExpanded(deltaY < 0);
+  };
 
   return (
     <div data-testid="mobile-home-shell" className="md:hidden">
@@ -137,7 +155,8 @@ export default function MobileHomeShell({
       {(hasResults || error) && !isLoading && (
         <section
           data-testid="mobile-result-sheet"
-          className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem]"
+          data-state={isResultSheetExpanded ? 'expanded' : 'collapsed'}
+          className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem] transition-[max-height] duration-300 ease-out"
           style={{
             maxHeight: resultSheetMaxHeight,
             paddingBottom: 'env(safe-area-inset-bottom)',
@@ -147,9 +166,23 @@ export default function MobileHomeShell({
             boxShadow: '0 -18px 50px -30px rgba(15,23,42,0.45)',
           }}
         >
-          <div className="flex justify-center pt-2" aria-hidden="true">
-            <div className="h-1.5 w-12 rounded-full" style={{ background: '#cbd5e1' }} />
-          </div>
+          <button
+            type="button"
+            data-testid="mobile-result-sheet-handle"
+            aria-label={isResultSheetExpanded ? '결과 시트 접기' : '결과 시트 펼치기'}
+            aria-expanded={isResultSheetExpanded}
+            className="flex min-h-8 w-full items-center justify-center gap-2 pt-2 text-[11px] font-black"
+            style={{ color: resultMuted, touchAction: 'none' }}
+            onClick={() => setIsResultSheetExpanded((current) => !current)}
+            onTouchStart={(event) => { dragStartYRef.current = event.touches[0].clientY; }}
+            onTouchEnd={(event) => {
+              event.preventDefault();
+              handleResultSheetDragEnd(event.changedTouches[0].clientY);
+            }}
+          >
+            <span className="h-1.5 w-12 rounded-full" style={{ background: '#cbd5e1' }} />
+            {isResultSheetExpanded ? <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />}
+          </button>
           <div className="px-4 pb-3 pt-2" style={{ borderBottom: `1px solid ${resultBorder}` }}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">

@@ -180,6 +180,38 @@ test.describe('Mobile UI', () => {
     expect(sheetBox!.y).toBeGreaterThanOrEqual(viewportSize!.height * 0.38);
   });
 
+  test('결과 패널은 접고 펼쳐서 지도 가시영역을 조절할 수 있어야 한다', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'mobile project only');
+
+    await mockAllAPIs(page);
+    const sheet = await gotoWithSearch(page);
+    const handle = page.getByTestId('mobile-result-sheet-handle');
+    const viewportSize = page.viewportSize();
+    expect(viewportSize).toBeTruthy();
+
+    await expect(handle).toBeVisible();
+    await expect(sheet).toHaveAttribute('data-state', 'expanded');
+    await expect(handle).toHaveAttribute('aria-expanded', 'true');
+
+    await handle.click();
+    await expect(sheet).toHaveAttribute('data-state', 'collapsed');
+    await expect(handle).toHaveAttribute('aria-expanded', 'false');
+
+    const collapsedBox = await sheet.boundingBox();
+    expect(collapsedBox).toBeTruthy();
+    expect(collapsedBox!.height).toBeLessThanOrEqual(viewportSize!.height * 0.38);
+    expect(Math.round(collapsedBox!.y + collapsedBox!.height)).toBeGreaterThanOrEqual(viewportSize!.height - 1);
+
+    await handle.click();
+    await expect(sheet).toHaveAttribute('data-state', 'expanded');
+    await expect(handle).toHaveAttribute('aria-expanded', 'true');
+
+    const expandedBox = await sheet.boundingBox();
+    expect(expandedBox).toBeTruthy();
+    expect(expandedBox!.height).toBeGreaterThanOrEqual(viewportSize!.height * 0.46);
+    expect(expandedBox!.height).toBeLessThanOrEqual(viewportSize!.height * 0.6);
+  });
+
   test('결과가 없을 때는 단순 검색 진입점만 보여야 한다', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile project only');
 
