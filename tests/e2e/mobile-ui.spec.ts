@@ -309,6 +309,13 @@ test.describe('Mobile UI', () => {
 
     await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
     await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
+
+    const footerBox = await page.getByTestId('mobile-search-sticky-footer').boundingBox();
+    expect(footerBox).toBeTruthy();
+    expect(footerBox!.y + footerBox!.height).toBeGreaterThanOrEqual(viewportSize!.height - 2);
 
     await overlay.locator('[aria-label="뒤로 가기"]').click();
     await expect(overlay).not.toBeVisible({ timeout: 3000 });

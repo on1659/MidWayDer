@@ -11,7 +11,7 @@ import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
 import { getSavedLocationByLabel } from '@/lib/smart-location';
-import { startVoiceSearchWithFeedback, VOICE_SEARCH_EXAMPLES } from '@/lib/voice-search';
+import { startVoiceSearchWithFeedback } from '@/lib/voice-search';
 import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/lib/place-favorites';
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useCacheStore } from '@/store/cache-store';
@@ -231,7 +231,7 @@ export default function SearchOverlay({
       
       // 성공 메시지 (간단하게)
       if (result.start || result.end || result.category) {
-        setVoiceError('✅ 음성 인식 완료!');
+        setVoiceError('음성 인식 완료');
         setTimeout(() => setVoiceError(null), 2000);
       }
     } catch (err: unknown) {
@@ -257,52 +257,55 @@ export default function SearchOverlay({
         <button
           ref={closeButtonRef}
           onClick={closeOverlay}
-          className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
           style={{ backgroundColor: 'var(--bg-surface-muted)' }}
           aria-label="뒤로 가기"
         >
-          <ArrowLeft className="w-6 h-6" style={{ color: 'var(--text-strong)' }} />
+          <ArrowLeft className="h-5 w-5" style={{ color: 'var(--text-strong)' }} />
         </button>
-        <h2 id="search-overlay-title" className="text-xl font-bold flex-1" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
+        <div className="min-w-0 flex-1">
+          <h2 id="search-overlay-title" className="text-lg font-black leading-tight" style={{ color: 'var(--text-primary)' }}>경로 설정</h2>
+          <p className="mt-0.5 truncate text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>출발지, 도착지, 들를 곳만 빠르게 정함</p>
+        </div>
         
         {/* 음성 검색 버튼 */}
         <button
           onClick={handleVoiceSearch}
           disabled={isListening}
-          className="w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition-all shrink-0 disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
           style={{ 
             backgroundColor: isListening ? 'var(--accent)' : 'var(--bg-surface-muted)',
             color: isListening ? 'white' : 'var(--text-strong)',
           }}
           aria-label="음성으로 경로 입력"
-          title="음성으로 경로 입력 🎤"
+          title="음성으로 경로 입력"
         >
           {isListening ? (
-            <MicOff className="w-6 h-6 animate-pulse" />
+            <MicOff className="h-5 w-5 animate-pulse" />
           ) : (
-            <Mic className="w-6 h-6" />
+            <Mic className="h-5 w-5" />
           )}
         </button>
 
         {onToggleTheme && (
           <button
             onClick={onToggleTheme}
-            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-colors shrink-0"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
             style={{ backgroundColor: 'var(--bg-surface-muted)' }}
             aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
           >
             {theme === 'dark' ? (
-              <Sun className="w-6 h-6" style={{ color: 'var(--accent)' }} />
+              <Sun className="h-5 w-5" style={{ color: 'var(--accent)' }} />
             ) : (
-              <Moon className="w-6 h-6" style={{ color: 'var(--text-secondary)' }} />
+              <Moon className="h-5 w-5" style={{ color: 'var(--text-secondary)' }} />
             )}
           </button>
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2" data-testid="mobile-search-overlay-scroll">
       {voiceError && (
-        <div className={`mx-4 mt-2 px-4 py-2.5 rounded-xl text-sm font-medium text-center ${voiceError.startsWith('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`mx-4 mt-2 rounded-xl px-4 py-2.5 text-center text-sm font-bold ${voiceError.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {voiceError}
         </div>
       )}
@@ -329,35 +332,33 @@ export default function SearchOverlay({
         </div>
       )}
 
-      {/* 비활성 상태: 음성 검색 예시 힌트 */}
-      {!isListening && !voiceError && (
-        <p className="mx-4 mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-          🎤 예: &quot;{VOICE_SEARCH_EXAMPLES[0]}&quot;
-        </p>
-      )}
-
       {/* Route inputs */}
-      <div className="px-4 pt-3 pb-2 relative z-[60]" style={{ backgroundColor: 'var(--bg-surface)' }}>
-        {/* 📍 현재 위치 CTA 버튼 (홈/회사 칩보다 상단) */}
-        {onGPS && (
-          <button
-            onClick={() => { onGPS(); }}
-            disabled={gpsLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 mb-3"
-            style={{
-              minHeight: '48px',
-              background: 'color-mix(in srgb, var(--accent) 12%, var(--bg-surface) 88%)',
-              color: 'var(--accent)',
-              border: '1px solid var(--border-accent)',
-            }}
-            aria-label="현재 위치를 출발지로 설정"
-          >
-            <LocateFixed className={`w-4 h-4 ${gpsLoading ? 'animate-spin' : ''}`} />
-            {gpsLoading ? '위치 확인 중...' : '📍 현재 위치에서 출발'}
-          </button>
-        )}
+      <section className="mx-4 mt-3 rounded-[1.75rem] p-4 shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }} data-testid="mobile-route-input-card">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-base font-black leading-tight" style={{ color: 'var(--text-primary)' }}>어디서 어디로 가나요?</p>
+            <p className="mt-1 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>주소를 선택하면 경유지 추천 정확도가 올라감</p>
+          </div>
+          {onGPS && (
+            <button
+              onClick={onGPS}
+              disabled={gpsLoading}
+              className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-extrabold transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{
+                background: 'color-mix(in srgb, var(--accent) 12%, var(--bg-surface) 88%)',
+                color: 'var(--accent)',
+                border: '1px solid var(--border-accent)',
+              }}
+              aria-label="현재 위치를 출발지로 설정"
+            >
+              <LocateFixed className={`h-4 w-4 ${gpsLoading ? 'animate-spin' : ''}`} />
+              {gpsLoading ? '확인 중' : '현재 위치'}
+            </button>
+          )}
+        </div>
+
         {/* 스마트 출발지 빠른 선택 */}
-        <div className="flex gap-2 mb-3">
+        <div className="mb-3 flex gap-2">
           {(() => {
             const home = getSavedLocationByLabel('home');
             const work = getSavedLocationByLabel('work');
@@ -369,11 +370,11 @@ export default function SearchOverlay({
                       onStartChange(home.address);
                       if (onStartSelect) onStartSelect({ address: home.address, coordinates: home.coordinates });
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                    className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold transition-all active:scale-95"
                     style={{ background: 'var(--blue-150)', color: 'var(--blue-700)' }}
                     aria-label="집을 출발지로 설정"
                   >
-                    <Home className="w-4 h-4" />
+                    <Home className="h-4 w-4" />
                     집
                   </button>
                 )}
@@ -383,11 +384,11 @@ export default function SearchOverlay({
                       onStartChange(work.address);
                       if (onStartSelect) onStartSelect({ address: work.address, coordinates: work.coordinates });
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                    className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold transition-all active:scale-95"
                     style={{ background: 'var(--green-150)', color: 'var(--green-700)' }}
                     aria-label="회사를 출발지로 설정"
                   >
-                    <Briefcase className="w-4 h-4" />
+                    <Briefcase className="h-4 w-4" />
                     회사
                   </button>
                 )}
@@ -397,66 +398,47 @@ export default function SearchOverlay({
         </div>
         
         <div className="space-y-3">
-          {/* 출발지 입력 + GPS 버튼 */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <AddressInput
-                label=""
-                value={startAddress}
-                onChange={onStartChange}
-                onSelect={onStartSelect}
-                placeholder="출발지를 입력하세요"
-                mapCenter={mapCenter}
-                dotColor="var(--accent)"
-                testId="mobile-origin-input"
-              />
-            </div>
-            {onGPS && (
-              <button
-                onClick={onGPS}
-                disabled={gpsLoading}
-                className="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
-                style={{ background: 'var(--accent)', color: 'white' }}
-                title="현재 위치"
-                aria-label="현재 위치를 출발지로 설정"
-              >
-                <LocateFixed className={`w-5 h-5 ${gpsLoading ? 'animate-pulse' : ''}`} />
-              </button>
-            )}
-          </div>
+          <AddressInput
+            label="출발"
+            value={startAddress}
+            onChange={onStartChange}
+            onSelect={onStartSelect}
+            placeholder="출발지 입력"
+            mapCenter={mapCenter}
+            dotColor="var(--accent)"
+            testId="mobile-origin-input"
+          />
           
-          {/* 스왑 버튼 - 모바일 터치 영역 확대 (48x48px) */}
           {onSwap && (
             <div className="flex justify-center -my-1">
               <button
                 onClick={onSwap}
                 disabled={!startAddress && !endAddress}
-                className="w-12 h-12 rounded-full flex items-center justify-center transition-all
-                           hover:bg-blue-50 active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-95 active:rotate-180 disabled:cursor-not-allowed disabled:opacity-30"
                 style={{ border: '1.5px solid var(--border-soft)', backgroundColor: 'var(--bg-surface)' }}
-                title="출발지↔도착지 바꾸기"
+                title="출발지와 도착지 바꾸기"
                 aria-label="출발지와 도착지 바꾸기"
               >
-                <ArrowUpDown className="w-5 h-5 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
+                <ArrowUpDown className="h-5 w-5 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
               </button>
             </div>
           )}
 
           <AddressInput
-            label=""
+            label="도착"
             value={endAddress}
             onChange={onEndChange}
             onSelect={onEndSelect}
-            placeholder="도착지를 입력하세요"
+            placeholder="도착지 입력"
             mapCenter={mapCenter}
             dotColor="var(--pink-500)"
             testId="mobile-destination-input"
           />
         </div>
-      </div>
+      </section>
 
       {/* Category chips */}
-      <div className="px-4 pb-3 relative z-10">
+      <section className="mx-4 mt-3 rounded-[1.5rem] p-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }} data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
           const timeHints = getTimeBasedCategoryHints();
@@ -497,9 +479,9 @@ export default function SearchOverlay({
           </div>
         )}
 
-        <p className="text-sm font-semibold mb-2.5" style={{ color: 'var(--text-primary)' }}>어디 들를까요?</p>
+        <p className="mb-2.5 text-base font-black" style={{ color: 'var(--text-primary)' }}>어디 들를까요?</p>
         <CategorySelect selected={category} onChange={onCategoryChange} />
-      </div>
+      </section>
 
       {/* Saved places */}
       {placeFavorites.length > 0 && (
@@ -610,7 +592,7 @@ export default function SearchOverlay({
       {recentSearches.length === 0 && placeFavorites.length === 0 && <div className="flex-1" />}
 
       {/* Search button */}
-      <div className="px-4 py-4 safe-bottom keyboard-aware">
+      <div className="sticky bottom-0 z-[90] px-4 py-4 safe-bottom keyboard-aware" style={{ background: 'color-mix(in srgb, var(--bg-app) 92%, transparent)', borderTop: '1px solid var(--border-soft)', boxShadow: '0 -18px 42px -30px rgba(0,0,0,0.35)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)' }} data-testid="mobile-search-sticky-footer">
         {isLoading ? (
           /* 로딩 중: 취소 버튼 */
           <div className="space-y-3">
@@ -641,13 +623,13 @@ export default function SearchOverlay({
             data-testid="mobile-search-route-btn"
             onClick={handleSearch}
             disabled={!canSearch}
-            className="w-full max-w-[calc(100%-32px)] mx-auto py-5 text-white rounded-2xl font-bold text-lg active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md box-border"
+            className="mx-auto w-full rounded-2xl py-5 text-lg font-black text-white shadow-md transition-all active:scale-[0.97] disabled:bg-gray-200 disabled:text-gray-400"
             style={{
               minHeight: '56px',
               background: canSearch ? 'var(--accent)' : undefined,
             }}
           >
-            경유지 찾기 🔍
+            경유지 찾기
           </button>
         )}
 
