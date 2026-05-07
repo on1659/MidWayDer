@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { ChevronDown, ChevronUp, MapPin, Navigation, SlidersHorizontal } from 'lucide-react';
+import { Bookmark, ChevronDown, ChevronUp, MapPin, Navigation, SlidersHorizontal } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import MobileCategoryRail from './MobileCategoryRail';
 import MobileSearchEntry from './MobileSearchEntry';
@@ -61,7 +61,7 @@ export default function MobileHomeShell({
   const resultMuted = '#64748b';
   const resultBorder = '#dbe7f5';
   const resultSheetMaxHeight = isResultSheetExpanded ? '58dvh' : '34dvh';
-  const resultSheetHeaderHeight = '118px';
+  const resultSheetHeaderHeight = '104px';
 
   const handleResultSheetDragEnd = (clientY: number) => {
     if (dragStartYRef.current === null) return;
@@ -194,31 +194,33 @@ export default function MobileHomeShell({
                   {totalCandidates ? `${totalCandidates}개 후보 중 선별` : routeLabel}
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 gap-1.5">
                 {hasResults && (
                   <button
                     type="button"
+                    aria-label="경로 저장"
                     onClick={onSaveRoute}
-                    className="min-h-10 rounded-full px-3 text-xs font-extrabold"
+                    className="flex h-9 w-9 items-center justify-center rounded-full transition active:scale-95"
                     style={{ background: '#ffffff', color: resultText, border: `1px solid ${resultBorder}` }}
                   >
-                    저장
+                    <Bookmark className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
                 <button
                   type="button"
+                  aria-label="조건 수정"
                   onClick={onOpenSearch}
-                  className="min-h-10 rounded-full px-3 text-xs font-extrabold"
+                  className="flex h-9 w-9 items-center justify-center rounded-full transition active:scale-95"
                   style={{ background: 'var(--accent)', color: 'var(--text-on-accent)', border: '1px solid var(--accent)' }}
                 >
-                  조건 수정
+                  <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
             {hasResults && (
-              <div className="mt-3 grid grid-cols-5 gap-1.5 text-center text-[11px] font-extrabold" style={{ color: resultMuted }}>
+              <div className="mt-2 grid grid-cols-5 gap-1 text-center text-[10px] font-extrabold" style={{ color: resultMuted }}>
                 {['출발', '초반', '중간', '후반', '도착'].map((label, index) => (
-                  <span key={label} className="rounded-full py-1.5" style={{ background: index === 2 ? 'rgba(37, 99, 235, 0.14)' : '#e8eef7', color: index === 2 ? '#1d4ed8' : resultSubtext }}>
+                  <span key={label} className="rounded-full py-1" style={{ background: index === 2 ? 'rgba(37, 99, 235, 0.14)' : 'transparent', color: index === 2 ? '#1d4ed8' : resultSubtext }}>
                     {label}
                   </span>
                 ))}
@@ -253,44 +255,34 @@ export default function MobileHomeShell({
                       onClick={() => onResultSelect(result)}
                       onMouseEnter={() => onResultHover(result.place.id)}
                       onMouseLeave={() => onResultHover(null)}
-                      className="w-full rounded-[1.65rem] p-3.5 text-left transition active:scale-[0.99]"
+                      aria-label={`지도에서 ${result.place.name} 보기`}
+                      className="w-full rounded-[1.4rem] p-3 text-left transition active:scale-[0.99]"
                       style={{
                         background: selected ? '#eff6ff' : resultCard,
                         border: selected ? '2px solid #2563eb' : `1px solid ${resultBorder}`,
                         boxShadow: index === 0 ? '0 14px 34px -24px rgba(37,99,235,0.55)' : '0 10px 28px -24px rgba(15,23,42,0.35)',
                       }}
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-black" style={{ background: index === 0 ? '#3b82f6' : '#e2e8f0', color: index === 0 ? '#ffffff' : resultText }}>
+                      <div className="flex items-start gap-2.5">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black" style={{ background: index === 0 ? '#3b82f6' : '#e2e8f0', color: index === 0 ? '#ffffff' : resultText }}>
                           {index + 1}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <h3 className="line-clamp-2 text-xl font-black leading-snug" style={{ color: resultText }}>{result.place.name}</h3>
+                              <h3 className="line-clamp-2 text-lg font-black leading-snug" style={{ color: resultText }}>{result.place.name}</h3>
                               <p className="mt-1 line-clamp-2 text-sm font-bold leading-snug" style={{ color: resultSubtext }}>{address}</p>
                             </div>
-                            {index === 0 && (
-                              <span className="rounded-full px-2.5 py-1 text-[10px] font-black" style={{ background: '#2563eb', color: '#ffffff' }}>
-                                BEST
-                              </span>
-                            )}
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ background: selected ? '#2563eb' : '#eaf2ff', color: selected ? '#ffffff' : '#1d4ed8', border: selected ? '1px solid #2563eb' : '1px solid #bfdbfe' }}>
+                              <Navigation className="h-4 w-4" aria-hidden="true" />
+                            </span>
                           </div>
-                          <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-2xl" style={{ border: `1px solid ${resultBorder}` }}>
-                            {[
-                              ['추가', formatMin(result.detourCost.duration)],
-                              ['거리', formatKm(result.detourCost.distance)],
-                              ['점수', `${Math.round(result.finalScore)}`],
-                            ].map(([label, value]) => (
-                              <span key={label} className="px-2 py-2.5 text-center" style={{ background: resultCardMuted, borderRight: label !== '점수' ? `1px solid ${resultBorder}` : 'none' }}>
-                                <span className="block text-[11px] font-black" style={{ color: resultSubtext }}>{label}</span>
-                                <span className="mt-0.5 block text-xl font-black tabular-nums" style={{ color: resultText }}>{value}</span>
-                              </span>
-                            ))}
-                          </div>
-                          <div className="mt-3 flex min-h-11 items-center justify-center gap-2 rounded-2xl text-lg font-black" style={{ background: selected ? '#2563eb' : '#eaf2ff', color: selected ? '#ffffff' : '#1d4ed8', border: selected ? '1px solid #2563eb' : '1px solid #bfdbfe' }}>
-                            <Navigation className="h-4 w-4" aria-hidden="true" />
-                            {selected ? '지도에 표시 중' : '지도에서 보기'}
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-black" style={{ color: resultSubtext }}>
+                            <span className="rounded-full px-2 py-1" style={{ background: resultCardMuted }}>+{formatMin(result.detourCost.duration)}</span>
+                            <span className="rounded-full px-2 py-1" style={{ background: resultCardMuted }}>{formatKm(result.detourCost.distance)}</span>
+                            <span className="rounded-full px-2 py-1" style={{ background: resultCardMuted }}>{Math.round(result.finalScore)}점</span>
+                            {index === 0 && <span className="rounded-full px-2 py-1" style={{ background: '#2563eb', color: '#ffffff' }}>BEST</span>}
+                            {selected && <span className="rounded-full px-2 py-1" style={{ background: '#dbeafe', color: '#1d4ed8' }}>표시 중</span>}
                           </div>
                         </div>
                       </div>

@@ -367,11 +367,13 @@ test.describe('Mobile UI', () => {
 
     await expect(sheet.getByText('추천 경유지').first()).toBeVisible();
     await expect(sheet.getByText('5개 발견')).toBeVisible();
-    await expect(sheet.getByRole('button', { name: '저장' })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: '경로 저장' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '조건 수정' })).toBeVisible();
-    await expect(sheet.getByText('추가').first()).toBeVisible();
-    await expect(sheet.getByText('거리').first()).toBeVisible();
-    await expect(sheet.getByText('지도에서 보기').first()).toBeVisible();
+    await expect(sheet.getByRole('button', { name: /지도에서 다이소 강남점 보기/ })).toBeVisible();
+    await expect(sheet.getByText('+8분').first()).toBeVisible();
+    await expect(sheet.getByText('1.3km').first()).toBeVisible();
+    await expect(sheet.getByText('78점').first()).toBeVisible();
+    await expect(sheet.getByText('지도에서 보기')).not.toBeVisible();
 
     const sheetPaint = await sheet.evaluate((el) => {
       const bg = window.getComputedStyle(el).backgroundColor;
