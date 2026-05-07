@@ -113,42 +113,30 @@ export default function MobileHomeShell({
       )}
 
       {!hasResults && !error && !isLoading && (
-        <section
+        <button
+          type="button"
           data-testid="mobile-idle-sheet"
-          className="absolute inset-x-3 bottom-3 z-[980] rounded-[2rem] px-4 pb-4 pt-3"
+          onClick={onOpenSearch}
+          className="absolute inset-x-4 bottom-4 z-[980] flex min-h-[64px] items-center gap-3 rounded-[1.35rem] px-3.5 text-left transition active:scale-[0.99]"
           style={{
-            paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
-            background: 'color-mix(in srgb, var(--bg-surface) 82%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--border-soft) 75%, transparent)',
-            boxShadow: '0 24px 70px -26px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset',
-            backdropFilter: 'blur(24px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+            paddingTop: '0.75rem',
+            background: 'rgba(255,255,255,0.96)',
+            border: '1px solid rgba(15,23,42,0.1)',
+            boxShadow: '0 18px 44px -28px rgba(15,23,42,0.55)',
           }}
         >
-          <div className="mx-auto mb-3 h-1.5 w-12 rounded-full" style={{ background: 'var(--border-soft)' }} />
-          <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'var(--bg-surface-muted)', color: 'var(--accent)' }}>
-              <MapPin className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-lg font-extrabold leading-tight" style={{ color: 'var(--text-strong)' }}>가는 길에 어디 들를까요?</p>
-              <p className="mt-1 line-clamp-2 text-sm leading-snug" style={{ color: 'var(--text-secondary)' }}>{routeLabel}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenSearch}
-            className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-extrabold transition active:scale-[0.98]"
-            style={{
-              background: 'linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 58%, #8b5cf6))',
-              color: 'var(--text-on-accent)',
-              boxShadow: '0 14px 32px -18px rgba(var(--color-accent-rgb), 0.9)',
-            }}
-          >
-            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-            경로 입력하고 추천 받기
-          </button>
-        </section>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: '#eff6ff', color: '#2563eb' }}>
+            <MapPin className="h-[18px] w-[18px]" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-black leading-tight" style={{ color: '#0f172a' }}>경로 입력</span>
+            <span className="mt-0.5 block truncate text-xs font-bold" style={{ color: '#64748b' }}>{routeLabel}</span>
+          </span>
+          <span className="shrink-0 rounded-full px-3 py-2 text-xs font-black" style={{ background: '#0b84ff', color: '#ffffff' }}>
+            추천
+          </span>
+        </button>
       )}
 
       {(hasResults || error) && !isLoading && (

@@ -1,4 +1,4 @@
-import { Mic, Search, SlidersHorizontal } from 'lucide-react';
+import { Mic, Search } from 'lucide-react';
 
 export type MobileSearchEntryProps = {
   startAddress?: string;
@@ -17,15 +17,15 @@ export default function MobileSearchEntry({
   hasResults,
   onOpen,
 }: MobileSearchEntryProps) {
-  const routeLabel = startAddress && endAddress ? `${startAddress} → ${endAddress}` : '출발지와 도착지 입력';
-  const statusLabel = isLoading ? '찾는 중...' : hasResults ? `${category} 주변 추천` : '장소, 주소 검색';
+  const routeLabel = startAddress && endAddress ? `${startAddress} → ${endAddress}` : '어디로 갈까요?';
+  const statusLabel = isLoading ? '찾는 중...' : hasResults ? `${category} 추천 결과` : '출발지 · 도착지 · 경유지 검색';
 
   return (
     <button
       data-testid="open-search-overlay-btn"
       type="button"
       onClick={onOpen}
-      className="absolute inset-x-4 z-[1000] hidden h-12 items-center gap-1.5 rounded-full px-2.5 text-left text-sm font-semibold max-md:flex"
+      className="absolute inset-x-4 z-[1000] hidden h-11 items-center gap-1.5 rounded-full px-2 text-left text-sm font-semibold max-md:flex"
       style={{
         top: 'max(0.75rem, env(safe-area-inset-top))',
         background: 'rgba(255,255,255,0.96)',
@@ -36,20 +36,19 @@ export default function MobileSearchEntry({
         WebkitBackdropFilter: 'blur(18px) saturate(160%)',
       }}
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-700">
-        <Search className="h-5 w-5" aria-hidden="true" />
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-700">
+        <Search className="h-[18px] w-[18px]" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[16px] font-extrabold leading-tight text-slate-900">
+        <span className="block truncate text-[15px] font-extrabold leading-tight text-slate-900">
           {routeLabel}
         </span>
-        <span className="mt-0.5 flex items-center gap-1 truncate text-[11px] font-bold text-slate-500">
-          <SlidersHorizontal className="h-3 w-3 shrink-0" aria-hidden="true" />
-          <span className="truncate">{statusLabel}</span>
+        <span className="mt-0.5 block truncate text-[11px] font-bold text-slate-500">
+          {statusLabel}
         </span>
       </span>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-700" aria-hidden="true">
-        <Mic className="h-5 w-5" />
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-700" aria-hidden="true">
+        <Mic className="h-[18px] w-[18px]" />
       </span>
     </button>
   );

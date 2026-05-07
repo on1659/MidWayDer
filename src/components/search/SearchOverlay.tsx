@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, X, Clock, Sun, Moon, ArrowUpDown, LocateFixed, Mic, MicOff, Star, Trash2, Bookmark, Bus, Car, Footprints, Bike } from 'lucide-react';
+import { ArrowLeft, X, Clock, ArrowUpDown, LocateFixed, Mic, MicOff, Star, Trash2, Bus, Car, Footprints, Bike } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
@@ -15,18 +15,6 @@ import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/li
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useCacheStore } from '@/store/cache-store';
 import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
-import dynamic from 'next/dynamic';
-
-// 동적 import: 초기 로딩 속도 개선 (v0.65.0)
-const SavedRoutesList = dynamic(
-  () => import('@/components/saved-routes/SavedRoutesList').then((mod) => mod.SavedRoutesList),
-  {
-    loading: () => (
-      <div className="animate-pulse h-24 bg-gray-200 dark:bg-gray-700 rounded-xl" />
-    ),
-    ssr: false,
-  }
-);
 import type { SavedRoute } from '@/types/saved-route';
 
 interface SearchOverlayProps {
@@ -70,13 +58,10 @@ export default function SearchOverlay({
   onSwap,
   isLoading,
   canSearch,
-  theme = 'light',
-  onToggleTheme,
   onGPS,
   gpsLoading = false,
   onInstantSearch,
-  onCancel,  // 추가
-  onRouteSelect,  // 추가
+  onCancel,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
@@ -255,7 +240,7 @@ export default function SearchOverlay({
       <div className="px-4 pb-2 pt-3 safe-top" style={{ background: 'var(--bg-app)' }}>
         <h2 id="search-overlay-title" className="sr-only">경로 설정</h2>
         <div
-          className="flex h-12 items-center gap-1 rounded-full px-1.5 shadow-sm"
+          className="flex h-11 items-center gap-1 rounded-full px-1.5 shadow-sm"
           style={{
             background: 'rgba(255,255,255,0.97)',
             border: '1px solid rgba(15,23,42,0.1)',
@@ -275,7 +260,7 @@ export default function SearchOverlay({
             onClick={() => document.getElementById('mobile-origin-input-input')?.focus()}
             className="min-w-0 flex-1 truncate text-left text-[15px] font-extrabold leading-none text-slate-900"
           >
-            {startAddress || endAddress || category ? [startAddress, endAddress, category].filter(Boolean).join(' · ') : '장소, 버스, 지하철, 주소 검색'}
+            {startAddress && endAddress ? `${startAddress} → ${endAddress}` : '경로 설정'}
           </button>
           <button
             onClick={handleVoiceSearch}
@@ -297,15 +282,7 @@ export default function SearchOverlay({
           >
             <X className="h-5 w-5 text-slate-700" />
           </button>
-          {onToggleTheme && (
-            <button
-              onClick={onToggleTheme}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors active:scale-95"
-              aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5 text-blue-600" /> : <Moon className="h-5 w-5 text-slate-600" />}
-            </button>
-          )}
+
         </div>
       </div>
 
@@ -402,7 +379,7 @@ export default function SearchOverlay({
         </div>
       </section>
 
-      <nav data-testid="mobile-transport-tabs" className="mt-3 grid grid-cols-4 overflow-hidden rounded-[1.25rem]" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
+      <nav data-testid="mobile-transport-tabs" className="mx-4 mt-3 grid h-11 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ background: '#eef2f7' }}>
         {[
           { label: '버스', icon: Bus, active: true },
           { label: '자동차', icon: Car, active: false },
@@ -415,8 +392,8 @@ export default function SearchOverlay({
               key={mode.label}
               type="button"
               aria-pressed={mode.active}
-              className="flex h-12 items-center justify-center transition active:scale-[0.98]"
-              style={{ background: mode.active ? '#0b84ff' : 'transparent', color: mode.active ? '#ffffff' : '#111827' }}
+              className="flex h-full items-center justify-center rounded-full transition active:scale-[0.98]"
+              style={{ background: mode.active ? '#0b84ff' : 'transparent', color: mode.active ? '#ffffff' : '#334155' }}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">{mode.label}</span>
@@ -426,7 +403,7 @@ export default function SearchOverlay({
       </nav>
 
       {/* Category chips */}
-      <section className="mt-3 rounded-[1.25rem] p-3" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-category-input-card">
+      <section className="mx-4 mt-4" data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
           const timeHints = getTimeBasedCategoryHints();
@@ -467,7 +444,7 @@ export default function SearchOverlay({
           </div>
         )}
 
-        <p className="mb-2 text-[13px] font-black text-slate-700">어디 들를까요?</p>
+        <p className="mb-2 px-1 text-[13px] font-black text-slate-600">경유지 종류</p>
         <CategorySelect selected={category} onChange={onCategoryChange} density="compact" />
       </section>
 
@@ -511,17 +488,6 @@ export default function SearchOverlay({
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Saved routes (v0.63.0) */}
-      {onRouteSelect && (
-        <div className="px-4 pb-3">
-          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
-            <Bookmark className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-            저장된 경로
-          </p>
-          <SavedRoutesList onRouteSelect={onRouteSelect} />
         </div>
       )}
 

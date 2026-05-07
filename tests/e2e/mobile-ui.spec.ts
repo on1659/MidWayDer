@@ -238,8 +238,8 @@ test.describe('Mobile UI', () => {
     });
     expect(railMaxButtonHeight).toBeLessThanOrEqual(38);
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
-    await expect(page.getByText('출발지와 도착지 입력')).toBeVisible();
-    await expect(page.getByText('가는 길에 어디 들를까요?')).toBeVisible();
+    await expect(page.getByText('어디로 갈까요?')).toBeVisible();
+    await expect(page.getByText('경로 입력')).toBeVisible();
   });
 
   test('모바일 검색 중에는 대형 단계 카드와 skeleton 바텀시트를 보여주지 않아야 한다', async ({ page, isMobile }) => {
@@ -272,10 +272,8 @@ test.describe('Mobile UI', () => {
     await mockAllAPIs(page);
     const sheet = await gotoWithSearch(page);
 
-    await page.getByTestId('open-search-overlay-btn').click();
-    await page.locator('[aria-label="다크 모드로 전환"]').click();
+    await page.evaluate(() => document.documentElement.classList.add('theme-dark'));
     await expect(page.locator('html.theme-dark')).toBeVisible({ timeout: 3000 });
-    await page.locator('[aria-label="뒤로 가기"]').click();
 
     const readability = await sheet.evaluate((el) => {
       const bg = window.getComputedStyle(el).backgroundColor;

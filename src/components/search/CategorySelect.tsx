@@ -106,16 +106,17 @@ const CategorySelectComponent = ({ selected, onChange, density = 'default' }: Ca
               aria-label={name}
               aria-pressed={isSelected}
               className={`flex items-center rounded-full whitespace-nowrap transition-all active:scale-95 shrink-0 font-semibold ${
-                density === 'compact' ? 'gap-1.5 px-3 py-1.5 text-xs' : 'gap-2 px-5 py-3 text-base'
+                density === 'compact' ? 'px-3.5 py-1 text-[13px]' : 'gap-2 px-5 py-3 text-base'
               }`}
               style={{
-                background: isSelected ? 'var(--overlay-selected)' : 'var(--bg-surface-muted)',
-                color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
-                border: `1px solid ${isSelected ? 'var(--border-accent)' : 'transparent'}`,
-                boxShadow: isSelected ? 'var(--shadow-1)' : 'none',
+                background: isSelected ? '#0b84ff' : '#ffffff',
+                color: isSelected ? '#ffffff' : '#334155',
+                border: `1px solid ${isSelected ? '#0b84ff' : '#dbe3ef'}`,
+                boxShadow: isSelected ? '0 8px 18px -14px rgba(11,132,255,0.8)' : 'none',
+                minHeight: density === 'compact' ? '32px' : '44px',
               }}
             >
-              <span className={density === 'compact' ? 'text-sm' : 'text-lg'}>{emoji}</span>
+              {density !== 'compact' && <span className="text-lg">{emoji}</span>}
               <span>{name}</span>
             </button>
           );
@@ -131,16 +132,17 @@ const CategorySelectComponent = ({ selected, onChange, density = 'default' }: Ca
               aria-label={`${cat}, 최근 사용`}
               aria-pressed={isSelected}
               className={`flex items-center rounded-full whitespace-nowrap transition-all active:scale-95 shrink-0 font-semibold ${
-                density === 'compact' ? 'gap-1.5 px-3 py-1.5 text-xs' : 'gap-2 px-5 py-3 text-base'
+                density === 'compact' ? 'px-3.5 py-1 text-[13px]' : 'gap-2 px-5 py-3 text-base'
               }`}
               style={{
-                background: isSelected ? 'var(--overlay-selected)' : 'var(--bg-surface-muted)',
-                color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
-                border: `1px solid ${isSelected ? 'var(--border-accent)' : 'transparent'}`,
-                boxShadow: isSelected ? 'var(--shadow-1)' : 'none',
+                background: isSelected ? '#0b84ff' : '#ffffff',
+                color: isSelected ? '#ffffff' : '#334155',
+                border: `1px solid ${isSelected ? '#0b84ff' : '#dbe3ef'}`,
+                boxShadow: isSelected ? '0 8px 18px -14px rgba(11,132,255,0.8)' : 'none',
+                minHeight: density === 'compact' ? '32px' : '44px',
               }}
             >
-              <span className={density === 'compact' ? 'text-sm' : 'text-lg'}>🔍</span>
+              {density !== 'compact' && <span className="text-lg">🔍</span>}
               <span>{cat}</span>
             </button>
           );
@@ -151,16 +153,17 @@ const CategorySelectComponent = ({ selected, onChange, density = 'default' }: Ca
           data-testid="custom-category-toggle"
           aria-label="직접 입력"
           className={`flex items-center rounded-full whitespace-nowrap transition-all active:scale-95 shrink-0 font-semibold ${
-            density === 'compact' ? 'gap-1.5 px-3 py-1.5 text-xs' : 'gap-2 px-5 py-3 text-base'
+            density === 'compact' ? 'px-3.5 py-1 text-[13px]' : 'gap-2 px-5 py-3 text-base'
           }`}
           style={{
-            background: 'var(--bg-surface-muted)',
-            color: 'var(--text-secondary)',
-            border: '1px dashed var(--border-soft)',
+            background: density === 'compact' ? '#ffffff' : 'var(--bg-surface-muted)',
+            color: density === 'compact' ? '#334155' : 'var(--text-secondary)',
+            border: density === 'compact' ? '1px dashed #cbd5e1' : '1px dashed var(--border-soft)',
+            minHeight: density === 'compact' ? '32px' : '44px',
           }}
           title="원하는 카테고리를 직접 입력하세요"
         >
-          <span className={density === 'compact' ? 'text-sm' : 'text-lg'}>✏️</span>
+          {density !== 'compact' && <span className="text-lg">✏️</span>}
           <span>직접 입력</span>
         </button>
       </div>
