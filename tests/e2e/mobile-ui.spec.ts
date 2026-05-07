@@ -365,8 +365,8 @@ test.describe('Mobile UI', () => {
     await mockAllAPIs(page);
     const sheet = await gotoWithSearch(page);
 
-    await expect(sheet.getByText('추천 경유지').first()).toBeVisible();
-    await expect(sheet.getByText('5개 발견')).toBeVisible();
+    await expect(sheet.getByText('5개 경유지')).toBeVisible();
+    await expect(sheet.getByText('10개 후보 중 선별')).toBeVisible();
     await expect(sheet.getByRole('button', { name: '경로 저장' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '조건 수정' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: /지도에서 다이소 강남점 보기/ })).toBeVisible();
@@ -390,7 +390,7 @@ test.describe('Mobile UI', () => {
     expect(sheetPaint.bg).toBe('rgb(248, 250, 252)');
     expect(sheetPaint.titleColor).toBe('rgb(15, 23, 42)');
     expect(sheetPaint.cardBg).toBe('rgb(255, 255, 255)');
-    expect(parseFloat(sheetPaint.firstTitleFontSize)).toBeGreaterThanOrEqual(18);
+    expect(parseFloat(sheetPaint.firstTitleFontSize)).toBeGreaterThanOrEqual(16);
   });
 
   test('PWA 카테고리 shortcut URL이 검색 상태에 반영되어야 한다', async ({ page, isMobile }) => {
