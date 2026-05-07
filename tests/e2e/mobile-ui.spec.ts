@@ -222,6 +222,16 @@ test.describe('Mobile UI', () => {
     await expect(page.getByTestId('open-search-overlay-btn')).toBeVisible();
     await expect(page.getByTestId('mobile-idle-sheet')).toBeVisible();
     await expect(page.getByTestId('mobile-category-rail')).toBeVisible();
+    const railOverflow = await page.getByTestId('mobile-category-rail').evaluate((rail) => {
+      return Array.from(rail.querySelectorAll('button')).some((button) => {
+        const buttonRect = button.getBoundingClientRect();
+        return Array.from(button.querySelectorAll('span')).some((span) => {
+          const rect = span.getBoundingClientRect();
+          return rect.left < buttonRect.left - 0.5 || rect.right > buttonRect.right + 0.5;
+        });
+      });
+    });
+    expect(railOverflow).toBe(false);
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
     await expect(page.getByText('출발지와 도착지 입력')).toBeVisible();
     await expect(page.getByText('가는 길에 어디 들를까요?')).toBeVisible();
@@ -385,12 +395,19 @@ test.describe('Mobile UI', () => {
         titleColor: title ? window.getComputedStyle(title).color : '',
         cardBg: firstCard ? window.getComputedStyle(firstCard).backgroundColor : '',
         firstTitleFontSize: firstTitle ? window.getComputedStyle(firstTitle).fontSize : '',
+        badgeOverflow: firstCard ? Array.from(firstCard.querySelectorAll('span')).some((span) => {
+          const text = span.textContent?.trim();
+          if (text !== 'BEST' && text !== '표시 중') return false;
+          const rect = span.getBoundingClientRect();
+          return Array.from(span.childNodes).some(() => false) || rect.width < 34 || rect.height < 14;
+        }) : true,
       };
     });
     expect(sheetPaint.bg).toBe('rgb(248, 250, 252)');
     expect(sheetPaint.titleColor).toBe('rgb(15, 23, 42)');
     expect(sheetPaint.cardBg).toBe('rgb(255, 255, 255)');
     expect(parseFloat(sheetPaint.firstTitleFontSize)).toBeGreaterThanOrEqual(16);
+    expect(sheetPaint.badgeOverflow).toBe(false);
   });
 
   test('PWA 카테고리 shortcut URL이 검색 상태에 반영되어야 한다', async ({ page, isMobile }) => {

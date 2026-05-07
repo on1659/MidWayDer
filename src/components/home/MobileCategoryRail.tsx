@@ -34,7 +34,7 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
               aria-pressed={active}
               disabled={disabled}
               onClick={() => onSelect(item)}
-              className="min-h-11 rounded-full px-4 text-sm font-extrabold transition active:scale-[0.97] disabled:opacity-60"
+              className="flex min-h-11 max-w-[9.25rem] items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full px-4 text-sm font-extrabold transition active:scale-[0.97] disabled:opacity-60"
               style={{
                 scrollSnapAlign: 'start',
                 background: active
@@ -47,8 +47,8 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
                 WebkitBackdropFilter: 'blur(18px) saturate(160%)',
               }}
             >
-              <span className="mr-2 text-[11px] font-bold opacity-70">{CATEGORY_META[item] || '추천'}</span>
-              {item}
+              <span className="shrink-0 text-[11px] font-bold opacity-70">{CATEGORY_META[item] || '추천'}</span>
+              <span className="min-w-0 truncate">{item}</span>
             </button>
           );
         })}

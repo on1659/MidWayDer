@@ -266,14 +266,12 @@ export default function MobileHomeShell({
                               <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
                             </span>
                           </div>
-                          <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] font-black" style={{ color: resultSubtext }}>
-                            <span>+{formatMin(result.detourCost.duration)}</span>
-                            <span aria-hidden="true" style={{ color: resultMuted }}>·</span>
-                            <span>{formatKm(result.detourCost.distance)}</span>
-                            <span aria-hidden="true" style={{ color: resultMuted }}>·</span>
-                            <span>{Math.round(result.finalScore)}점</span>
-                            {index === 0 && <span className="rounded-full px-1.5 py-0.5 text-[10px]" style={{ background: '#2563eb', color: '#ffffff' }}>BEST</span>}
-                            {selected && <span className="rounded-full px-1.5 py-0.5 text-[10px]" style={{ background: '#dbeafe', color: '#1d4ed8' }}>표시 중</span>}
+                          <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] font-black" style={{ color: resultSubtext }}>
+                            <span className="shrink-0 whitespace-nowrap">+{formatMin(result.detourCost.duration)}</span>
+                            <span className="shrink-0 whitespace-nowrap">{formatKm(result.detourCost.distance)}</span>
+                            <span className="shrink-0 whitespace-nowrap">{Math.round(result.finalScore)}점</span>
+                            {index === 0 && <span className="ml-0.5 inline-flex min-h-4 min-w-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-1 text-[10px] leading-none" style={{ background: '#2563eb', color: '#ffffff' }}>BEST</span>}
+                            {selected && <span className="inline-flex min-h-4 min-w-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-1 text-[10px] leading-none" style={{ background: '#dbeafe', color: '#1d4ed8' }}>표시 중</span>}
                           </div>
                         </div>
                       </div>
