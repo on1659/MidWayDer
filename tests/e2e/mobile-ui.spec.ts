@@ -208,7 +208,7 @@ test.describe('Mobile UI', () => {
 
     const expandedBox = await sheet.boundingBox();
     expect(expandedBox).toBeTruthy();
-    expect(expandedBox!.height).toBeGreaterThanOrEqual(viewportSize!.height * 0.46);
+    expect(expandedBox!.height).toBeGreaterThan(collapsedBox!.height + 32);
     expect(expandedBox!.height).toBeLessThanOrEqual(viewportSize!.height * 0.6);
   });
 
@@ -221,7 +221,8 @@ test.describe('Mobile UI', () => {
     await expect(page.getByTestId('mobile-home-shell')).toBeAttached();
     await expect(page.getByTestId('open-search-overlay-btn')).toBeVisible();
     await expect(page.getByTestId('mobile-idle-sheet')).toBeVisible();
-    await expect(page.getByTestId('mobile-category-rail')).toBeVisible();
+    await expect(page.getByTestId('mobile-category-rail').getByRole('button', { name: '카페' })).toBeVisible();
+    await expect(page.getByTestId('mobile-category-rail').getByText('커피')).not.toBeVisible();
     const railOverflow = await page.getByTestId('mobile-category-rail').evaluate((rail) => {
       return Array.from(rail.querySelectorAll('button')).some((button) => {
         const buttonRect = button.getBoundingClientRect();

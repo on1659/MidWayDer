@@ -5,14 +5,6 @@ export type MobileCategoryRailProps = {
   onSelect: (category: string) => void;
 };
 
-const CATEGORY_META: Record<string, string> = {
-  카페: '커피',
-  편의점: '24시',
-  다이소: '생활',
-  올리브영: '뷰티',
-  스타벅스: '카페',
-};
-
 export default function MobileCategoryRail({ categories, selectedCategory, disabled, onSelect }: MobileCategoryRailProps) {
   return (
     <div
@@ -47,7 +39,6 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
                 WebkitBackdropFilter: 'blur(18px) saturate(160%)',
               }}
             >
-              <span className="shrink-0 text-[10px] font-bold leading-none opacity-70">{CATEGORY_META[item] || '추천'}</span>
               <span className="min-w-0 truncate">{item}</span>
             </button>
           );
