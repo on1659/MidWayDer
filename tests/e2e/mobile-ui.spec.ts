@@ -357,8 +357,17 @@ test.describe('Mobile UI', () => {
     await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
     await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
     await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-transport-tabs')).toBeVisible();
+    await expect(page.getByTestId('mobile-transport-tabs').getByRole('button', { name: '버스' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
     await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
+
+    const routeCardBox = await page.getByTestId('mobile-route-input-card').boundingBox();
+    const transportBox = await page.getByTestId('mobile-transport-tabs').boundingBox();
+    expect(routeCardBox).toBeTruthy();
+    expect(transportBox).toBeTruthy();
+    expect(routeCardBox!.height).toBeLessThanOrEqual(120);
+    expect(transportBox!.height).toBeLessThanOrEqual(52);
 
     const footerBox = await page.getByTestId('mobile-search-sticky-footer').boundingBox();
     expect(footerBox).toBeTruthy();
