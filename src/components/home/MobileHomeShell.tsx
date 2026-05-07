@@ -146,6 +146,7 @@ export default function MobileHomeShell({
           className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem] transition-[max-height] duration-300 ease-out"
           style={{
             maxHeight: resultSheetMaxHeight,
+            height: resultSheetMaxHeight,
             paddingBottom: 'env(safe-area-inset-bottom)',
             background: resultSurface,
             border: `1px solid ${resultBorder}`,

@@ -340,7 +340,7 @@ export default function SearchOverlay({
             dotColor="#22c55e"
             testId="mobile-origin-input"
             density="compact"
-            onSubmit={canSearch ? handleSearch : undefined}
+            onSubmit={handleSearch}
           />
           <button
             type="button"
@@ -361,7 +361,7 @@ export default function SearchOverlay({
             dotColor="#ef4444"
             testId="mobile-destination-input"
             density="compact"
-            onSubmit={canSearch ? handleSearch : undefined}
+            onSubmit={handleSearch}
           />
           {onGPS ? (
             <button
@@ -379,7 +379,7 @@ export default function SearchOverlay({
         </div>
       </section>
 
-      <nav data-testid="mobile-transport-tabs" className="mx-4 mt-3 grid h-11 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ background: '#eef2f7' }}>
+      <nav data-testid="mobile-transport-tabs" className="mt-3 grid h-11 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
         {[
           { label: '버스', icon: Bus, active: true },
           { label: '자동차', icon: Car, active: false },
@@ -403,7 +403,7 @@ export default function SearchOverlay({
       </nav>
 
       {/* Category chips */}
-      <section className="mx-4 mt-4" data-testid="mobile-category-input-card">
+      <section className="mt-4" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
           const timeHints = getTimeBasedCategoryHints();
