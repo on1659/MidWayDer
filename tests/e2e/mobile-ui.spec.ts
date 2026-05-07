@@ -383,6 +383,22 @@ test.describe('Mobile UI', () => {
     await expect(overlay).not.toBeVisible({ timeout: 3000 });
   });
 
+  test('모바일 키보드 검색 키로 경유지 검색이 실행되어야 한다', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'mobile project only');
+
+    await mockAllAPIs(page);
+    await waitAppReady(page);
+
+    await page.getByTestId('open-search-overlay-btn').click();
+    await page.getByTestId('mobile-origin-input').fill('스마일게이트캠퍼스');
+    await page.getByTestId('mobile-destination-input').fill('서울 광진구 자양동 660-24');
+    await page.keyboard.press('Enter');
+
+    const sheet = page.getByTestId('mobile-result-sheet');
+    await expect(sheet.getByText('5개 경유지')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]')).not.toBeVisible();
+  });
+
   test('모바일 결과 액션 문구가 대상과 행동을 명확히 보여야 한다', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile project only');
 

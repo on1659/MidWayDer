@@ -363,6 +363,7 @@ export default function SearchOverlay({
             dotColor="#22c55e"
             testId="mobile-origin-input"
             density="compact"
+            onSubmit={canSearch ? handleSearch : undefined}
           />
           <button
             type="button"
@@ -383,6 +384,7 @@ export default function SearchOverlay({
             dotColor="#ef4444"
             testId="mobile-destination-input"
             density="compact"
+            onSubmit={canSearch ? handleSearch : undefined}
           />
           {onGPS ? (
             <button

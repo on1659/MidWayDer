@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useCallback, useId, type ReactNode } from 'react';
 import { MapPin, X, Loader2 } from 'lucide-react';
 
 interface AutocompleteResult {
@@ -29,6 +29,8 @@ interface AddressInputProps {
   testId?: string;
   /** 데스크톱 패널처럼 밀도 높은 곳에서 쓰는 축소형 */
   density?: 'default' | 'compact';
+  /** 모바일 키보드의 검색/완료 키로 상위 검색을 실행 */
+  onSubmit?: () => void;
 }
 
 export default function AddressInput({
@@ -42,8 +44,14 @@ export default function AddressInput({
   dotColor,
   testId,
   density = 'default',
+  onSubmit,
 }: AddressInputProps) {
-  const hintId = testId ? `${testId}-hint` : undefined;
+  const generatedId = useId();
+  const stableBaseId = testId || `address-input-${generatedId.replace(/:/g, '')}`;
+  const inputId = `${stableBaseId}-input`;
+  const hintId = `${stableBaseId}-hint`;
+  const listboxId = `${stableBaseId}-listbox`;
+  const optionIdPrefix = `${stableBaseId}-result`;
   const [localValue, setLocalValue] = useState(value);
   const [results, setResults] = useState<AutocompleteResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -126,6 +134,19 @@ export default function AddressInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (isOpen && results.length > 0 && activeIndex >= 0) {
+        e.preventDefault();
+        handleSelect(results[activeIndex]);
+        return;
+      }
+      if (onSubmit && localValue.trim()) {
+        e.preventDefault();
+        onSubmit();
+        return;
+      }
+    }
+
     if (!isOpen || results.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -145,7 +166,7 @@ export default function AddressInput({
   return (
     <div className="relative" ref={containerRef}>
       {label && (
-        <label htmlFor={testId} className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+        <label htmlFor={inputId} className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
           {label}
         </label>
       )}
@@ -161,6 +182,7 @@ export default function AddressInput({
         )}
         <div className="relative flex-1">
         <input
+          id={inputId}
           ref={inputRef}
           data-testid={testId}
           type="text"
@@ -173,14 +195,15 @@ export default function AddressInput({
           aria-label={label || placeholder}
           aria-describedby={hintId}
           aria-autocomplete="list"
-          aria-controls="address-listbox"
+          aria-controls={listboxId}
           aria-expanded={isOpen}
-          aria-activedescendant={activeIndex >= 0 ? `result-${activeIndex}` : undefined}
+          aria-activedescendant={activeIndex >= 0 ? `${optionIdPrefix}-${activeIndex}` : undefined}
           autoComplete="street-address"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
-          className={`w-full rounded-2xl placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all pr-12 gpu-accelerate ${
+          enterKeyHint="search"
+	          className={`w-full rounded-2xl placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all pr-12 gpu-accelerate ${
             density === 'compact' ? 'px-3 py-2.5 text-[13px]' : 'px-4 py-4 text-base'
           }`}
           style={{
@@ -209,17 +232,20 @@ export default function AddressInput({
               <button
                 type="button"
                 onClick={() => fetchResults(localValue)}
-                className="p-2 rounded-lg hover:bg-blue-500 hover:text-white transition-colors"
-                title="검색"
-              >
+	                className="p-2 rounded-lg transition-colors hover:bg-[var(--overlay-selected)] hover:text-[var(--accent)]"
+	                title="검색"
+	                aria-label="주소 검색"
+	                style={{ color: 'var(--text-muted)' }}
+	              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.3-4.3" />
                 </svg>
               </button>
               <button
+                type="button"
                 onClick={handleClear}
-                className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+	                className="p-1.5 rounded-full hover:bg-[var(--overlay-hover)] transition-colors"
                 title="삭제"
                 aria-label="삭제"
               >
@@ -231,36 +257,38 @@ export default function AddressInput({
 
       {isOpen && results.length > 0 && (
         <div
-          id="address-listbox"
-          className="absolute top-full left-0 right-0 mt-2 border-2 rounded-2xl shadow-2xl overflow-hidden z-[100] max-h-[260px] overflow-y-auto"
+          id={listboxId}
+	          className="absolute top-full left-0 right-0 mt-2 border rounded-2xl overflow-hidden z-[100] max-h-[260px] overflow-y-auto backdrop-blur-xl"
           role="listbox"
           aria-label="검색 결과"
           style={{
-            backgroundColor: 'var(--bg-surface)',
-            borderColor: 'var(--border-strong)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1)',
+	            background: 'var(--bg-overlay)',
+	            borderColor: 'var(--border-soft)',
+	            boxShadow: 'var(--shadow-4)',
           }}
         >
           {results.map((result, i) => (
             <button
               key={`${result.lat}-${result.lng}-${i}`}
               onClick={() => handleSelect(result)}
-              className={`w-full text-left px-4 py-4 flex items-start gap-3 transition-colors ${
-                i === activeIndex ? 'bg-[#F3F4F6]' : 'hover:bg-[#F3F4F6]'
-              } ${i > 0 ? 'border-t' : ''}`}
-              style={{ borderColor: 'var(--border-soft)', minHeight: '60px' }}
+	              className={`w-full text-left px-4 py-4 flex items-start gap-3 transition-colors hover:bg-[var(--overlay-hover)] ${i > 0 ? 'border-t' : ''}`}
+	              style={{
+	                background: i === activeIndex ? 'var(--overlay-selected)' : 'transparent',
+	                borderColor: 'var(--border-soft)',
+	                minHeight: '60px',
+	              }}
               role="option"
               aria-selected={i === activeIndex}
-              id={`result-${i}`}
+              id={`${optionIdPrefix}-${i}`}
             >
-              <MapPin className="w-5 h-5 mt-1 shrink-0" style={{ color: '#9CA3AF' }} />
+	              <MapPin className="w-5 h-5 mt-1 shrink-0" style={{ color: 'var(--text-tertiary)' }} />
               <div className="min-w-0 flex-1">
                 <p className="text-base font-bold truncate" style={{ color: 'var(--accent)' }}>{result.name}</p>
-                <p className="text-sm truncate mt-1" style={{ color: '#6B7280' }}>
-                  {result.address}
-                  {result.category && (
-                    <span className="ml-1.5 text-xs" style={{ color: '#9CA3AF' }}>· {result.category}</span>
-                  )}
+	                <p className="text-sm truncate mt-1" style={{ color: 'var(--text-secondary)' }}>
+	                  {result.address}
+	                  {result.category && (
+	                    <span className="ml-1.5 text-xs" style={{ color: 'var(--text-tertiary)' }}>· {result.category}</span>
+	                  )}
                 </p>
               </div>
             </button>
