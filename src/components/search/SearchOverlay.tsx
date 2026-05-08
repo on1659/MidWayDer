@@ -14,6 +14,7 @@ import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/li
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useCacheStore } from '@/store/cache-store';
 import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
+import type { SavedRoute } from '@/types/saved-route';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -37,6 +38,7 @@ interface SearchOverlayProps {
   gpsLoading?: boolean;
   onInstantSearch?: (item: RecentSearch) => void;
   onCancel?: () => void;  // 추가: 검색 취소
+  onRouteSelect?: (route: SavedRoute) => void;  // 호환: 부모 컴포넌트가 전달하지만 모바일 오버레이에서는 렌더링하지 않음
 }
 
 export default function SearchOverlay({
