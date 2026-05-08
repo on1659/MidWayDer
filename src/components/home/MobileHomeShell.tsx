@@ -143,7 +143,7 @@ export default function MobileHomeShell({
         <section
           data-testid="mobile-result-sheet"
           data-state={isResultSheetExpanded ? 'expanded' : 'collapsed'}
-          className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem] transition-[max-height] duration-300 ease-out"
+          className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem] transition-none"
           style={{
             maxHeight: resultSheetMaxHeight,
             height: resultSheetMaxHeight,

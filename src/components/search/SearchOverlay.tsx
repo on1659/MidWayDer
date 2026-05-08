@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, X, Clock, ArrowUpDown, LocateFixed, Mic, MicOff, Star, Trash2, Bus, Car, Footprints, Bike } from 'lucide-react';
+import { ArrowLeft, X, Clock, ArrowUpDown, LocateFixed, Mic, MicOff, Star, Trash2, Bus, Car, Footprints, Bike, Home, Building2, Bookmark } from 'lucide-react';
 import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
@@ -74,6 +74,17 @@ export default function SearchOverlay({
 
   // 캐시 상태 (v0.51.0)
   const { cacheSize, setCacheSize } = useCacheStore();
+
+  const quickPlaces = [
+    { label: '집', icon: Home },
+    { label: '회사', icon: Building2 },
+    { label: '저장', icon: Bookmark },
+  ];
+
+  const formatRecentDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}.`;
+  };
 
   const closeOverlay = useCallback(() => {
     onClose();
@@ -286,7 +297,7 @@ export default function SearchOverlay({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-28" data-testid="mobile-search-overlay-scroll">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24" data-testid="mobile-search-overlay-scroll">
       {voiceError && (
         <div className={`mx-4 mt-2 rounded-xl px-4 py-2.5 text-center text-sm font-bold ${voiceError.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {voiceError}
@@ -315,14 +326,31 @@ export default function SearchOverlay({
         </div>
       )}
 
+      <nav className="mx-4 mt-2 flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hide" aria-label="빠른 장소">
+        {quickPlaces.map((place) => {
+          const Icon = place.icon;
+          return (
+            <button
+              key={place.label}
+              type="button"
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-white px-3 text-[13px] font-extrabold text-slate-700 shadow-sm active:scale-[0.97]"
+              style={{ border: '1px solid rgba(15,23,42,0.08)' }}
+            >
+              <Icon className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              {place.label}
+            </button>
+          );
+        })}
+      </nav>
+
       {/* Route inputs */}
-      <section className="mt-2 overflow-hidden rounded-[1.25rem] shadow-sm" style={{ marginLeft: '1rem', marginRight: '1rem', backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.12)' }} data-testid="mobile-route-input-card">
-        <div className="grid grid-cols-[2.25rem_1fr_2.75rem] items-center gap-2 px-3 py-3">
+      <section className="mt-2 overflow-hidden rounded-[1.15rem] shadow-sm" style={{ marginLeft: '1rem', marginRight: '1rem', backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-route-input-card">
+        <div className="grid grid-cols-[2rem_1fr_2.25rem] items-center gap-1.5 px-2.5 py-2.5">
           <button
             type="button"
             onClick={onSwap}
             disabled={!onSwap || (!startAddress && !endAddress)}
-            className="row-span-2 flex h-9 w-9 items-center justify-center rounded-full transition-all active:scale-95 active:rotate-180 disabled:cursor-not-allowed disabled:opacity-30"
+            className="row-span-2 flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-95 active:rotate-180 disabled:cursor-not-allowed disabled:opacity-30"
             style={{ color: '#64748b' }}
             title="출발지와 도착지 바꾸기"
             aria-label="출발지와 도착지 바꾸기"
@@ -345,7 +373,7 @@ export default function SearchOverlay({
           <button
             type="button"
             onClick={() => onStartChange('')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition active:scale-95"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition active:scale-95"
             aria-label="출발지 지우기"
           >
             <X className="h-5 w-5" />
@@ -367,7 +395,7 @@ export default function SearchOverlay({
             <button
               onClick={onGPS}
               disabled={gpsLoading}
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
+              className="flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
               style={{ color: '#2563eb', background: '#eff6ff' }}
               aria-label="현재 위치를 출발지로 설정"
             >
@@ -379,7 +407,7 @@ export default function SearchOverlay({
         </div>
       </section>
 
-      <nav data-testid="mobile-transport-tabs" className="mt-3 grid h-11 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
+      <nav data-testid="mobile-transport-tabs" className="mt-2 grid h-12 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
         {[
           { label: '버스', icon: Bus, active: true },
           { label: '자동차', icon: Car, active: false },
@@ -403,7 +431,7 @@ export default function SearchOverlay({
       </nav>
 
       {/* Category chips */}
-      <section className="mt-4" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
+      <section className="mt-3" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
           const timeHints = getTimeBasedCategoryHints();
@@ -417,16 +445,15 @@ export default function SearchOverlay({
                 <button
                   key={hint.category}
                   onClick={() => onCategoryChange(hint.category)}
-                  className="flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-all active:scale-95"
+                  className="flex items-center rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95"
                   style={{
                     background: category === hint.category ? 'var(--accent)' : 'var(--bg-hover)',
                     color: category === hint.category ? 'var(--text-on-accent)' : 'var(--text-primary)',
                     border: `1px solid ${category === hint.category ? 'var(--accent)' : 'var(--border-soft)'}`,
-                    minHeight: '36px',
+                    minHeight: '32px',
                   }}
                   title={hint.reason}
                 >
-                  <span>{hint.emoji}</span>
                   <span>{hint.label}</span>
                 </button>
               ))}
@@ -451,39 +478,36 @@ export default function SearchOverlay({
       {/* Saved places */}
       {placeFavorites.length > 0 && (
         <div className="px-4 pb-3">
-          <p className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
-            <Star className="w-4 h-4" style={{ color: 'var(--yellow-500, #eab308)' }} />
+          <p className="mb-1.5 flex items-center gap-2 px-1 text-[13px] font-black text-slate-500">
+            <Star className="h-4 w-4 text-blue-600" aria-hidden="true" />
             저장된 장소
           </p>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <div className="divide-y divide-slate-100 rounded-[1.25rem] bg-white">
             {placeFavorites.map((place) => (
               <div
                 key={place.placeId}
-                className="shrink-0 flex flex-col gap-1 p-3 rounded-xl min-w-[140px] max-w-[160px] relative"
-                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)' }}
+                className="flex min-h-[54px] items-center gap-2 px-3"
               >
+                <Star className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
                 <button
-                  className="absolute top-1.5 right-1.5 p-1 rounded-full transition-colors hover:bg-red-50"
+                  className="min-w-0 flex-1 py-2.5 text-left"
+                  onClick={() => onCategoryChange(place.category)}
+                  aria-label={`${place.placeName} 카테고리로 검색`}
+                >
+                  <p className="truncate text-[15px] font-bold text-slate-900">
+                    {place.placeName}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">
+                    {place.category} · {place.address}
+                  </p>
+                </button>
+                <button
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition-all active:scale-95"
                   onClick={(e) => { e.stopPropagation(); handlePlaceFavDelete(place.placeId); }}
                   title="즐겨찾기 삭제"
                   aria-label={`${place.placeName} 즐겨찾기 삭제`}
                 >
-                  <X className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-                </button>
-                <button
-                  className="text-left w-full pr-4"
-                  onClick={() => onCategoryChange(place.category)}
-                  aria-label={`${place.placeName} 카테고리로 검색`}
-                >
-                  <p className="text-[13px] font-bold truncate" style={{ color: 'var(--text-strong)' }}>
-                    {place.placeName}
-                  </p>
-                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
-                    {place.category}
-                  </p>
-                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
-                    {place.address.length > 18 ? place.address.slice(0, 18) + '…' : place.address}
-                  </p>
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             ))}
@@ -504,6 +528,7 @@ export default function SearchOverlay({
                 key={item.id}
                 className="flex min-h-[58px] items-center gap-2 px-3"
               >
+                <Clock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
                 <button
                   className="min-w-0 flex-1 py-3 text-left"
                   onClick={() => handleRecentSelect(item)}
@@ -513,6 +538,7 @@ export default function SearchOverlay({
                   </p>
                   <p className="mt-0.5 text-xs font-semibold text-slate-500">{item.category}</p>
                 </button>
+                <span className="shrink-0 text-xs font-semibold text-slate-400">{formatRecentDate(item.timestamp)}</span>
                 <button
                   onClick={() => handleInstantSearchClick(item)}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-blue-600 transition-all active:scale-95"
@@ -537,7 +563,15 @@ export default function SearchOverlay({
       </div>
 
       {/* Search button */}
-      <div className="absolute inset-x-0 bottom-0 z-[90] px-4 py-2 safe-bottom" style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--bg-app) 96%, transparent), color-mix(in srgb, var(--bg-app) 72%, transparent), transparent)', pointerEvents: 'none' }} data-testid="mobile-search-sticky-footer">
+      <div
+        className="absolute inset-x-0 bottom-0 z-[90] safe-bottom"
+        style={{
+          padding: '0.75rem 1rem max(1rem, env(safe-area-inset-bottom))',
+          background: 'linear-gradient(to top, color-mix(in srgb, var(--bg-app) 98%, transparent), color-mix(in srgb, var(--bg-app) 82%, transparent), transparent)',
+          pointerEvents: 'none',
+        }}
+        data-testid="mobile-search-sticky-footer"
+      >
         {isLoading ? (
           /* 로딩 중: 취소 버튼 */
           <div className="space-y-3">
@@ -568,9 +602,9 @@ export default function SearchOverlay({
             data-testid="mobile-search-route-btn"
             onClick={handleSearch}
             disabled={!canSearch}
-            className="ml-auto flex h-11 min-w-[7rem] items-center justify-center rounded-full px-5 text-[14px] font-black text-white shadow-md transition-all active:scale-[0.97] disabled:bg-white disabled:text-gray-400 disabled:shadow-sm"
+            className="flex h-12 w-full items-center justify-center rounded-full px-5 text-[15px] font-black text-white shadow-md transition-all active:scale-[0.985] disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-sm"
             style={{
-              minHeight: '44px',
+              minHeight: '48px',
               background: canSearch ? 'var(--accent)' : undefined,
               pointerEvents: 'auto',
             }}
