@@ -283,6 +283,7 @@ export default function SearchOverlay({
           </button>
           <button
             type="button"
+            data-testid="mobile-route-edit-trigger"
             onClick={() => openRouteEditor('origin')}
             className="min-w-0 flex-1 truncate text-left text-[15px] font-extrabold leading-none text-slate-900"
           >
@@ -357,22 +358,6 @@ export default function SearchOverlay({
           );
         })}
       </nav>
-
-      {/* Route inputs */}
-      {!routeEditorOpen && (
-        <section className="mx-4 mt-2">
-          <button
-            type="button"
-            data-testid="mobile-route-edit-trigger"
-            onClick={() => openRouteEditor('origin')}
-            className="flex h-12 w-full items-center justify-between rounded-[1.15rem] bg-white px-4 text-left text-[15px] font-black text-slate-800 shadow-sm active:scale-[0.99]"
-            style={{ border: '1px solid rgba(15,23,42,0.08)' }}
-          >
-            <span>출발지 · 도착지 입력</span>
-            <span className="text-sm font-extrabold text-blue-600">설정</span>
-          </button>
-        </section>
-      )}
 
       {routeEditorOpen && (
       <section className="mt-2 overflow-hidden rounded-[1.15rem] shadow-sm" style={{ marginLeft: '1rem', marginRight: '1rem', backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-route-input-card">
@@ -465,7 +450,6 @@ export default function SearchOverlay({
       )}
 
       {/* Category chips */}
-      {routeEditorOpen && (
       <section className="mt-3" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
@@ -509,7 +493,6 @@ export default function SearchOverlay({
         <p className="mb-2 px-1 text-[13px] font-black text-slate-600">경유지 종류</p>
         <CategorySelect selected={category} onChange={onCategoryChange} density="compact" />
       </section>
-      )}
 
       {/* Saved places */}
       {placeFavorites.length > 0 && (

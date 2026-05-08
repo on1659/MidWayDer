@@ -351,8 +351,11 @@ test.describe('Mobile UI', () => {
     expect(overlayPaint.topHit).toBe(true);
 
     await expect(page.getByTestId('mobile-route-edit-trigger')).toBeVisible();
+    await expect(page.getByTestId('mobile-route-edit-trigger')).toHaveText('장소, 주소 검색');
+    await expect(page.getByText('출발지 · 도착지 입력')).not.toBeVisible();
     await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
 
     await page.getByTestId('mobile-route-edit-trigger').click();
     await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
