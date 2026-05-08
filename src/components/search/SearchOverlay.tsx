@@ -68,6 +68,7 @@ export default function SearchOverlay({
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState<string>('');
+  const [routeEditorOpen, setRouteEditorOpen] = useState(() => Boolean(startAddress || endAddress));
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -98,10 +99,19 @@ export default function SearchOverlay({
     if (open) {
       setRecentSearches(getRecentSearches());
       setPlaceFavorites(getPlaceFavorites());
+      setRouteEditorOpen(Boolean(startAddress || endAddress));
       // 캐시 크기 로드
       getCacheStats().then((stats) => setCacheSize(stats.size));
     }
-  }, [open, setCacheSize]);
+  }, [endAddress, open, setCacheSize, startAddress]);
+
+  const openRouteEditor = useCallback((target: 'origin' | 'destination' = 'origin') => {
+    setRouteEditorOpen(true);
+    requestAnimationFrame(() => {
+      const inputId = target === 'origin' ? 'mobile-origin-input-input' : 'mobile-destination-input-input';
+      document.getElementById(inputId)?.focus();
+    });
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -268,10 +278,10 @@ export default function SearchOverlay({
           </button>
           <button
             type="button"
-            onClick={() => document.getElementById('mobile-origin-input-input')?.focus()}
+            onClick={() => openRouteEditor('origin')}
             className="min-w-0 flex-1 truncate text-left text-[15px] font-extrabold leading-none text-slate-900"
           >
-            {startAddress && endAddress ? `${startAddress} → ${endAddress}` : '경로 설정'}
+            {startAddress && endAddress ? `${startAddress} → ${endAddress}` : '장소, 주소 검색'}
           </button>
           <button
             onClick={handleVoiceSearch}
@@ -344,6 +354,22 @@ export default function SearchOverlay({
       </nav>
 
       {/* Route inputs */}
+      {!routeEditorOpen && (
+        <section className="mx-4 mt-2">
+          <button
+            type="button"
+            data-testid="mobile-route-edit-trigger"
+            onClick={() => openRouteEditor('origin')}
+            className="flex h-12 w-full items-center justify-between rounded-[1.15rem] bg-white px-4 text-left text-[15px] font-black text-slate-800 shadow-sm active:scale-[0.99]"
+            style={{ border: '1px solid rgba(15,23,42,0.08)' }}
+          >
+            <span>출발지 · 도착지 입력</span>
+            <span className="text-sm font-extrabold text-blue-600">설정</span>
+          </button>
+        </section>
+      )}
+
+      {routeEditorOpen && (
       <section className="mt-2 overflow-hidden rounded-[1.15rem] shadow-sm" style={{ marginLeft: '1rem', marginRight: '1rem', backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-route-input-card">
         <div className="grid grid-cols-[2rem_1fr_2.25rem] items-center gap-1.5 px-2.5 py-2.5">
           <button
@@ -406,7 +432,9 @@ export default function SearchOverlay({
           )}
         </div>
       </section>
+      )}
 
+      {routeEditorOpen && (
       <nav data-testid="mobile-transport-tabs" className="mt-2 grid h-12 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
         {[
           { label: '버스', icon: Bus, active: true },
@@ -429,6 +457,7 @@ export default function SearchOverlay({
           );
         })}
       </nav>
+      )}
 
       {/* Category chips */}
       <section className="mt-3" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">

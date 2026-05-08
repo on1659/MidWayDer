@@ -311,6 +311,7 @@ test.describe('Mobile UI', () => {
     expect(searchButtonBox).toBeTruthy();
     expect(searchButtonBox!.height).toBeGreaterThanOrEqual(44);
 
+    await page.getByTestId('mobile-route-edit-trigger').click();
     const originInput = page.getByTestId('mobile-origin-input');
     const fontSize = await originInput.evaluate((el) => window.getComputedStyle(el).fontSize);
     expect(parseFloat(fontSize)).toBeGreaterThanOrEqual(16);
@@ -352,6 +353,11 @@ test.describe('Mobile UI', () => {
     expect(overlayPaint.bg).not.toBe('rgba(0, 0, 0, 0)');
     expect(overlayPaint.topHit).toBe(true);
 
+    await expect(page.getByTestId('mobile-route-edit-trigger')).toBeVisible();
+    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
+
+    await page.getByTestId('mobile-route-edit-trigger').click();
     await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
     await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
     await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
@@ -388,6 +394,7 @@ test.describe('Mobile UI', () => {
     await waitAppReady(page);
 
     await page.getByTestId('open-search-overlay-btn').click();
+    await page.getByTestId('mobile-route-edit-trigger').click();
     await page.getByTestId('mobile-origin-input').fill('스마일게이트캠퍼스');
     await page.getByTestId('mobile-destination-input').fill('서울 광진구 자양동 660-24');
     await page.keyboard.press('Enter');
