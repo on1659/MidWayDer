@@ -5,8 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, X, Clock, ArrowUpDown, LocateFixed, Mic, MicOff, Star, Trash2, Bus, Car, Footprints, Bike, Home, Building2, Bookmark } from 'lucide-react';
-import AddressInput from './AddressInput';
+import { ArrowLeft, X, Clock, Mic, MicOff, Star, Trash2, Home, Building2, Bookmark } from 'lucide-react';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -15,7 +14,6 @@ import { getPlaceFavorites, removePlaceFavorite, type PlaceFavorite } from '@/li
 import { getTimeBasedCategoryHints } from '@/lib/smart-category';
 import { useCacheStore } from '@/store/cache-store';
 import { clearAllCache, getCacheStats } from '@/lib/cache/search-cache';
-import type { SavedRoute } from '@/types/saved-route';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -39,7 +37,6 @@ interface SearchOverlayProps {
   gpsLoading?: boolean;
   onInstantSearch?: (item: RecentSearch) => void;
   onCancel?: () => void;  // 추가: 검색 취소
-  onRouteSelect?: (route: SavedRoute) => void;  // 추가: 저장된 경로 선택
 }
 
 export default function SearchOverlay({
@@ -52,23 +49,17 @@ export default function SearchOverlay({
   onEndChange,
   onStartSelect,
   onEndSelect,
-  mapCenter,
   onCategoryChange,
   onSearch,
-  onSwap,
   isLoading,
   canSearch,
-  onGPS,
-  gpsLoading = false,
   onInstantSearch,
-  onCancel,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState<string>('');
-  const [routeEditorOpen, setRouteEditorOpen] = useState(() => Boolean(startAddress || endAddress));
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -99,19 +90,10 @@ export default function SearchOverlay({
     if (open) {
       setRecentSearches(getRecentSearches());
       setPlaceFavorites(getPlaceFavorites());
-      setRouteEditorOpen(Boolean(startAddress || endAddress));
       // 캐시 크기 로드
       getCacheStats().then((stats) => setCacheSize(stats.size));
     }
-  }, [endAddress, open, setCacheSize, startAddress]);
-
-  const openRouteEditor = useCallback((target: 'origin' | 'destination' = 'origin') => {
-    setRouteEditorOpen(true);
-    requestAnimationFrame(() => {
-      const inputId = target === 'origin' ? 'mobile-origin-input-input' : 'mobile-destination-input-input';
-      document.getElementById(inputId)?.focus();
-    });
-  }, []);
+  }, [open, setCacheSize]);
 
   useEffect(() => {
     if (!open) return;
@@ -178,7 +160,6 @@ export default function SearchOverlay({
 
   const handleSearch = () => {
     if (!canSearch || isLoading) {
-      setRouteEditorOpen(true);
       return;
     }
 
@@ -281,14 +262,12 @@ export default function SearchOverlay({
           >
             <ArrowLeft className="h-5 w-5 text-slate-900" />
           </button>
-          <button
-            type="button"
+          <div
             data-testid="mobile-route-edit-trigger"
-            onClick={() => openRouteEditor('origin')}
             className="min-w-0 flex-1 truncate text-left text-[15px] font-extrabold leading-none text-slate-900"
           >
             {startAddress && endAddress ? `${startAddress} → ${endAddress}` : '장소, 주소 검색'}
-          </button>
+          </div>
           <button
             onClick={handleVoiceSearch}
             disabled={isListening}
@@ -358,96 +337,6 @@ export default function SearchOverlay({
           );
         })}
       </nav>
-
-      {routeEditorOpen && (
-      <section className="mt-2 overflow-hidden rounded-[1.15rem] shadow-sm" style={{ marginLeft: '1rem', marginRight: '1rem', backgroundColor: '#ffffff', border: '1px solid rgba(15,23,42,0.1)' }} data-testid="mobile-route-input-card">
-        <div className="grid grid-cols-[2rem_1fr_2.25rem] items-center gap-1.5 px-2.5 py-2.5">
-          <button
-            type="button"
-            onClick={onSwap}
-            disabled={!onSwap || (!startAddress && !endAddress)}
-            className="row-span-2 flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-95 active:rotate-180 disabled:cursor-not-allowed disabled:opacity-30"
-            style={{ color: '#64748b' }}
-            title="출발지와 도착지 바꾸기"
-            aria-label="출발지와 도착지 바꾸기"
-          >
-            <ArrowUpDown className="h-4 w-4" />
-          </button>
-
-          <AddressInput
-            label=""
-            value={startAddress}
-            onChange={onStartChange}
-            onSelect={onStartSelect}
-            placeholder="출발지 입력"
-            mapCenter={mapCenter}
-            dotColor="#22c55e"
-            testId="mobile-origin-input"
-            density="compact"
-            onSubmit={handleSearch}
-          />
-          <button
-            type="button"
-            onClick={() => onStartChange('')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition active:scale-95"
-            aria-label="출발지 지우기"
-          >
-            <X className="h-5 w-5" />
-          </button>
-
-          <AddressInput
-            label=""
-            value={endAddress}
-            onChange={onEndChange}
-            onSelect={onEndSelect}
-            placeholder="도착지 입력"
-            mapCenter={mapCenter}
-            dotColor="#ef4444"
-            testId="mobile-destination-input"
-            density="compact"
-            onSubmit={handleSearch}
-          />
-          {onGPS ? (
-            <button
-              onClick={onGPS}
-              disabled={gpsLoading}
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
-              style={{ color: '#2563eb', background: '#eff6ff' }}
-              aria-label="현재 위치를 출발지로 설정"
-            >
-              <LocateFixed className={`h-4 w-4 ${gpsLoading ? 'animate-spin' : ''}`} />
-            </button>
-          ) : (
-            <span />
-          )}
-        </div>
-      </section>
-      )}
-
-      {routeEditorOpen && (
-      <nav data-testid="mobile-transport-tabs" className="mt-2 grid h-12 grid-cols-4 gap-1 rounded-full p-1" aria-label="이동 수단" style={{ marginLeft: '1rem', marginRight: '1rem', background: '#eef2f7' }}>
-        {[
-          { label: '버스', icon: Bus, active: true },
-          { label: '자동차', icon: Car, active: false },
-          { label: '도보', icon: Footprints, active: false },
-          { label: '자전거', icon: Bike, active: false },
-        ].map((mode) => {
-          const Icon = mode.icon;
-          return (
-            <button
-              key={mode.label}
-              type="button"
-              aria-pressed={mode.active}
-              className="flex h-full items-center justify-center rounded-full transition active:scale-[0.98]"
-              style={{ background: mode.active ? '#0b84ff' : 'transparent', color: mode.active ? '#ffffff' : '#334155' }}
-            >
-              <Icon className="h-5 w-5" aria-hidden="true" />
-              <span className="sr-only">{mode.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-      )}
 
       {/* Category chips */}
       <section className="mt-3" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
@@ -581,71 +470,19 @@ export default function SearchOverlay({
       )}
       </div>
 
-      {/* Search button */}
-      {routeEditorOpen && (
-      <div
-        className="absolute inset-x-0 bottom-0 z-[90] safe-bottom"
-        style={{
-          padding: '0.75rem 1rem max(1rem, env(safe-area-inset-bottom))',
-          background: 'linear-gradient(to top, color-mix(in srgb, var(--bg-app) 98%, transparent), color-mix(in srgb, var(--bg-app) 82%, transparent), transparent)',
-          pointerEvents: 'none',
-        }}
-        data-testid="mobile-search-sticky-footer"
-      >
-        {isLoading ? (
-          /* 로딩 중: 취소 버튼 */
-          <div className="space-y-3">
-            <div
-              className="flex items-center justify-center gap-2 py-5 rounded-2xl font-bold text-lg"
-              style={{ background: 'var(--accent)', color: 'var(--text-loading, white)' }}
-              role="status"
-              aria-live="polite"
-              aria-label="검색 진행 중"
-            >
-              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-              <span>찾는 중...</span>
-            </div>
-            {onCancel && (
-              <button
-                onClick={onCancel}
-                className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                aria-label="검색 취소"
-              >
-                <X className="w-5 h-5" />
-                <span>취소</span>
-              </button>
-            )}
-          </div>
-        ) : (
-          /* 기본: 검색 버튼 */
-          <button
-            data-testid="mobile-search-route-btn"
-            onClick={handleSearch}
-            disabled={!canSearch}
-            className="flex h-12 w-full items-center justify-center rounded-full px-5 text-[15px] font-black text-white shadow-md transition-all active:scale-[0.985] disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-sm"
-            style={{
-              minHeight: '48px',
-              background: canSearch ? 'var(--accent)' : undefined,
-              pointerEvents: 'auto',
-            }}
-          >
-            경유지 찾기
-          </button>
-        )}
-
-        {/* 캐시 관리 (v0.51.0) */}
-        {cacheSize > 0 && (
+      {/* 캐시 관리 (v0.51.0) */}
+      {cacheSize > 0 && (
+        <div className="px-4 pb-4">
           <button
             onClick={handleClearCache}
-            className="w-full mt-2 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium transition-all active:scale-95"
             style={{ color: 'var(--text-muted)', background: 'var(--bg-surface-muted)' }}
             aria-label="캐시 삭제"
           >
-            <Trash2 className="w-3 h-3" />
+            <Trash2 className="h-3 w-3" />
             <span>캐시 삭제 ({cacheSize}개)</span>
           </button>
-        )}
-      </div>
+        </div>
       )}
     </div>
   );

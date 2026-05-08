@@ -304,14 +304,15 @@ test.describe('Mobile UI', () => {
     expect(viewportMeta).not.toContain('maximum-scale=1');
 
     await page.getByTestId('open-search-overlay-btn').click();
-    await page.getByTestId('mobile-route-edit-trigger').click();
-    const searchButtonBox = await page.getByTestId('mobile-search-route-btn').boundingBox();
-    expect(searchButtonBox).toBeTruthy();
-    expect(searchButtonBox!.height).toBeGreaterThanOrEqual(44);
+    const categoryCard = page.getByTestId('mobile-category-input-card');
+    await expect(categoryCard).toBeVisible();
 
-    const originInput = page.getByTestId('mobile-origin-input');
-    const fontSize = await originInput.evaluate((el) => window.getComputedStyle(el).fontSize);
-    expect(parseFloat(fontSize)).toBeGreaterThanOrEqual(16);
+    const categoryButtonBox = await categoryCard.getByRole('button', { name: '카페' }).boundingBox();
+    expect(categoryButtonBox).toBeTruthy();
+    expect(categoryButtonBox!.height).toBeGreaterThanOrEqual(32);
+
+    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
   });
 
   test('검색 오버레이가 모달로 열리고 닫혀야 한다', async ({ page, isMobile }) => {
@@ -357,27 +358,6 @@ test.describe('Mobile UI', () => {
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
 
-    await page.getByTestId('mobile-route-edit-trigger').click();
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
-    await expect(page.getByTestId('mobile-transport-tabs')).toBeVisible();
-    await expect(page.getByTestId('mobile-transport-tabs').getByRole('button', { name: '버스' })).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
-    await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
-
-    const routeCardBox = await page.getByTestId('mobile-route-input-card').boundingBox();
-    const transportBox = await page.getByTestId('mobile-transport-tabs').boundingBox();
-    expect(routeCardBox).toBeTruthy();
-    expect(transportBox).toBeTruthy();
-    expect(routeCardBox!.height).toBeLessThanOrEqual(120);
-    expect(transportBox!.height).toBeLessThanOrEqual(52);
-
-    const footerBox = await page.getByTestId('mobile-search-sticky-footer').boundingBox();
-    expect(footerBox).toBeTruthy();
-    expect(footerBox!.y + footerBox!.height).toBeGreaterThanOrEqual(viewportSize!.height - 2);
-    expect(footerBox!.y + footerBox!.height).toBeLessThanOrEqual(viewportSize!.height + 2);
-
     await overlay.locator('[aria-label="뒤로 가기"]').click();
     await expect(overlay).not.toBeVisible({ timeout: 3000 });
 
@@ -387,21 +367,34 @@ test.describe('Mobile UI', () => {
     await expect(overlay).not.toBeVisible({ timeout: 3000 });
   });
 
-  test('모바일 키보드 검색 키로 경유지 검색이 실행되어야 한다', async ({ page, isMobile }) => {
+  test('mobile-route-editor-visibility: 장소 검색 오버레이는 경로 편집 컨트롤을 숨겨야 한다', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile project only');
 
     await mockAllAPIs(page);
     await waitAppReady(page);
 
     await page.getByTestId('open-search-overlay-btn').click();
-    await page.getByTestId('mobile-route-edit-trigger').click();
-    await page.getByTestId('mobile-origin-input').fill('스마일게이트캠퍼스');
-    await page.getByTestId('mobile-destination-input').fill('서울 광진구 자양동 660-24');
-    await page.keyboard.press('Enter');
+    const overlay = page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]');
+    await expect(overlay).toBeVisible();
 
-    const sheet = page.getByTestId('mobile-result-sheet');
-    await expect(sheet.getByText('5개 경유지')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '집' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '회사' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '저장' })).toBeVisible();
+    await expect(page.getByText('경유지 종류')).toBeVisible();
+    await expect(page.getByTestId('mobile-category-input-card').getByRole('button', { name: '카페' })).toBeVisible();
+
+    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-search-sticky-footer')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-origin-input')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-destination-input')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '출발지와 도착지 바꾸기' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '현재 위치를 출발지로 설정' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '출발지 지우기' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '버스' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '자동차' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '도보' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: '자전거' })).not.toBeVisible();
   });
 
   test('모바일 결과 액션 문구가 대상과 행동을 명확히 보여야 한다', async ({ page, isMobile }) => {
@@ -452,7 +445,6 @@ test.describe('Mobile UI', () => {
     await waitAppReady(page, { cat: '스타벅스' });
 
     await page.getByTestId('open-search-overlay-btn').click();
-    await page.getByTestId('mobile-route-edit-trigger').click();
     await expect(page.locator('button[aria-label="스타벅스"][aria-pressed="true"]')).toBeVisible();
   });
 });

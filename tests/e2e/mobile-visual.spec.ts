@@ -294,7 +294,9 @@ test.describe('Mobile Visual Regression', () => {
     await overlayBtn.click();
 
     // Wait for overlay animation to complete
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('mobile-category-input-card')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
     await page.waitForTimeout(500);
 
     await expect(page).toHaveScreenshot('mobile-search-overlay.png', defaultMask(page));
