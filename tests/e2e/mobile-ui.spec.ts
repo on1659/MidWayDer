@@ -220,7 +220,7 @@ test.describe('Mobile UI', () => {
 
     await expect(page.getByTestId('mobile-home-shell')).toBeAttached();
     await expect(page.getByTestId('open-search-overlay-btn')).toBeVisible();
-    await expect(page.getByTestId('mobile-idle-sheet')).toBeVisible();
+    await expect(page.getByTestId('mobile-idle-search-pill')).toBeVisible();
     await expect(page.getByTestId('mobile-category-rail').getByRole('button', { name: '카페' })).toBeVisible();
     await expect(page.getByTestId('mobile-category-rail').getByText('커피')).not.toBeVisible();
     const railOverflow = await page.getByTestId('mobile-category-rail').evaluate((rail) => {
@@ -239,7 +239,7 @@ test.describe('Mobile UI', () => {
     expect(railMaxButtonHeight).toBeLessThanOrEqual(38);
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
     await expect(page.getByText('어디로 갈까요?')).toBeVisible();
-    await expect(page.getByText('경로 입력')).toBeVisible();
+    await expect(page.getByText('경로 입력')).not.toBeVisible();
   });
 
   test('모바일 검색 중에는 대형 단계 카드와 skeleton 바텀시트를 보여주지 않아야 한다', async ({ page, isMobile }) => {
@@ -304,14 +304,11 @@ test.describe('Mobile UI', () => {
     expect(viewportMeta).not.toContain('maximum-scale=1');
 
     await page.getByTestId('open-search-overlay-btn').click();
-    const overlay = page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]');
-    await expect(overlay).toBeVisible();
-
+    await page.getByTestId('mobile-route-edit-trigger').click();
     const searchButtonBox = await page.getByTestId('mobile-search-route-btn').boundingBox();
     expect(searchButtonBox).toBeTruthy();
     expect(searchButtonBox!.height).toBeGreaterThanOrEqual(44);
 
-    await page.getByTestId('mobile-route-edit-trigger').click();
     const originInput = page.getByTestId('mobile-origin-input');
     const fontSize = await originInput.evaluate((el) => window.getComputedStyle(el).fontSize);
     expect(parseFloat(fontSize)).toBeGreaterThanOrEqual(16);
@@ -452,6 +449,7 @@ test.describe('Mobile UI', () => {
     await waitAppReady(page, { cat: '스타벅스' });
 
     await page.getByTestId('open-search-overlay-btn').click();
+    await page.getByTestId('mobile-route-edit-trigger').click();
     await expect(page.locator('button[aria-label="스타벅스"][aria-pressed="true"]')).toBeVisible();
   });
 });

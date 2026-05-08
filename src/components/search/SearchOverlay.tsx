@@ -177,6 +177,11 @@ export default function SearchOverlay({
   if (!open) return null;
 
   const handleSearch = () => {
+    if (!canSearch || isLoading) {
+      setRouteEditorOpen(true);
+      return;
+    }
+
     onSearch();
     closeOverlay();
   };
@@ -460,6 +465,7 @@ export default function SearchOverlay({
       )}
 
       {/* Category chips */}
+      {routeEditorOpen && (
       <section className="mt-3" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
         {/* 시간대별 스마트 제안 칩 */}
         {(() => {
@@ -503,6 +509,7 @@ export default function SearchOverlay({
         <p className="mb-2 px-1 text-[13px] font-black text-slate-600">경유지 종류</p>
         <CategorySelect selected={category} onChange={onCategoryChange} density="compact" />
       </section>
+      )}
 
       {/* Saved places */}
       {placeFavorites.length > 0 && (
@@ -592,6 +599,7 @@ export default function SearchOverlay({
       </div>
 
       {/* Search button */}
+      {routeEditorOpen && (
       <div
         className="absolute inset-x-0 bottom-0 z-[90] safe-bottom"
         style={{
@@ -655,6 +663,7 @@ export default function SearchOverlay({
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }

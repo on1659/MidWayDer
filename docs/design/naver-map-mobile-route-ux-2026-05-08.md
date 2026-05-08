@@ -24,6 +24,55 @@ MidWayDer도 홈에서 모든 기능을 한 번에 보여주기보다, 다음 4�
 - `routeEditing`: 출발지/도착지/경유 목적 입력 상태
 - `results`: 경유지 추천 결과 상태
 
+## 구현 확정 계약
+
+이번 모바일 UX 개편은 색상/문구 수정이 아니라 화면 상태 구조 변경이다. 개발자는 아래 상태별 노출 규칙을 기준으로 구현한다.
+
+### `idle`
+
+- 지도와 compact floating search pill을 중심으로 둔다.
+- 기본 화면에는 출발지/도착지 full input card를 노출하지 않는다.
+- 검색 전부터 무거운 CTA나 큰 설명 카드가 화면을 지배하지 않게 한다.
+
+### `routeEditing`
+
+- 출발지/도착지 2줄 route card를 노출한다.
+- 교통수단 탭은 route card 바로 아래에 둔다.
+- 경유지 종류는 낮은 chip rail로 둔다.
+- 최근 검색은 큰 카드가 아니라 row list로 둔다.
+- 하단 CTA는 safe-area bottom에 고정하고, 조건 부족 시 disabled 상태로 둔다.
+- 모바일 키보드 `검색` 키와 하단 CTA는 같은 search handler를 호출한다.
+
+### `results`
+
+- 결과 화면에서는 full route editor를 숨긴다.
+- 지도 위에는 compact summary pill을 노출한다.
+  - 예: `구의역 2호선 → 명지대`
+- 하단에는 result sheet를 중심으로 경유지 후보를 보여준다.
+- 지도 맥락은 남긴다.
+- 사용자가 summary pill 또는 수정 액션을 누를 때만 `routeEditing`으로 돌아간다.
+
+### `placeSelected`
+
+- 결과 카드 선택 시 장소 상세 bottom sheet를 연다.
+- 액션은 `경유지로 선택`, `길찾기`, `닫기`처럼 의사결정 중심으로 둔다.
+- 장소 상세가 검색/경로 입력 전체를 다시 밀어내지 않게 한다.
+
+### 제거/축소 대상
+
+- 기본 화면의 출발지/도착지 박스 상시 노출
+- 결과 화면의 full route editor 상시 노출
+- 큰 설명 카드
+- 큰 최근 검색 카드
+- 과하게 큰 카테고리 chip
+- 검색 전부터 무거운 CTA가 화면을 지배하는 구조
+
+### 유지 대상
+
+- 기존 API/store/map 계약
+- 검색/추천 알고리즘 로직
+- 모바일 375px 기준 safe-area 우선 검증
+
 ## 1. 검색 홈 화면
 
 ### 네이버 동작

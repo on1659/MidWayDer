@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Bookmark, ChevronDown, ChevronUp, MapPin, Navigation, SlidersHorizontal } from 'lucide-react';
+import { Bookmark, ChevronDown, ChevronUp, Navigation, SlidersHorizontal } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
 import MobileCategoryRail from './MobileCategoryRail';
 import MobileSearchEntry from './MobileSearchEntry';
@@ -110,33 +110,6 @@ export default function MobileHomeShell({
           <span className="h-2 w-2 animate-pulse rounded-full" style={{ background: 'var(--accent)' }} />
           찾는 중...
         </div>
-      )}
-
-      {!hasResults && !error && !isLoading && (
-        <button
-          type="button"
-          data-testid="mobile-idle-sheet"
-          onClick={onOpenSearch}
-          className="absolute inset-x-4 bottom-4 z-[980] flex min-h-[64px] items-center gap-3 rounded-[1.35rem] px-3.5 text-left transition active:scale-[0.99]"
-          style={{
-            paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-            paddingTop: '0.75rem',
-            background: 'rgba(255,255,255,0.96)',
-            border: '1px solid rgba(15,23,42,0.1)',
-            boxShadow: '0 18px 44px -28px rgba(15,23,42,0.55)',
-          }}
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: '#eff6ff', color: '#2563eb' }}>
-            <MapPin className="h-[18px] w-[18px]" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[15px] font-black leading-tight" style={{ color: '#0f172a' }}>경로 입력</span>
-            <span className="mt-0.5 block truncate text-xs font-bold" style={{ color: '#64748b' }}>{routeLabel}</span>
-          </span>
-          <span className="shrink-0 rounded-full px-3 py-2 text-xs font-black" style={{ background: '#0b84ff', color: '#ffffff' }}>
-            추천
-          </span>
-        </button>
       )}
 
       {(hasResults || error) && !isLoading && (
