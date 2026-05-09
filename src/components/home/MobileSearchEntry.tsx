@@ -10,15 +10,13 @@ export type MobileSearchEntryProps = {
 };
 
 export default function MobileSearchEntry({
-  startAddress,
-  endAddress,
   category,
   isLoading,
   hasResults,
   onOpen,
 }: MobileSearchEntryProps) {
-  const routeLabel = startAddress && endAddress ? `${startAddress} → ${endAddress}` : '어디로 갈까요?';
-  const statusLabel = isLoading ? '찾는 중...' : hasResults ? `${category} 추천 결과 · 조건 수정` : '장소, 주소 검색';
+  const searchLabel = hasResults ? `${category || '장소'} 추천 결과` : '어디를 경유할까요?';
+  const statusLabel = isLoading ? '찾는 중...' : hasResults ? '장소·주소·카테고리 다시 검색' : '장소·주소·카테고리 검색';
 
   return (
     <button
@@ -41,7 +39,7 @@ export default function MobileSearchEntry({
       </span>
       <span className="min-w-0 flex-1">
         <span data-testid={hasResults ? 'mobile-summary-pill' : 'mobile-idle-search-pill'} className="block truncate text-[15px] font-extrabold leading-tight text-slate-900">
-          {routeLabel}
+          {searchLabel}
         </span>
         <span className="mt-0.5 block truncate text-[11px] font-bold text-slate-500">
           {statusLabel}

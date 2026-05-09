@@ -44,8 +44,6 @@ interface SearchOverlayProps {
 export default function SearchOverlay({
   open,
   onClose,
-  startAddress,
-  endAddress,
   category,
   onStartChange,
   onEndChange,
@@ -207,23 +205,12 @@ export default function SearchOverlay({
         },
       });
       
-      // 출발지 설정
-      if (result.start) {
-        onStartChange(result.start);
-      }
-      
-      // 도착지 설정
-      if (result.end) {
-        onEndChange(result.end);
-      }
-      
-      // 카테고리 설정
       if (result.category) {
         onCategoryChange(result.category);
       }
       
       // 성공 메시지 (간단하게)
-      if (result.start || result.end || result.category) {
+      if (result.category) {
         setVoiceError('음성 인식 완료');
         setTimeout(() => setVoiceError(null), 2000);
       }
@@ -247,7 +234,7 @@ export default function SearchOverlay({
     >
       {/* Header */}
       <div className="px-4 pb-2 pt-3 safe-top" style={{ background: 'var(--bg-app)' }}>
-        <h2 id="search-overlay-title" className="sr-only">경로 설정</h2>
+        <h2 id="search-overlay-title" className="sr-only">장소·주소 검색</h2>
         <div
           className="flex h-11 items-center gap-1 rounded-full px-1.5 shadow-sm"
           style={{
@@ -268,14 +255,14 @@ export default function SearchOverlay({
             data-testid="mobile-route-edit-trigger"
             className="min-w-0 flex-1 truncate text-left text-[15px] font-extrabold leading-none text-slate-900"
           >
-            {startAddress && endAddress ? `${startAddress} → ${endAddress}` : '장소, 주소 검색'}
+            어디를 경유할까요?
           </div>
           <button
             onClick={handleVoiceSearch}
             disabled={isListening}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50"
-            aria-label="음성으로 경로 입력"
-            title="음성으로 경로 입력"
+            aria-label="음성으로 장소 검색"
+            title="음성으로 장소 검색"
           >
             {isListening ? (
               <MicOff className="h-5 w-5 animate-pulse text-blue-600" />

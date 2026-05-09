@@ -59,10 +59,22 @@ describe('SearchOverlay', () => {
     vi.unstubAllGlobals();
   });
 
-  it('검색 입력창이 렌더링됨 (출발지/도착지 placeholder)', () => {
-    render(<SearchOverlay {...defaultProps} />);
-    expect(screen.getByPlaceholderText('출발지를 입력하세요')).toBeTruthy();
-    expect(screen.getByPlaceholderText('도착지를 입력하세요')).toBeTruthy();
+  it('모바일 장소 검색 화면에서 경로 편집 입력을 숨김', () => {
+    render(
+      <SearchOverlay
+        {...defaultProps}
+        startAddress="강남역"
+        endAddress="서울역"
+      />
+    );
+    expect(screen.getByTestId('mobile-route-edit-trigger')).toHaveTextContent('어디를 경유할까요?');
+    expect(screen.queryByText('강남역 → 서울역')).toBeNull();
+    expect(screen.queryByTestId('mobile-origin-input')).toBeNull();
+    expect(screen.queryByTestId('mobile-destination-input')).toBeNull();
+    expect(screen.queryByTestId('mobile-route-input-card')).toBeNull();
+    expect(screen.queryByTestId('mobile-transport-tabs')).toBeNull();
+    expect(screen.queryByTestId('mobile-search-sticky-footer')).toBeNull();
+    expect(screen.getByText('경유지 종류')).toBeInTheDocument();
   });
 
   it('카테고리 칩 클릭 시 onCategoryChange 호출됨', () => {
@@ -84,6 +96,6 @@ describe('SearchOverlay', () => {
 
   it('open=false 이면 컴포넌트가 렌더링되지 않음', () => {
     render(<SearchOverlay {...defaultProps} open={false} />);
-    expect(screen.queryByPlaceholderText('출발지를 입력하세요')).toBeNull();
+    expect(screen.queryByTestId('mobile-category-input-card')).toBeNull();
   });
 });

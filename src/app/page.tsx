@@ -45,7 +45,6 @@ import { useMapState } from './hooks/useMapState';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useSortFilter } from './hooks/useSortFilter';
 import { useUserData } from './hooks/useUserData';
-import type { SavedRoute } from '@/types/saved-route';
 import type { DetourResult } from '@/types/detour';
 
 const PlaceDetail = dynamic(() => import('@/components/place/PlaceDetail'), {
@@ -363,20 +362,6 @@ export default function HomePage() {
     setOriginalRoute(null);
     await search(startLocation, endLocation, item.category);
   }, [clearResults, search, selectWaypoint, setCategory, setEnd, setOriginalRoute, setStart]);
-
-  const handleRouteSelect = useCallback((route: SavedRoute) => {
-    const startLocation = { address: route.startAddress, coordinates: route.startCoords };
-    const endLocation = { address: route.endAddress, coordinates: route.endCoords };
-    const nextCategory = route.category || category;
-    setStart(startLocation);
-    setEnd(endLocation);
-    setCategory(nextCategory);
-    setSearchOverlayOpen(false);
-    clearResults();
-    selectWaypoint(null);
-    setOriginalRoute(null);
-    search(startLocation, endLocation, nextCategory);
-  }, [category, clearResults, search, selectWaypoint, setCategory, setEnd, setOriginalRoute, setStart]);
 
   const handleExpandRadius = useCallback(async () => {
     if (!start?.address || !end?.address) return;
@@ -726,7 +711,7 @@ export default function HomePage() {
           onRetry={() => void runSearch()}
         />
 
-        <div className="md:hidden" role="search" aria-label="경로 검색">
+        <div className="md:hidden" role="search" aria-label="장소·주소 검색">
           <SearchOverlay
             open={searchOverlayOpen}
             onClose={() => setSearchOverlayOpen(false)}
@@ -755,7 +740,6 @@ export default function HomePage() {
               cancelSearch();
               setSearchOverlayOpen(false);
             }}
-            onRouteSelect={handleRouteSelect}
           />
         </div>
 

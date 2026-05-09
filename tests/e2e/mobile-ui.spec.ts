@@ -238,7 +238,7 @@ test.describe('Mobile UI', () => {
     });
     expect(railMaxButtonHeight).toBeLessThanOrEqual(38);
     await expect(page.getByTestId('mobile-result-sheet')).not.toBeVisible();
-    await expect(page.getByText('어디로 갈까요?')).toBeVisible();
+    await expect(page.getByText('어디를 경유할까요?')).toBeVisible();
     await expect(page.getByText('경로 입력')).not.toBeVisible();
   });
 
@@ -352,7 +352,7 @@ test.describe('Mobile UI', () => {
     expect(overlayPaint.topHit).toBe(true);
 
     await expect(page.getByTestId('mobile-route-edit-trigger')).toBeVisible();
-    await expect(page.getByTestId('mobile-route-edit-trigger')).toHaveText('장소, 주소 검색');
+    await expect(page.getByTestId('mobile-route-edit-trigger')).toHaveText('어디를 경유할까요?');
     await expect(page.getByText('출발지 · 도착지 입력')).not.toBeVisible();
     await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
