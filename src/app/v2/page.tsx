@@ -109,6 +109,10 @@ export default function V2HomePage() {
         const route = res.data;
         if (typeof route.distance !== 'number' || typeof route.duration !== 'number') return;
         setPreviewRoute({ distance: route.distance, duration: route.duration });
+        // 지도 폴리라인을 위해 originalRoute도 함께 설정 (목업 화면 5)
+        if (Array.isArray(route.path) && route.path.length > 0) {
+          setOriginalRoute(route);
+        }
       })
       .catch(() => {});
     return () => {
