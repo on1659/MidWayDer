@@ -701,6 +701,7 @@ export default function HomePage() {
           isLoading={isLoading}
           error={error}
           results={filteredResults}
+          hasSearched={hasSearched}
           selectedWaypointId={selectedWaypoint?.place.id || null}
           totalCandidates={totalCandidates}
           onOpenSearch={() => setSearchOverlayOpen(true)}

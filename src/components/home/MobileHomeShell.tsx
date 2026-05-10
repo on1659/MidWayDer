@@ -22,6 +22,7 @@ type MobileHomeShellProps = {
   isLoading: boolean;
   error: string | null;
   results: DetourResult[];
+  hasSearched: boolean;
   selectedWaypointId?: string | null;
   totalCandidates?: number;
   onOpenSearch: () => void;
@@ -40,6 +41,7 @@ export default function MobileHomeShell({
   isLoading,
   error,
   results,
+  hasSearched,
   selectedWaypointId,
   totalCandidates,
   onOpenSearch,
@@ -52,7 +54,15 @@ export default function MobileHomeShell({
   const [isResultSheetExpanded, setIsResultSheetExpanded] = useState(true);
   const dragStartYRef = useRef<number | null>(null);
   const hasResults = results.length > 0;
+  const shouldShowResultSheet = !isLoading && (hasSearched || Boolean(error));
   const routeLabel = startAddress && endAddress ? `${startAddress} → ${endAddress}` : '경로를 입력하면 추천을 시작해요';
+  const sheetTitle = error ? '다시 시도 필요' : hasResults ? `${results.length}개 경유지` : '추천 경유지 없음';
+  const hasCandidateCount = typeof totalCandidates === 'number';
+  const sheetSummary = error || !hasCandidateCount
+    ? routeLabel
+    : hasResults
+      ? `${totalCandidates}개 후보 중 선별`
+      : `${totalCandidates}개 후보 확인`;
   const resultSurface = '#f8fafc';
   const resultCard = '#ffffff';
   const resultText = '#0f172a';
@@ -82,7 +92,7 @@ export default function MobileHomeShell({
         endAddress={endAddress}
         category={category}
         isLoading={isLoading}
-        hasResults={hasResults || Boolean(error)}
+        hasResults={hasResults || hasSearched || Boolean(error)}
         onOpen={onOpenSearch}
       />
 
@@ -112,7 +122,7 @@ export default function MobileHomeShell({
         </div>
       )}
 
-      {(hasResults || error) && !isLoading && (
+      {shouldShowResultSheet && (
         <section
           data-testid="mobile-result-sheet"
           data-state={isResultSheetExpanded ? 'expanded' : 'collapsed'}
@@ -148,10 +158,10 @@ export default function MobileHomeShell({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-xl font-black leading-tight" style={{ color: resultText }}>
-                  {error ? '다시 시도 필요' : `${results.length}개 경유지`}
+                  {sheetTitle}
                 </h2>
                 <p className="mt-0.5 truncate text-xs font-bold" style={{ color: resultSubtext }}>
-                  {totalCandidates ? `${totalCandidates}개 후보 중 선별` : routeLabel}
+                  {sheetSummary}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1.5">
@@ -192,6 +202,37 @@ export default function MobileHomeShell({
                 >
                   다시 검색
                 </button>
+              </div>
+            ) : !hasResults ? (
+              <div
+                data-testid="mobile-empty-result"
+                className="rounded-[1.25rem] p-4"
+                style={{ background: resultCard, border: `1px solid ${resultBorder}` }}
+              >
+                <p className="text-base font-black" style={{ color: resultText }}>
+                  {category} 경유지를 찾지 못했어요
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-relaxed" style={{ color: resultSubtext }}>
+                  {routeLabel} 주변에 조건에 맞는 후보가 없어요. 카테고리나 경로를 바꾸거나 다시 검색해 보세요.
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={onOpenSearch}
+                    className="min-h-11 flex-1 rounded-2xl px-4 text-sm font-extrabold"
+                    style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
+                  >
+                    조건 수정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onRetry}
+                    className="min-h-11 flex-1 rounded-2xl px-4 text-sm font-extrabold"
+                    style={{ background: '#ffffff', color: resultText, border: `1px solid ${resultBorder}` }}
+                  >
+                    다시 검색
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
