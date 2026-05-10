@@ -5,8 +5,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, X, Clock, Mic, MicOff, Star, Trash2, Home, Building2, Bookmark, ArrowUpDown, LocateFixed, Search, Moon, Sun } from 'lucide-react';
-import AddressInput from './AddressInput';
+import { ArrowLeft, X, Clock, Mic, MicOff, Star, Trash2, Home, Building2, Bookmark, ArrowUpDown, LocateFixed, Search, Moon, Sun, MapPin } from 'lucide-react';
+import AddressInput, { type AddressSelection } from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -70,6 +70,8 @@ export default function SearchOverlay({
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState<string>('');
+  const [placeQuery, setPlaceQuery] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState<AddressSelection | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -233,6 +235,32 @@ export default function SearchOverlay({
     }
   };
 
+  const handlePlaceQueryChange = (value: string) => {
+    setPlaceQuery(value);
+    if (selectedPlace && value !== selectedPlace.address) {
+      setSelectedPlace(null);
+    }
+  };
+
+  const handlePlaceSelect = (place: AddressSelection) => {
+    setSelectedPlace(place);
+    setPlaceQuery(place.address);
+  };
+
+  const handleSelectAsStart = () => {
+    if (!selectedPlace) return;
+    onStartChange(selectedPlace.address);
+    onStartSelect?.(selectedPlace);
+    setPlaceQuery(selectedPlace.address);
+  };
+
+  const handleSelectAsEnd = () => {
+    if (!selectedPlace) return;
+    onEndChange(selectedPlace.address);
+    onEndSelect?.(selectedPlace);
+    setPlaceQuery(selectedPlace.address);
+  };
+
   return (
     <div
       ref={dialogRef}
@@ -305,7 +333,7 @@ export default function SearchOverlay({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24" data-testid="mobile-search-overlay-scroll">
+      <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${selectedPlace ? 'pb-72' : 'pb-24'}`} data-testid="mobile-search-overlay-scroll">
       {voiceError && (
         <div className={`mx-4 mt-2 rounded-xl px-4 py-2.5 text-center text-sm font-bold ${voiceError.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {voiceError}
@@ -354,11 +382,42 @@ export default function SearchOverlay({
       <section
         className="mx-4 mt-3 rounded-[1.4rem] bg-white p-3 shadow-sm"
         style={{ border: '1px solid rgba(15,23,42,0.08)' }}
-        data-testid="mobile-route-input-card"
-        aria-label="출발지와 도착지 입력"
+        data-testid="mobile-place-search-card"
+        aria-label="장소 또는 주소 검색"
       >
-        <div className="mb-2 flex items-center justify-between gap-3 px-1">
-          <p className="text-[13px] font-black text-slate-600">출발지 · 도착지</p>
+        <AddressInput
+          density="compact"
+          label=""
+          value={placeQuery}
+          onChange={handlePlaceQueryChange}
+          onSelect={handlePlaceSelect}
+          placeholder="장소 또는 주소 검색"
+          mapCenter={mapCenter}
+          testId="mobile-place-search-input"
+          onSubmit={canSearch && !isLoading ? handleSearch : undefined}
+        />
+      </section>
+
+      <section
+        className="mx-4 mt-3 rounded-[1.2rem] bg-white px-3 py-2.5 shadow-sm"
+        style={{ border: '1px solid rgba(15,23,42,0.08)' }}
+        data-testid="mobile-route-summary"
+        aria-label="현재 경로 상태"
+      >
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap gap-1.5">
+              <span className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-extrabold ${startAddress ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                출발 {startAddress || '미선택'}
+              </span>
+              <span className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-extrabold ${endAddress ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                도착 {endAddress || '미선택'}
+              </span>
+            </div>
+            <p className="mt-1 px-1 text-[11px] font-bold text-slate-500">
+              {canSearch ? '경유지 찾기를 실행할 수 있습니다' : '장소를 검색해 출발지와 도착지를 선택하세요'}
+            </p>
+          </div>
           <div className="flex shrink-0 items-center gap-1.5">
             {onGPS && (
               <button
@@ -382,37 +441,6 @@ export default function SearchOverlay({
                 <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div>
-            <span className="mb-1 block px-1 text-xs font-extrabold text-slate-500">출발</span>
-            <AddressInput
-              density="compact"
-              label=""
-              value={startAddress}
-              onChange={onStartChange}
-              onSelect={onStartSelect}
-              placeholder="출발하는 곳"
-              mapCenter={mapCenter}
-              testId="mobile-origin-input"
-              onSubmit={canSearch && !isLoading ? handleSearch : undefined}
-            />
-          </div>
-          <div>
-            <span className="mb-1 block px-1 text-xs font-extrabold text-slate-500">도착</span>
-            <AddressInput
-              density="compact"
-              label=""
-              value={endAddress}
-              onChange={onEndChange}
-              onSelect={onEndSelect}
-              placeholder="도착하는 곳"
-              mapCenter={mapCenter}
-              testId="mobile-destination-input"
-              onSubmit={canSearch && !isLoading ? handleSearch : undefined}
-            />
           </div>
         </div>
       </section>
@@ -548,6 +576,51 @@ export default function SearchOverlay({
         </div>
       )}
       </div>
+
+      {selectedPlace && (
+        <div
+          data-testid="mobile-selected-place-sheet"
+          className="fixed inset-x-0 z-[2147483001] px-4"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 82px)' }}
+        >
+          <div
+            className="rounded-[1.35rem] bg-white p-4 shadow-[0_20px_55px_-28px_rgba(15,23,42,0.75)]"
+            style={{ border: '1px solid rgba(15,23,42,0.1)' }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <MapPin className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-base font-black text-slate-950">
+                  {selectedPlace.name || selectedPlace.address}
+                </p>
+                <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-500">
+                  {selectedPlace.placeAddress || selectedPlace.address}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                data-testid="mobile-select-start-btn"
+                type="button"
+                onClick={handleSelectAsStart}
+                className="min-h-11 rounded-2xl bg-blue-600 px-3 text-sm font-black text-white transition active:scale-[0.98]"
+              >
+                출발지로 선택
+              </button>
+              <button
+                data-testid="mobile-select-end-btn"
+                type="button"
+                onClick={handleSelectAsEnd}
+                className="min-h-11 rounded-2xl bg-slate-900 px-3 text-sm font-black text-white transition active:scale-[0.98]"
+              >
+                도착지로 선택
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         data-testid="mobile-search-sticky-footer"

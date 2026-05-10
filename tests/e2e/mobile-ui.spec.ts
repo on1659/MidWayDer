@@ -311,9 +311,8 @@ test.describe('Mobile UI', () => {
     expect(categoryButtonBox).toBeTruthy();
     expect(categoryButtonBox!.height).toBeGreaterThanOrEqual(32);
 
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-input')).toBeVisible();
     await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
     await expect(page.getByTestId('mobile-search-route-btn')).toBeDisabled();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
@@ -357,9 +356,8 @@ test.describe('Mobile UI', () => {
 
     await expect(page.getByTestId('mobile-route-edit-trigger')).toBeVisible();
     await expect(page.getByTestId('mobile-route-edit-trigger')).toHaveText('어디를 경유할까요?');
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-input')).toBeVisible();
     await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
@@ -386,9 +384,8 @@ test.describe('Mobile UI', () => {
     await expect(page.getByRole('button', { name: '집' })).toBeVisible();
     await expect(page.getByRole('button', { name: '회사' })).toBeVisible();
     await expect(page.getByRole('button', { name: '저장' })).toBeVisible();
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-input')).toBeVisible();
     await expect(page.getByRole('button', { name: '출발지와 도착지 바꾸기' })).toBeVisible();
     await expect(page.getByRole('button', { name: '현재 위치를 출발지로 설정' })).toBeVisible();
     await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
@@ -492,12 +489,17 @@ test.describe('Mobile UI', () => {
     await page.getByTestId('mobile-category-rail').getByRole('button', { name: '편의점' }).click();
 
     await expect(page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]')).toBeVisible();
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible();
 
-    await page.getByTestId('mobile-origin-input').fill('강남');
+    await page.getByTestId('mobile-place-search-input').fill('강남');
     await page.getByRole('option', { name: /강남역/ }).click();
-    await page.getByTestId('mobile-destination-input').fill('잠실');
+    await expect(page.getByTestId('mobile-selected-place-sheet')).toBeVisible();
+    await page.getByTestId('mobile-select-start-btn').click();
+
+    await page.getByTestId('mobile-place-search-input').fill('잠실');
     await page.getByRole('option', { name: /잠실역/ }).click();
+    await expect(page.getByTestId('mobile-selected-place-sheet')).toBeVisible();
+    await page.getByTestId('mobile-select-end-btn').click();
 
     await expect(page.getByTestId('mobile-search-route-btn')).toBeEnabled();
     await page.getByTestId('mobile-search-route-btn').click();

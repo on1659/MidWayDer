@@ -15,11 +15,19 @@ interface AutocompleteResult {
   category: string;
 }
 
+export interface AddressSelection {
+  address: string;
+  coordinates: { lat: number; lng: number };
+  name?: string;
+  placeAddress?: string;
+  category?: string;
+}
+
 interface AddressInputProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  onSelect?: (result: { address: string; coordinates: { lat: number; lng: number } }) => void;
+  onSelect?: (result: AddressSelection) => void;
   placeholder?: string;
   icon?: ReactNode;
   mapCenter?: { lat: number; lng: number };
@@ -119,6 +127,9 @@ export default function AddressInput({
       onSelect({
         address: displayValue,
         coordinates: { lat: result.lat, lng: result.lng },
+        name: result.name,
+        placeAddress: result.address,
+        category: result.category,
       });
     } else {
       onChange(displayValue);

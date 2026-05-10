@@ -143,9 +143,8 @@ test.describe('MidWayDer smoke', () => {
     await expect(overlayBtn).toBeVisible();
     await overlayBtn.click();
     // 오버레이 내 경로/카테고리 검색 UI 접근 가능 확인
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('mobile-place-search-input')).toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible({ timeout: 5000 });
   });
 });

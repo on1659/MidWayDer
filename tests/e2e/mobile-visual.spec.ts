@@ -294,9 +294,8 @@ test.describe('Mobile Visual Regression', () => {
     await overlayBtn.click();
 
     // Wait for overlay animation to complete
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('mobile-place-search-input')).toBeVisible();
     await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible({ timeout: 5000 });
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();

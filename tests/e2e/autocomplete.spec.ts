@@ -40,9 +40,8 @@ test.describe('Autocomplete E2E', () => {
     await overlayBtn.click();
     
     // 모바일 경로/카테고리 검색 UI 확인
-    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-place-search-card')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('mobile-place-search-input')).toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible({ timeout: 5000 });
   });
 

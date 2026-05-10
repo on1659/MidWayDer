@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 // ── Mock 외부 의존성 ─────────────────────────────────────────────
@@ -25,9 +25,6 @@ vi.mock('@/lib/place-favorites', () => ({
 vi.mock('@/lib/smart-category', () => ({
   getTimeBasedCategoryHints: vi.fn().mockReturnValue([]),
 }));
-// AddressInput 내부에서 사용하는 fetch 자동완성 API를 mocking
-vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
-
 // ── Default Props ─────────────────────────────────────────────────
 
 const defaultProps = {
@@ -51,15 +48,17 @@ describe('SearchOverlay', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
     const mod = await import('../SearchOverlay');
     SearchOverlay = mod.default;
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
-  it('모바일 검색 화면에서 경로 입력과 검색 CTA를 제공함', () => {
+  it('모바일 검색 화면은 단일 장소 검색 입력과 경로 상태만 제공함', () => {
     render(
       <SearchOverlay
         {...defaultProps}
@@ -69,16 +68,102 @@ describe('SearchOverlay', () => {
       />
     );
     expect(screen.getByTestId('mobile-route-edit-trigger')).toHaveTextContent('어디를 경유할까요?');
-    expect(screen.getByTestId('mobile-route-input-card')).toBeInTheDocument();
-    expect(screen.getByTestId('mobile-origin-input')).toHaveValue('강남역');
-    expect(screen.getByTestId('mobile-destination-input')).toHaveValue('서울역');
+    expect(screen.queryByTestId('mobile-route-input-card')).toBeNull();
+    expect(screen.queryByTestId('mobile-origin-input')).toBeNull();
+    expect(screen.queryByTestId('mobile-destination-input')).toBeNull();
+    expect(screen.getByTestId('mobile-place-search-input')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-route-summary')).toHaveTextContent('출발 강남역');
+    expect(screen.getByTestId('mobile-route-summary')).toHaveTextContent('도착 서울역');
     expect(screen.getByTestId('mobile-search-sticky-footer')).toBeInTheDocument();
     expect(screen.getByTestId('mobile-search-route-btn')).toBeEnabled();
     expect(screen.queryByTestId('mobile-transport-tabs')).toBeNull();
     expect(screen.getByText('경유지 종류')).toBeInTheDocument();
   });
 
-  it('경로 입력 변경과 검색 실행을 부모 핸들러로 전달함', () => {
+  it('장소 선택 시 하단 장소 액션 시트를 표시함', async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        results: [
+          {
+            name: '카페 마일드',
+            address: '서울 중구 세종대로 110',
+            lat: 37.5665,
+            lng: 126.978,
+            category: '카페',
+          },
+        ],
+      }),
+    } as Response);
+
+    render(<SearchOverlay {...defaultProps} />);
+
+    fireEvent.change(screen.getByTestId('mobile-place-search-input'), { target: { value: '카페' } });
+    await waitFor(() => expect(screen.getByRole('option', { name: /카페 마일드/ })).toBeInTheDocument(), { timeout: 1500 });
+    fireEvent.click(screen.getByRole('option', { name: /카페 마일드/ }));
+
+    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('카페 마일드');
+    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('서울 중구 세종대로 110');
+    expect(screen.getByTestId('mobile-select-start-btn')).toHaveTextContent('출발지로 선택');
+    expect(screen.getByTestId('mobile-select-end-btn')).toHaveTextContent('도착지로 선택');
+  });
+
+  it('선택한 장소를 출발지/도착지 콜백으로 전달함', async () => {
+    const onStartChange = vi.fn();
+    const onEndChange = vi.fn();
+    const onStartSelect = vi.fn();
+    const onEndSelect = vi.fn();
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        results: [
+          {
+            name: '카페 마일드',
+            address: '서울 중구 세종대로 110',
+            lat: 37.5665,
+            lng: 126.978,
+            category: '카페',
+          },
+        ],
+      }),
+    } as Response);
+
+    render(
+      <SearchOverlay
+        {...defaultProps}
+        onStartChange={onStartChange}
+        onEndChange={onEndChange}
+        onStartSelect={onStartSelect}
+        onEndSelect={onEndSelect}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId('mobile-place-search-input'), { target: { value: '카페' } });
+    await waitFor(() => expect(screen.getByRole('option', { name: /카페 마일드/ })).toBeInTheDocument(), { timeout: 1500 });
+    fireEvent.click(screen.getByRole('option', { name: /카페 마일드/ }));
+
+    fireEvent.click(screen.getByTestId('mobile-select-start-btn'));
+    expect(onStartChange).toHaveBeenCalledWith('카페 마일드');
+    expect(onStartSelect).toHaveBeenCalledWith(expect.objectContaining({
+      address: '카페 마일드',
+      coordinates: { lat: 37.5665, lng: 126.978 },
+      name: '카페 마일드',
+      placeAddress: '서울 중구 세종대로 110',
+      category: '카페',
+    }));
+
+    fireEvent.click(screen.getByTestId('mobile-select-end-btn'));
+    expect(onEndChange).toHaveBeenCalledWith('카페 마일드');
+    expect(onEndSelect).toHaveBeenCalledWith(expect.objectContaining({
+      address: '카페 마일드',
+      coordinates: { lat: 37.5665, lng: 126.978 },
+      name: '카페 마일드',
+      placeAddress: '서울 중구 세종대로 110',
+      category: '카페',
+    }));
+  });
+
+  it('경유지 찾기 실행을 부모 핸들러로 전달함', () => {
     const onStartChange = vi.fn();
     const onEndChange = vi.fn();
     const onSearch = vi.fn();
@@ -94,12 +179,10 @@ describe('SearchOverlay', () => {
       />
     );
 
-    fireEvent.change(screen.getByTestId('mobile-origin-input'), { target: { value: '강남역' } });
-    fireEvent.change(screen.getByTestId('mobile-destination-input'), { target: { value: '잠실역' } });
     fireEvent.click(screen.getByTestId('mobile-search-route-btn'));
 
-    expect(onStartChange).toHaveBeenCalledWith('강남역');
-    expect(onEndChange).toHaveBeenCalledWith('잠실역');
+    expect(onStartChange).not.toHaveBeenCalled();
+    expect(onEndChange).not.toHaveBeenCalled();
     expect(onSearch).toHaveBeenCalled();
   });
 

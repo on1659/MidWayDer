@@ -108,10 +108,13 @@ describe('AddressInput', () => {
       expect(screen.getByText('서울역')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('서울역'));
-    expect(mockOnSelect).toHaveBeenCalledWith({
+    expect(mockOnSelect).toHaveBeenCalledWith(expect.objectContaining({
       address: '서울역',
       coordinates: { lat: 37.5547, lng: 126.9707 },
-    });
+      name: '서울역',
+      placeAddress: '서울 중구 봉래동2가 122-20',
+      category: '교통',
+    }));
   });
 
   it('키보드 네비게이션 (ArrowDown, Enter)', async () => {
@@ -141,10 +144,13 @@ describe('AddressInput', () => {
     // ArrowDown으로 이동
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(mockOnSelect).toHaveBeenCalledWith({
+    expect(mockOnSelect).toHaveBeenCalledWith(expect.objectContaining({
       address: '서울역',
       coordinates: { lat: 37.5547, lng: 126.9707 },
-    });
+      name: '서울역',
+      placeAddress: '서울 중구 봉래동2가 122-20',
+      category: '교통',
+    }));
   });
 
   it('Escape 키로 자동완성 닫기', async () => {
