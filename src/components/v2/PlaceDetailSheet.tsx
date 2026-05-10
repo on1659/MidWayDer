@@ -10,6 +10,10 @@ interface PlaceDetailSheetProps {
   onSetAsEnd: () => void;
   startSelected?: boolean;
   endSelected?: boolean;
+  /** 현재 위치 기준 거리 (m). 있으면 거리 뱃지 표시 */
+  distanceMeters?: number | null;
+  /** 영업 상태 라벨 (예: "운영 중"). 있으면 뱃지 표시 */
+  businessLabel?: string | null;
 }
 
 export default function PlaceDetailSheet({
@@ -19,11 +23,18 @@ export default function PlaceDetailSheet({
   onSetAsEnd,
   startSelected = false,
   endSelected = false,
+  distanceMeters = null,
+  businessLabel = null,
 }: PlaceDetailSheetProps) {
   if (!place) return null;
 
   const title = place.name || place.address;
   const subtitle = place.placeAddress || (place.name ? place.address : '');
+  const distanceText = (() => {
+    if (distanceMeters == null) return null;
+    if (distanceMeters < 1000) return `현 위치 ${Math.round(distanceMeters)}m`;
+    return `현 위치 ${(distanceMeters / 1000).toFixed(1)}km`;
+  })();
 
   return (
     <>
@@ -34,7 +45,7 @@ export default function PlaceDetailSheet({
         aria-hidden="true"
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[90] rounded-t-3xl"
+        className="fixed bottom-0 left-0 right-0 z-[90] flex max-h-[80dvh] flex-col rounded-t-3xl"
         style={{
           background: 'var(--bg-surface)',
           boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.08)',
@@ -52,14 +63,14 @@ export default function PlaceDetailSheet({
           }
         `}</style>
 
-        <div className="flex justify-center pt-2 pb-1">
+        <div className="flex flex-shrink-0 justify-center pt-2 pb-1">
           <div
             className="h-1.5 w-9 rounded-full"
             style={{ background: 'var(--border-strong)' }}
           />
         </div>
 
-        <div className="px-5 pt-2">
+        <div className="flex-1 overflow-y-auto px-5 pt-2">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-1 items-start gap-3">
               <div
@@ -86,17 +97,41 @@ export default function PlaceDetailSheet({
                     {subtitle}
                   </div>
                 )}
-                {place.category && (
+                {(place.category || businessLabel || distanceText) && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      style={{
-                        background: 'var(--bg-surface-muted)',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
-                      {place.category}
-                    </span>
+                    {place.category && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{
+                          background: 'var(--bg-surface-muted)',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {place.category}
+                      </span>
+                    )}
+                    {businessLabel && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{
+                          background: 'var(--bg-surface-muted)',
+                          color: 'var(--color-success-current)',
+                        }}
+                      >
+                        ● {businessLabel}
+                      </span>
+                    )}
+                    {distanceText && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{
+                          background: 'rgba(var(--color-accent-rgb), 0.1)',
+                          color: 'var(--accent)',
+                        }}
+                      >
+                        {distanceText}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -111,8 +146,10 @@ export default function PlaceDetailSheet({
               <X className="h-4 w-4" />
             </button>
           </div>
+        </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-2">
+        <div className="flex-shrink-0 px-5 pt-3">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={onSetAsStart}

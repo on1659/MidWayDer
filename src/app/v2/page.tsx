@@ -25,7 +25,6 @@ import PlaceDetailSheet from '@/components/v2/PlaceDetailSheet';
 import RouteSummaryCard from '@/components/v2/RouteSummaryCard';
 import WaypointResultsSheet, { CategoryPicker } from '@/components/v2/WaypointResultsSheet';
 import type { AddressSelection } from '@/components/search/AddressInput';
-import type { DetourResult } from '@/types/detour';
 
 const MapContainer = dynamic(() => import('@/components/map/MapContainer'), {
   ssr: false,
@@ -43,6 +42,16 @@ const MapContainer = dynamic(() => import('@/components/map/MapContainer'), {
 
 type SlotTarget = 'start' | 'end' | null;
 
+function haversineMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371e3;
+  const φ1 = (a.lat * Math.PI) / 180;
+  const φ2 = (b.lat * Math.PI) / 180;
+  const Δφ = ((b.lat - a.lat) * Math.PI) / 180;
+  const Δλ = ((b.lng - a.lng) * Math.PI) / 180;
+  const x = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+
 export default function V2HomePage() {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint, reset } = useRouteStore();
   const { category, results, isLoading, hasSearched, totalCandidates, setCategory, search, clearResults, cancelSearch } = useSearchStore();
@@ -51,6 +60,62 @@ export default function V2HomePage() {
   const [searchTarget, setSearchTarget] = useState<SlotTarget>(null);
   const [pendingPlace, setPendingPlace] = useState<AddressSelection | null>(null);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [previewRoute, setPreviewRoute] = useState<{ distance: number; duration: number } | null>(null);
+
+  const pendingDistance = useMemo(() => {
+    if (!pendingPlace?.coordinates || !currentLocation) return null;
+    // "내 위치" 자체를 선택했을 때(0m) 뱃지 표시 무의미
+    if (pendingPlace.address === '내 위치') return null;
+    const m = haversineMeters(currentLocation, pendingPlace.coordinates);
+    return m < 5 ? null : m;
+  }, [pendingPlace, currentLocation]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+    );
+  }, []);
+
+  // start/end 좌표 변경 시 previewRoute 캐시 무효화
+  useEffect(() => {
+    setPreviewRoute(null);
+  }, [start?.coordinates?.lat, start?.coordinates?.lng, end?.coordinates?.lat, end?.coordinates?.lng]);
+
+  // both-slots 진입 시 원본 경로 미리 조회 (목업 화면 5의 "예상 경로" 통계)
+  useEffect(() => {
+    if (!start?.coordinates || !end?.coordinates || results.length > 0 || isLoading) {
+      return;
+    }
+    if (originalRoute) {
+      setPreviewRoute({ distance: originalRoute.distance, duration: originalRoute.duration });
+      return;
+    }
+    if (previewRoute) return; // 이미 캐싱돼있으면 재호출 금지
+    let cancelled = false;
+    const ctrl = new AbortController();
+    fetch('/api/directions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start: start.coordinates, end: end.coordinates }),
+      signal: ctrl.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => {
+        if (cancelled || !res?.success || !res.data) return;
+        const route = res.data;
+        if (typeof route.distance !== 'number' || typeof route.duration !== 'number') return;
+        setPreviewRoute({ distance: route.distance, duration: route.duration });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
+  }, [start?.coordinates, end?.coordinates, originalRoute, results.length, isLoading, previewRoute]);
 
   const mapCenter = useMemo(() => {
     if (selectedWaypoint?.place.coordinates) return selectedWaypoint.place.coordinates;
@@ -208,10 +273,14 @@ export default function V2HomePage() {
         />
       </div>
 
-      {/* 상단 영역 */}
+      {/* 상단 영역 (home phase에서는 우상단 설정 버튼과 안 겹치도록 우측 여백 확보) */}
       <div
-        className="absolute left-3 right-3 z-30"
-        style={{ top: 'calc(env(safe-area-inset-top) + 12px)' }}
+        className="absolute z-30"
+        style={{
+          top: 'calc(env(safe-area-inset-top) + 12px)',
+          left: '12px',
+          right: phase === 'home' ? '60px' : '12px',
+        }}
       >
         {phase === 'home' ? (
           <HomeSearchPill onClick={() => openSearch(null)} onGPS={handleUseCurrentLocation} />
@@ -235,22 +304,23 @@ export default function V2HomePage() {
         )}
       </div>
 
-      {/* 우상단 설정 */}
-      <Link
-        href="/settings"
-        aria-label="설정"
-        className="absolute z-30 flex h-10 w-10 items-center justify-center rounded-full"
-        style={{
-          top: 'calc(env(safe-area-inset-top) + 12px)',
-          right: phase === 'home' ? '12px' : 'auto',
-          left: phase === 'home' ? 'auto' : '-9999px',
-          background: 'var(--bg-surface)',
-          color: 'var(--text-secondary)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        }}
-      >
-        <Settings className="h-4 w-4" />
-      </Link>
+      {/* 우상단 설정 (목업: 화면 1 홈에만 보임) */}
+      {phase === 'home' && (
+        <Link
+          href="/settings"
+          aria-label="설정"
+          className="absolute z-30 flex h-10 w-10 items-center justify-center rounded-full"
+          style={{
+            top: 'calc(env(safe-area-inset-top) + 12px)',
+            right: '12px',
+            background: 'var(--bg-surface)',
+            color: 'var(--text-secondary)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Settings className="h-4 w-4" />
+        </Link>
+      )}
 
       {/* 한쪽만 채워졌을 때 안내 시트 */}
       {phase === 'one-slot' && (
@@ -292,7 +362,7 @@ export default function V2HomePage() {
         </div>
       )}
 
-      {/* 양쪽 채워진 상태 - 경로 정보 시트 */}
+      {/* 양쪽 채워진 상태 - 경로 정보 시트 (목업 화면 5) */}
       {phase === 'both-slots' && (
         <div
           className="absolute bottom-0 left-0 right-0 z-20 rounded-t-3xl px-5 pt-3"
@@ -305,21 +375,38 @@ export default function V2HomePage() {
           <div className="mb-3 flex justify-center">
             <div className="h-1.5 w-9 rounded-full" style={{ background: 'var(--border-strong)' }} />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-end justify-between gap-3 px-1">
             <div>
-              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                {category} 경유지를 찾을 준비 완료
+              <div className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
+                예상 경로
               </div>
-              <div className="mt-1 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {start?.address} → {end?.address}
+              <div className="mt-0.5 flex items-baseline gap-3">
+                <strong
+                  className="text-[22px] font-bold"
+                  style={{ color: 'var(--text-primary)', letterSpacing: '-0.5px' }}
+                >
+                  {previewRoute ? `${Math.round(previewRoute.duration / 60)}분` : '계산 중'}
+                </strong>
+                {previewRoute && (
+                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    {(previewRoute.distance / 1000).toFixed(1)}km
+                  </span>
+                )}
               </div>
             </div>
+            <div
+              className="text-[11px] leading-tight"
+              style={{ color: 'var(--text-tertiary)', textAlign: 'right' }}
+            >
+              경유지<br />
+              <strong style={{ color: 'var(--accent)' }}>{category}</strong>
+            </div>
           </div>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3">
             <button
               type="button"
               onClick={handleSwap}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
               style={{
                 background: 'var(--bg-surface-muted)',
                 color: 'var(--text-primary)',
@@ -327,19 +414,7 @@ export default function V2HomePage() {
               }}
             >
               <ArrowLeftRight className="h-4 w-4" />
-              출발↔도착
-            </button>
-            <button
-              type="button"
-              onClick={() => setCategoryPickerOpen(true)}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-semibold"
-              style={{
-                background: 'var(--bg-surface-muted)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-soft)',
-              }}
-            >
-              📌 {category}
+              출발↔도착 바꾸기
             </button>
           </div>
         </div>
@@ -419,6 +494,7 @@ export default function V2HomePage() {
         onClose={() => setPendingPlace(null)}
         onSetAsStart={handleSetAsStart}
         onSetAsEnd={handleSetAsEnd}
+        distanceMeters={pendingDistance}
       />
 
       {/* 카테고리 선택 시트 */}
@@ -511,7 +587,7 @@ function CompactRouteHeader({
       <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>›</span>
       <span
         className="h-2 w-2 flex-shrink-0 rounded-full"
-        style={{ background: 'var(--color-error-current, #ef4444)' }}
+        style={{ background: 'var(--color-error-current)' }}
       />
       <span
         className="flex-1 truncate text-[13px] font-medium"
