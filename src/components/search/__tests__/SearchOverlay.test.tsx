@@ -59,22 +59,48 @@ describe('SearchOverlay', () => {
     vi.unstubAllGlobals();
   });
 
-  it('모바일 장소 검색 화면에서 경로 편집 입력을 숨김', () => {
+  it('모바일 검색 화면에서 경로 입력과 검색 CTA를 제공함', () => {
     render(
       <SearchOverlay
         {...defaultProps}
         startAddress="강남역"
         endAddress="서울역"
+        canSearch
       />
     );
     expect(screen.getByTestId('mobile-route-edit-trigger')).toHaveTextContent('어디를 경유할까요?');
-    expect(screen.queryByText('강남역 → 서울역')).toBeNull();
-    expect(screen.queryByTestId('mobile-origin-input')).toBeNull();
-    expect(screen.queryByTestId('mobile-destination-input')).toBeNull();
-    expect(screen.queryByTestId('mobile-route-input-card')).toBeNull();
+    expect(screen.getByTestId('mobile-route-input-card')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-origin-input')).toHaveValue('강남역');
+    expect(screen.getByTestId('mobile-destination-input')).toHaveValue('서울역');
+    expect(screen.getByTestId('mobile-search-sticky-footer')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-search-route-btn')).toBeEnabled();
     expect(screen.queryByTestId('mobile-transport-tabs')).toBeNull();
-    expect(screen.queryByTestId('mobile-search-sticky-footer')).toBeNull();
     expect(screen.getByText('경유지 종류')).toBeInTheDocument();
+  });
+
+  it('경로 입력 변경과 검색 실행을 부모 핸들러로 전달함', () => {
+    const onStartChange = vi.fn();
+    const onEndChange = vi.fn();
+    const onSearch = vi.fn();
+    render(
+      <SearchOverlay
+        {...defaultProps}
+        startAddress=""
+        endAddress=""
+        canSearch
+        onStartChange={onStartChange}
+        onEndChange={onEndChange}
+        onSearch={onSearch}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId('mobile-origin-input'), { target: { value: '강남역' } });
+    fireEvent.change(screen.getByTestId('mobile-destination-input'), { target: { value: '잠실역' } });
+    fireEvent.click(screen.getByTestId('mobile-search-route-btn'));
+
+    expect(onStartChange).toHaveBeenCalledWith('강남역');
+    expect(onEndChange).toHaveBeenCalledWith('잠실역');
+    expect(onSearch).toHaveBeenCalled();
   });
 
   it('카테고리 칩 클릭 시 onCategoryChange 호출됨', () => {

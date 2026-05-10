@@ -5,7 +5,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, X, Clock, Mic, MicOff, Star, Trash2, Home, Building2, Bookmark } from 'lucide-react';
+import { ArrowLeft, X, Clock, Mic, MicOff, Star, Trash2, Home, Building2, Bookmark, ArrowUpDown, LocateFixed, Search, Moon, Sun } from 'lucide-react';
+import AddressInput from './AddressInput';
 import CategorySelect from './CategorySelect';
 import { RecommendedCategories } from './RecommendedCategories';
 import { getRecentSearches, removeRecentSearch, type RecentSearch } from '@/lib/recent-searches';
@@ -44,16 +45,25 @@ interface SearchOverlayProps {
 export default function SearchOverlay({
   open,
   onClose,
+  startAddress,
+  endAddress,
   category,
   onStartChange,
   onEndChange,
   onStartSelect,
   onEndSelect,
+  mapCenter,
   onCategoryChange,
   onSearch,
+  onSwap,
   isLoading,
   canSearch,
+  theme,
+  onToggleTheme,
+  onGPS,
+  gpsLoading,
   onInstantSearch,
+  onCancel,
 }: SearchOverlayProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [placeFavorites, setPlaceFavorites] = useState<PlaceFavorite[]>([]);
@@ -257,6 +267,20 @@ export default function SearchOverlay({
           >
             어디를 경유할까요?
           </div>
+          {theme && onToggleTheme && (
+            <button
+              onClick={onToggleTheme}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-95"
+              aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+              title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5 text-slate-800" aria-hidden="true" />
+              ) : (
+                <Moon className="h-5 w-5 text-slate-800" aria-hidden="true" />
+              )}
+            </button>
+          )}
           <button
             onClick={handleVoiceSearch}
             disabled={isListening}
@@ -326,6 +350,72 @@ export default function SearchOverlay({
           );
         })}
       </nav>
+
+      <section
+        className="mx-4 mt-3 rounded-[1.4rem] bg-white p-3 shadow-sm"
+        style={{ border: '1px solid rgba(15,23,42,0.08)' }}
+        data-testid="mobile-route-input-card"
+        aria-label="출발지와 도착지 입력"
+      >
+        <div className="mb-2 flex items-center justify-between gap-3 px-1">
+          <p className="text-[13px] font-black text-slate-600">출발지 · 도착지</p>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {onGPS && (
+              <button
+                type="button"
+                onClick={onGPS}
+                disabled={gpsLoading}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition active:scale-95 disabled:opacity-50"
+                aria-label="현재 위치를 출발지로 설정"
+              >
+                <LocateFixed className={`h-4 w-4 ${gpsLoading ? 'animate-pulse' : ''}`} aria-hidden="true" />
+              </button>
+            )}
+            {onSwap && (
+              <button
+                type="button"
+                onClick={onSwap}
+                disabled={!startAddress && !endAddress}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition active:scale-95 disabled:opacity-40"
+                aria-label="출발지와 도착지 바꾸기"
+              >
+                <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div>
+            <span className="mb-1 block px-1 text-xs font-extrabold text-slate-500">출발</span>
+            <AddressInput
+              density="compact"
+              label=""
+              value={startAddress}
+              onChange={onStartChange}
+              onSelect={onStartSelect}
+              placeholder="출발하는 곳"
+              mapCenter={mapCenter}
+              testId="mobile-origin-input"
+              onSubmit={canSearch && !isLoading ? handleSearch : undefined}
+            />
+          </div>
+          <div>
+            <span className="mb-1 block px-1 text-xs font-extrabold text-slate-500">도착</span>
+            <AddressInput
+              density="compact"
+              label=""
+              value={endAddress}
+              onChange={onEndChange}
+              onSelect={onEndSelect}
+              placeholder="도착하는 곳"
+              mapCenter={mapCenter}
+              testId="mobile-destination-input"
+              onSubmit={canSearch && !isLoading ? handleSearch : undefined}
+            />
+          </div>
+        </div>
+      </section>
 
       {/* Category chips */}
       <section className="mt-3" style={{ marginLeft: '1rem', marginRight: '1rem' }} data-testid="mobile-category-input-card">
@@ -457,6 +547,40 @@ export default function SearchOverlay({
           </div>
         </div>
       )}
+      </div>
+
+      <div
+        data-testid="mobile-search-sticky-footer"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-[2147483001] bg-white/95 px-4 pb-4 pt-3 shadow-[0_-18px_40px_-30px_rgba(15,23,42,0.65)] backdrop-blur-xl"
+        style={{ borderTop: '1px solid rgba(15,23,42,0.08)' }}
+      >
+        <div className="flex gap-2">
+          {isLoading && onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="min-h-12 rounded-2xl px-4 text-sm font-black text-slate-700"
+              style={{ border: '1px solid #dbe3ef', background: '#ffffff' }}
+            >
+              취소
+            </button>
+          )}
+          <button
+            data-testid="mobile-search-route-btn"
+            type="button"
+            onClick={handleSearch}
+            disabled={!canSearch || isLoading}
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-base font-black transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-65"
+            style={{
+              background: !canSearch || isLoading ? '#e2e8f0' : 'var(--accent)',
+              color: !canSearch || isLoading ? '#64748b' : 'var(--text-on-accent)',
+              border: `1px solid ${!canSearch || isLoading ? '#dbe3ef' : 'var(--accent)'}`,
+            }}
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+            {isLoading ? '찾는 중...' : '경유지 찾기'}
+          </button>
+        </div>
       </div>
 
       {/* 캐시 관리 (v0.51.0) */}

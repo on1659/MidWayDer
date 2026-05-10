@@ -294,8 +294,11 @@ test.describe('Mobile Visual Regression', () => {
     await overlayBtn.click();
 
     // Wait for overlay animation to complete
+    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
     await page.waitForTimeout(500);
 
@@ -339,7 +342,7 @@ test.describe('Mobile Visual Regression', () => {
     await waitAppReady(page, SEARCH_PARAMS);
 
     // Wait for results to appear
-    await expect(page.getByText('다이소 강남점').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('mobile-result-sheet').getByText('다이소 강남점')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(500);
 
     await expect(page).toHaveScreenshot('mobile-results.png', {
@@ -360,10 +363,11 @@ test.describe('Mobile Visual Regression', () => {
 
     await waitAppReady(page);
 
-    // Toggle dark mode via the theme button
-    const themeBtn = page.locator('button[aria-label="테마 변경"]');
+    await page.getByTestId('open-search-overlay-btn').click();
+    const themeBtn = page.locator('button[aria-label="다크 모드로 전환"]');
     await expect(themeBtn).toBeVisible();
     await themeBtn.click();
+    await page.locator('[aria-label="뒤로 가기"]').click();
 
     // Wait for theme transition to settle
     await page.waitForTimeout(500);
@@ -382,12 +386,13 @@ test.describe('Mobile Visual Regression', () => {
     await waitAppReady(page, SEARCH_PARAMS);
 
     // Wait for results to load
-    await expect(page.getByText('다이소 강남점').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('mobile-result-sheet').getByText('다이소 강남점')).toBeVisible({ timeout: 15000 });
 
-    // Toggle dark mode
-    const themeBtn = page.locator('button[aria-label="테마 변경"]');
+    await page.getByTestId('open-search-overlay-btn').click();
+    const themeBtn = page.locator('button[aria-label="다크 모드로 전환"]');
     await expect(themeBtn).toBeVisible();
     await themeBtn.click();
+    await page.locator('[aria-label="뒤로 가기"]').click();
 
     // Wait for theme transition to settle
     await page.waitForTimeout(500);

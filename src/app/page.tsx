@@ -704,7 +704,12 @@ export default function HomePage() {
           selectedWaypointId={selectedWaypoint?.place.id || null}
           totalCandidates={totalCandidates}
           onOpenSearch={() => setSearchOverlayOpen(true)}
-          onCategoryChange={handleCategoryChange}
+          onCategoryChange={(nextCategory) => {
+            handleCategoryChange(nextCategory);
+            if (!start?.address || !end?.address) {
+              setSearchOverlayOpen(true);
+            }
+          }}
           onSaveRoute={() => setSaveDialogOpen(true)}
           onResultSelect={handleWaypointSelect}
           onResultHover={setHoveredWaypointId}

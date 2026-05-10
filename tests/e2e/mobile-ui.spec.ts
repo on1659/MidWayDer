@@ -311,7 +311,11 @@ test.describe('Mobile UI', () => {
     expect(categoryButtonBox).toBeTruthy();
     expect(categoryButtonBox!.height).toBeGreaterThanOrEqual(32);
 
-    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
+    await expect(page.getByTestId('mobile-search-route-btn')).toBeDisabled();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
   });
 
@@ -353,8 +357,10 @@ test.describe('Mobile UI', () => {
 
     await expect(page.getByTestId('mobile-route-edit-trigger')).toBeVisible();
     await expect(page.getByTestId('mobile-route-edit-trigger')).toHaveText('어디를 경유할까요?');
-    await expect(page.getByText('출발지 · 도착지 입력')).not.toBeVisible();
-    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card')).toBeVisible();
 
@@ -367,7 +373,7 @@ test.describe('Mobile UI', () => {
     await expect(overlay).not.toBeVisible({ timeout: 3000 });
   });
 
-  test('mobile-route-editor-visibility: 장소 검색 오버레이는 경로 편집 컨트롤을 숨겨야 한다', async ({ page, isMobile }) => {
+  test('mobile-route-editor-visibility: 장소 검색 오버레이는 경로 입력과 검색 CTA를 제공해야 한다', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'mobile project only');
 
     await mockAllAPIs(page);
@@ -380,16 +386,17 @@ test.describe('Mobile UI', () => {
     await expect(page.getByRole('button', { name: '집' })).toBeVisible();
     await expect(page.getByRole('button', { name: '회사' })).toBeVisible();
     await expect(page.getByRole('button', { name: '저장' })).toBeVisible();
+    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+    await expect(page.getByTestId('mobile-origin-input')).toBeVisible();
+    await expect(page.getByTestId('mobile-destination-input')).toBeVisible();
+    await expect(page.getByRole('button', { name: '출발지와 도착지 바꾸기' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '현재 위치를 출발지로 설정' })).toBeVisible();
+    await expect(page.getByTestId('mobile-search-sticky-footer')).toBeVisible();
+    await expect(page.getByTestId('mobile-search-route-btn')).toBeDisabled();
     await expect(page.getByText('경유지 종류')).toBeVisible();
     await expect(page.getByTestId('mobile-category-input-card').getByRole('button', { name: '카페' })).toBeVisible();
 
-    await expect(page.getByTestId('mobile-route-input-card')).not.toBeVisible();
     await expect(page.getByTestId('mobile-transport-tabs')).not.toBeVisible();
-    await expect(page.getByTestId('mobile-search-sticky-footer')).not.toBeVisible();
-    await expect(page.getByTestId('mobile-origin-input')).not.toBeVisible();
-    await expect(page.getByTestId('mobile-destination-input')).not.toBeVisible();
-    await expect(page.getByRole('button', { name: '출발지와 도착지 바꾸기' })).not.toBeVisible();
-    await expect(page.getByRole('button', { name: '현재 위치를 출발지로 설정' })).not.toBeVisible();
     await expect(page.getByRole('button', { name: '출발지 지우기' })).not.toBeVisible();
     await expect(page.getByRole('button', { name: '버스' })).not.toBeVisible();
     await expect(page.getByRole('button', { name: '자동차' })).not.toBeVisible();
@@ -446,5 +453,62 @@ test.describe('Mobile UI', () => {
 
     await page.getByTestId('open-search-overlay-btn').click();
     await expect(page.locator('button[aria-label="스타벅스"][aria-pressed="true"]')).toBeVisible();
+  });
+
+  test('모바일 카테고리 선택 후 출발지와 도착지를 선택해 경유지 검색을 실행할 수 있어야 한다', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'mobile project only');
+
+    await mockAllAPIs(page);
+    const searchPayloads: Array<Record<string, unknown>> = [];
+
+    await page.unroute('**/api/autocomplete*');
+    await page.route('**/api/autocomplete*', async (route) => {
+      const url = new URL(route.request().url());
+      const query = url.searchParams.get('query') || '';
+      const result = query.includes('잠실')
+        ? { name: '잠실역', address: '서울 송파구 올림픽로 지하 265', lat: 37.5133, lng: 127.0998, category: '지하철역' }
+        : { name: '강남역', address: '서울 강남구 강남대로 지하 396', lat: 37.4979, lng: 127.0276, category: '지하철역' };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [result] }),
+      });
+    });
+
+    await page.unroute('**/api/search');
+    await page.route('**/api/search', async (route) => {
+      searchPayloads.push(route.request().postDataJSON() as Record<string, unknown>);
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { results: MOCK_RESULTS_5, totalCandidates: 10, apiCallsUsed: 2 },
+        }),
+      });
+    });
+
+    await waitAppReady(page);
+    await page.getByTestId('mobile-category-rail').getByRole('button', { name: '편의점' }).click();
+
+    await expect(page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]')).toBeVisible();
+    await expect(page.getByTestId('mobile-route-input-card')).toBeVisible();
+
+    await page.getByTestId('mobile-origin-input').fill('강남');
+    await page.getByRole('option', { name: /강남역/ }).click();
+    await page.getByTestId('mobile-destination-input').fill('잠실');
+    await page.getByRole('option', { name: /잠실역/ }).click();
+
+    await expect(page.getByTestId('mobile-search-route-btn')).toBeEnabled();
+    await page.getByTestId('mobile-search-route-btn').click();
+
+    await expect(page.locator('[role="dialog"][aria-labelledby="search-overlay-title"]')).not.toBeVisible();
+    await expect(page.getByTestId('mobile-result-sheet').getByText('다이소 강남점')).toBeVisible({ timeout: 15000 });
+    expect(searchPayloads).toHaveLength(1);
+    expect(searchPayloads[0]).toMatchObject({
+      start: { address: '강남역', coordinates: { lat: 37.4979, lng: 127.0276 } },
+      end: { address: '잠실역', coordinates: { lat: 37.5133, lng: 127.0998 } },
+      category: '편의점',
+    });
   });
 });
