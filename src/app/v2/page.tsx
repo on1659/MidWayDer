@@ -61,6 +61,7 @@ export default function V2HomePage() {
   const [pendingPlace, setPendingPlace] = useState<AddressSelection | null>(null);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const [previewRoute, setPreviewRoute] = useState<{ distance: number; duration: number } | null>(null);
 
   const pendingDistance = useMemo(() => {
@@ -229,7 +230,11 @@ export default function V2HomePage() {
   );
 
   const handleUseCurrentLocation = useCallback(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setGpsError('이 브라우저는 위치 정보를 지원하지 않아요');
+      return;
+    }
+    setGpsError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const place: AddressSelection = {
@@ -245,8 +250,14 @@ export default function V2HomePage() {
         }
         setSearchTarget(null);
       },
-      () => {
-        // ignore
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setGpsError('위치 권한이 거부됐어요. 주소를 직접 입력해주세요');
+        } else if (err.code === err.TIMEOUT) {
+          setGpsError('위치를 가져오는 데 시간이 너무 오래 걸려요');
+        } else {
+          setGpsError('현재 위치를 가져올 수 없어요');
+        }
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -274,6 +285,9 @@ export default function V2HomePage() {
             selectWaypoint(w);
             if (w.routes.original) setOriginalRoute(w.routes.original);
           }}
+          showEndpointMarkers
+          startCoords={start?.coordinates ?? null}
+          endCoords={end?.coordinates ?? null}
         />
       </div>
 
@@ -307,6 +321,25 @@ export default function V2HomePage() {
           />
         )}
       </div>
+
+      {/* GPS 에러 inline 토스트 */}
+      {gpsError && (
+        <div
+          className="absolute z-40 rounded-xl px-4 py-2.5 text-xs font-medium"
+          style={{
+            top: 'calc(env(safe-area-inset-top) + 80px)',
+            left: '12px',
+            right: '12px',
+            background: 'var(--color-error-current)',
+            color: '#fff',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
+          }}
+          role="alert"
+          onClick={() => setGpsError(null)}
+        >
+          {gpsError}
+        </div>
+      )}
 
       {/* 우상단 설정 (목업: 화면 1 홈에만 보임) */}
       {phase === 'home' && (

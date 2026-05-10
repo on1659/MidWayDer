@@ -3,6 +3,25 @@
 import { MapPin, Navigation, Flag, X } from 'lucide-react';
 import type { AddressSelection } from '@/components/search/AddressInput';
 
+/** 카테고리 → 이모지 매핑 (목업 화면 3 정합성) */
+function getCategoryEmoji(category?: string): string | null {
+  if (!category) return null;
+  const c = category;
+  if (c.includes('지하철')) return '🚇';
+  if (c.includes('역')) return '🚉';
+  if (c.includes('카페') || c.includes('스타벅스')) return '☕';
+  if (c.includes('편의점')) return '🏪';
+  if (c.includes('다이소')) return '🏬';
+  if (c.includes('올리브영') || c.includes('화장품')) return '💄';
+  if (c.includes('맥도날드') || c.includes('버거')) return '🍔';
+  if (c.includes('주유소')) return '⛽';
+  if (c.includes('약국')) return '💊';
+  if (c.includes('병원')) return '🏥';
+  if (c.includes('은행')) return '🏦';
+  if (c.includes('마트')) return '🛒';
+  return null;
+}
+
 interface PlaceDetailSheetProps {
   place: AddressSelection | null;
   onClose: () => void;
@@ -74,13 +93,13 @@ export default function PlaceDetailSheet({
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-1 items-start gap-3">
               <div
-                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
+                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-2xl"
                 style={{
                   background: 'rgba(var(--color-accent-rgb), 0.1)',
                   color: 'var(--accent)',
                 }}
               >
-                <MapPin className="h-6 w-6" />
+                {getCategoryEmoji(place.category) ?? <MapPin className="h-6 w-6" />}
               </div>
               <div className="min-w-0 flex-1">
                 <div

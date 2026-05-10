@@ -208,30 +208,35 @@ export default function KakaoWaypointMarker({
     const shadowColor = getShadow3();
     waypoints.forEach((waypoint, index) => {
       const isSelected = selectedId === waypoint.place.id;
+      const isBest = index === 0;
+      const size = isBest ? 52 : 36;
+      const bgColor = isSelected ? successColor : isBest ? accentColor : accentColor;
+      const labelContent = isBest ? '🥇' : String(index + 1);
+      const labelSize = isBest ? 22 : 14;
 
-      // 마커 이미지 생성 (번호 표시)
+      // 마커 이미지 생성 (번호 표시, 베스트픽은 크고 강조)
       const markerImageContent = `
         <div style="
-          width: 40px;
-          height: 40px;
-          background-color: ${isSelected ? successColor : accentColor};
-          border: 3px solid ${surfaceColor};
+          width: ${size}px;
+          height: ${size}px;
+          background-color: ${bgColor};
+          border: ${isBest ? '4' : '3'}px solid ${surfaceColor};
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           color: ${textOnAccent};
           font-weight: bold;
-          font-size: 15px;
+          font-size: ${labelSize}px;
           box-shadow: ${shadowColor};
           transition: transform 0.15s ease;
-        ">${index + 1}</div>
+        ">${labelContent}</div>
       `;
 
       const markerImage = new window.kakao.maps.MarkerImage(
         'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(markerImageContent))),
-        new window.kakao.maps.Size(40, 40),
-        { offset: new window.kakao.maps.Point(20, 20) }
+        new window.kakao.maps.Size(size, size),
+        { offset: new window.kakao.maps.Point(size / 2, size / 2) }
       );
 
       const marker = new window.kakao.maps.Marker({
@@ -241,7 +246,7 @@ export default function KakaoWaypointMarker({
         ),
         image: markerImage,
         title: waypoint.place.name,
-        zIndex: isSelected ? 1000 : 100,
+        zIndex: isSelected ? 1000 : isBest ? 500 : 100,
       });
 
       markerWaypointMapRef.current.set(marker, waypoint);

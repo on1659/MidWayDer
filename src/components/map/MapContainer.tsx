@@ -46,6 +46,10 @@ const KakaoWaypointMarker = dynamic(() => import('./KakaoWaypointMarker'), {
   ssr: false,
 });
 
+const KakaoEndpointMarker = dynamic(() => import('./KakaoEndpointMarker'), {
+  ssr: false,
+});
+
 interface MapContainerProps {
   /** 지도 중심 좌표 */
   center?: Coordinates;
@@ -76,6 +80,12 @@ interface MapContainerProps {
   onMapInteraction?: () => void;
   /** 지도 상호작용 종료 */
   onResetInteraction?: () => void;
+  /** v2 라우트용: 출발/도착 핀 표시 (기본 false — 메인 / 영향 0) */
+  showEndpointMarkers?: boolean;
+  /** showEndpointMarkers=true일 때만 사용 — 출발 좌표 */
+  startCoords?: Coordinates | null;
+  /** showEndpointMarkers=true일 때만 사용 — 도착 좌표 */
+  endCoords?: Coordinates | null;
 }
 
 export default function MapContainer({
@@ -92,6 +102,9 @@ export default function MapContainer({
   onMapIdle,
   onMapInteraction,
   onResetInteraction,
+  showEndpointMarkers = false,
+  startCoords = null,
+  endCoords = null,
 }: MapContainerProps) {
   const mapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER === 'naver' ? 'naver' : 'kakao';
 
@@ -271,6 +284,9 @@ export default function MapContainer({
           hoveredId={hoveredWaypointId}
           onMarkerClick={onWaypointSelect}
         />
+      )}
+      {showEndpointMarkers && (
+        <KakaoEndpointMarker map={kakaoMap} start={startCoords} end={endCoords} />
       )}
     </div>
   );

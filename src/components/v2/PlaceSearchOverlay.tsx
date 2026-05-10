@@ -2,6 +2,33 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Search, X, Loader2, MapPin, LocateFixed } from 'lucide-react';
+
+/** 카테고리 → 이모지 매핑 (목업 화면 2 정합성) */
+function getCategoryEmoji(category?: string): string | null {
+  if (!category) return null;
+  const c = category;
+  if (c.includes('지하철')) return '🚇';
+  if (c.includes('기차') || c.includes('역')) return '🚉';
+  if (c.includes('버스')) return '🚌';
+  if (c.includes('공항')) return '✈️';
+  if (c.includes('카페') || c.includes('스타벅스') || c.includes('커피')) return '☕';
+  if (c.includes('편의점') || c.includes('GS') || c.includes('CU') || c.includes('세븐')) return '🏪';
+  if (c.includes('다이소') || c.includes('생활용품')) return '🏬';
+  if (c.includes('올리브영') || c.includes('화장품') || c.includes('드럭')) return '💄';
+  if (c.includes('맥도날드') || c.includes('버거') || c.includes('패스트푸드')) return '🍔';
+  if (c.includes('피자')) return '🍕';
+  if (c.includes('치킨')) return '🍗';
+  if (c.includes('주유소')) return '⛽';
+  if (c.includes('약국')) return '💊';
+  if (c.includes('병원')) return '🏥';
+  if (c.includes('은행')) return '🏦';
+  if (c.includes('마트') || c.includes('이마트') || c.includes('홈플')) return '🛒';
+  if (c.includes('음식점') || c.includes('한식') || c.includes('식당')) return '🍴';
+  if (c.includes('주차')) return '🅿️';
+  if (c.includes('학교') || c.includes('대학')) return '🏫';
+  if (c.includes('빌딩') || c.includes('오피스')) return '🏢';
+  return null;
+}
 import type { AddressSelection } from '@/components/search/AddressInput';
 
 interface AutocompleteResult {
@@ -194,10 +221,10 @@ export default function PlaceSearchOverlay({
             style={{ borderColor: 'var(--border-soft)' }}
           >
             <div
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg"
               style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-secondary)' }}
             >
-              <MapPin className="h-5 w-5" />
+              {getCategoryEmoji(r.category) ?? <MapPin className="h-5 w-5" />}
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
