@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MidWayDer v2 — 6화면 UX 목업</title>
+<style>
+:root {
+  --accent: #3274f9;
+  --accent-rgb: 50, 116, 249;
+  --accent-soft: rgba(50, 116, 249, 0.1);
+  --bg-app: #f4f5f7;
+  --bg-surface: #ffffff;
+  --bg-surface-muted: #f1f3f5;
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-tertiary: #a1a1aa;
+  --border-soft: rgba(0,0,0,0.06);
+  --border-strong: rgba(0,0,0,0.12);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-2: 0 4px 8px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-3: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+  --shadow-4: 0 24px 48px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.06);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "SF Pro Text", system-ui, sans-serif;
+  background: #e9ecef;
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 32px 16px 80px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.page-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.page-header p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.frames-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(390px, 1fr));
+  gap: 32px;
+  max-width: 1380px;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: var(--bg-app);
+  border-radius: 44px;
+  border: 12px solid #18181b;
+  box-shadow: var(--shadow-4);
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+}
+.phone-notch {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 28px;
+  background: #18181b;
+  border-radius: 999px;
+  z-index: 100;
+}
+
+.frame-label {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.frame-label .num {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  line-height: 24px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+/* ===== Status bar ===== */
+.status-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 28px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 50;
+  pointer-events: none;
+}
+.status-bar.over-map { color: white; text-shadow: 0 0 4px rgba(0,0,0,0.3); }
+
+/* ===== Map background ===== */
+.map-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, #e8eef4 0%, #f0e8e0 60%, #d6dde4 100%);
+  overflow: hidden;
+}
+.map-bg::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(34, 197, 94, 0.08) 0, transparent 30%),
+    radial-gradient(circle at 70% 60%, rgba(59, 130, 246, 0.1) 0, transparent 35%);
+}
+.map-roads {
+  position: absolute;
+  inset: 0;
+}
+.map-roads svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Top search bar ===== */
+.top-search {
+  position: absolute;
+  top: 54px;
+  left: 12px;
+  right: 12px;
+  z-index: 30;
+}
+.search-pill {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+.search-pill svg { flex-shrink: 0; color: var(--text-secondary); }
+.search-pill .placeholder { flex: 1; color: var(--text-tertiary); }
+.search-pill .gps-btn {
+  width: 32px; height: 32px;
+  background: var(--accent-soft);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+/* Route summary chip (top, when route is set) */
+.route-summary {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.route-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.route-row .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.route-row .dot.start { background: var(--accent); }
+.route-row .dot.end { background: var(--error); }
+.route-row .label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  width: 28px;
+}
+.route-row .text {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.route-row .clear {
+  width: 24px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+}
+.route-divider {
+  height: 1px;
+  background: var(--border-soft);
+  margin-left: 38px;
+}
+.route-cta {
+  margin-top: 4px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+}
+.route-cta.disabled {
+  background: var(--bg-surface-muted);
+  color: var(--text-tertiary);
+}
+
+/* ===== Map markers ===== */
+.marker {
+  position: absolute;
+  z-index: 10;
+}
+.marker.pin-start, .marker.pin-end {
+  width: 32px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.marker.pin-start::before, .marker.pin-end::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  clip-path: path('M16 0 C7 0 0 7 0 16 C0 26 16 40 16 40 C16 40 32 26 32 16 C32 7 25 0 16 0 Z');
+}
+.marker.pin-end::before { background: var(--error); }
+.marker.pin-start span, .marker.pin-end span {
+  position: relative;
+  z-index: 1;
+  margin-top: -6px;
+}
+
+.marker.poi {
+  width: 44px;
+  height: 44px;
+  background: white;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--shadow-2);
+}
+.marker.poi.best {
+  background: var(--accent);
+  color: white;
+  border-color: white;
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.25), var(--shadow-3);
+}
+.marker.poi .num {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--accent);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* Route line */
+.route-line {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ===== Bottom sheet ===== */
+.bottom-sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.08);
+  z-index: 40;
+}
+.sheet-handle {
+  width: 36px; height: 5px;
+  background: var(--border-strong);
+  border-radius: 999px;
+  margin: 8px auto 4px;
+}
+
+/* Place selected card (small) */
+.place-card {
+  padding: 8px 16px 20px;
+}
+.place-card .header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.place-card .icon {
+  width: 44px; height: 44px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.place-card .info { flex: 1; min-width: 0; }
+.place-card .name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.place-card .addr {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.place-card .badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-muted);
+  color: var(--text-secondary);
+}
+.badge.open { background: rgba(16, 185, 129, 0.12); color: #047857; }
+.badge.distance { background: var(--accent-soft); color: var(--accent); }
+.place-card .actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.btn {
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-secondary {
+  background: var(--bg-surface-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+}
+
+/* ===== Search overlay (full) ===== */
+.search-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-app);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding-top: 50px;
+}
+.search-header {
+  padding: 12px 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border-bottom: 1px solid var(--border-soft);
+}
+.back-btn {
+  width: 40px; height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+.search-input-wrap {
+  flex: 1;
+  background: var(--bg-surface-muted);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+.search-input-wrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  flex: 1;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-primary);
+}
+.search-input-wrap input::placeholder { color: var(--text-tertiary); }
+.cursor::after {
+  content: '|';
+  animation: blink 1s infinite;
+  color: var(--accent);
+  font-weight: 400;
+  margin-left: 1px;
+}
+@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+}
+.search-result-item {
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.search-result-item .icon {
+  width: 40px; height: 40px;
+  background: var(--bg-surface-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.search-result-item .body { flex: 1; min-width: 0; }
+.search-result-item .name {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.search-result-item .name mark {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+.search-result-item .addr {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.section-title {
+  padding: 16px 16px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ===== Result list (waypoint results) ===== */
+.results-sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.08);
+  z-index: 40;
+  max-height: 75%;
+  display: flex;
+  flex-direction: column;
+}
+.results-header {
+  padding: 4px 16px 12px;
+}
+.results-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.results-title h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.results-title h2 .count {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.results-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-muted);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.chip.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.25);
+}
+
+.result-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 16px 24px;
+}
+.result-card {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+}
+.result-card.best {
+  border: 2px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.15);
+}
+.result-card .rank {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg-surface-muted);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.result-card.best .rank {
+  background: linear-gradient(135deg, #fde047, #f59e0b);
+  color: white;
+}
+.result-card .body { flex: 1; min-width: 0; }
+.result-card .name {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.result-card .addr {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.result-card .stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.result-card .stats .stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+.result-card .stats .stat strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.result-card .stats .stat.detour strong { color: var(--warning); }
+.result-card .arrow {
+  color: var(--text-tertiary);
+  align-self: center;
+}
+
+/* ===== Floating action ===== */
+.fab-search-here {
+  position: absolute;
+  top: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  box-shadow: var(--shadow-3);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ===== Annotation ===== */
+.annotation {
+  background: #18181b;
+  color: white;
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  max-width: 390px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+.annotation strong { color: #fde047; }
+.annotation ul { margin: 4px 0 0 16px; padding: 0; }
+.annotation li { margin: 2px 0; }
+
+/* ===== Mini icons (inline svg helper) ===== */
+.ico { width: 18px; height: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>MidWayDer v2 — 6화면 UX 목업</h1>
+  <p>iPhone 14 / 390×844 · 모바일 우선 · design-system.md 토큰 기준</p>
+</div>
+
+<div class="frames-grid">
+
+  <!-- ============================================ -->
+  <!-- 01. 홈 / 지도 기본 상태 -->
+  <!-- ============================================ -->
+  <div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="map-bg">
+          <svg class="map-roads" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M0 320 Q 130 280 260 340 T 390 360" stroke="#fff" stroke-width="14" fill="none" opacity="0.85"/>
+            <path d="M0 320 Q 130 280 260 340 T 390 360" stroke="#d4d4d8" stroke-width="1" fill="none"/>
+            <path d="M80 0 L 90 200 Q 110 380 180 500 T 250 844" stroke="#fff" stroke-width="10" fill="none" opacity="0.85"/>
+            <path d="M280 0 Q 270 200 320 400 T 390 700" stroke="#fff" stroke-width="8" fill="none" opacity="0.7"/>
+            <circle cx="195" cy="430" r="40" fill="rgba(34,197,94,0.15)"/>
+            <circle cx="195" cy="430" r="20" fill="rgba(34,197,94,0.25)"/>
+          </svg>
+        </div>
+        <div class="status-bar over-map">
+          <span>9:41</span>
+          <span>● ●●● 100%</span>
+        </div>
+
+        <div class="top-search">
+          <div class="search-pill">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span class="placeholder">장소 또는 주소 검색</span>
+            <div class="gps-btn">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker poi" style="top:42%; left:46%;">📍</div>
+      </div>
+    </div>
+    <div class="frame-label"><span class="num">1</span>홈 · 지도 기본 상태</div>
+    <div class="annotation">
+      <strong>상태:</strong> 진입 즉시 화면. 출발/도착 입력칸 <strong>없음</strong>.<br>
+      <strong>핵심:</strong> 검색창 1개 + GPS 버튼만. 사용자는 "갈 곳"부터 검색.
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 02. 장소 검색 입력 중 -->
+  <!-- ============================================ -->
+  <div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="status-bar"><span>9:41</span><span>● ●●● 100%</span></div>
+
+        <div class="search-overlay">
+          <div class="search-header">
+            <div class="back-btn">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            </div>
+            <div class="search-input-wrap">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <span style="color:var(--text-primary)">강남역<span class="cursor"></span></span>
+            </div>
+          </div>
+
+          <div class="search-results">
+            <div class="search-result-item">
+              <div class="icon">📍</div>
+              <div class="body">
+                <div class="name"><mark>강남역</mark></div>
+                <div class="addr">서울 강남구 강남대로 396</div>
+              </div>
+              <span class="badge">지하철역</span>
+            </div>
+            <div class="search-result-item">
+              <div class="icon">🏢</div>
+              <div class="body">
+                <div class="name"><mark>강남역</mark> 2호선</div>
+                <div class="addr">서울 강남구 역삼동</div>
+              </div>
+            </div>
+            <div class="search-result-item">
+              <div class="icon">☕</div>
+              <div class="body">
+                <div class="name">스타벅스 <mark>강남역</mark>점</div>
+                <div class="addr">서울 강남구 강남대로 390 1F</div>
+              </div>
+            </div>
+            <div class="search-result-item">
+              <div class="icon">🏪</div>
+              <div class="body">
+                <div class="name">다이소 <mark>강남역</mark>점</div>
+                <div class="addr">서울 강남구 강남대로 386 B1</div>
+              </div>
+            </div>
+            <div class="search-result-item">
+              <div class="icon">🍔</div>
+              <div class="body">
+                <div class="name">맥도날드 <mark>강남역</mark>점</div>
+                <div class="addr">서울 강남구 강남대로 358</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-label"><span class="num">2</span>장소 검색 중</div>
+    <div class="annotation">
+      <strong>입력:</strong> 입력 즉시 자동완성. 매치 텍스트 accent 색 강조.<br>
+      <strong>탭 동작:</strong> 결과 1개 누르면 → <strong>화면 3</strong>(지도 위 핀 + 하단 카드).<br>
+      <strong>없음:</strong> "이 장소가 출발/도착 중 뭐?" 묻지 않음.
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 03. 장소 선택 후 하단 카드 -->
+  <!-- ============================================ -->
+  <div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="map-bg">
+          <svg class="map-roads" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M0 380 Q 130 340 260 400 T 390 420" stroke="#fff" stroke-width="14" fill="none" opacity="0.85"/>
+            <path d="M80 0 L 95 250 Q 115 400 195 480" stroke="#fff" stroke-width="10" fill="none" opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="status-bar over-map"><span>9:41</span><span>● ●●● 100%</span></div>
+
+        <div class="top-search">
+          <div class="search-pill">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span class="placeholder">장소 또는 주소 검색</span>
+            <div class="gps-btn">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected pin -->
+        <div class="marker poi best" style="top:46%; left:42%;">📍</div>
+
+        <div class="bottom-sheet">
+          <div class="sheet-handle"></div>
+          <div class="place-card">
+            <div class="header">
+              <div class="icon">🚇</div>
+              <div class="info">
+                <div class="name">강남역</div>
+                <div class="addr">서울 강남구 강남대로 396</div>
+                <div class="badges">
+                  <span class="badge">지하철역</span>
+                  <span class="badge open">● 운영 중</span>
+                  <span class="badge distance">현 위치 1.2km</span>
+                </div>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-secondary">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--accent)"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+                출발지로 설정
+              </button>
+              <button class="btn btn-primary">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2 L 19 12 L 12 22 L 5 12 Z"/></svg>
+                도착지로 설정
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-label"><span class="num">3</span>장소 선택 → 하단 카드</div>
+    <div class="annotation">
+      <strong>핵심:</strong> 사용자가 "이걸 출발로 할지 도착으로 할지" 결정.<br>
+      <strong>버튼 2개만:</strong> 출발지로 설정 / 도착지로 설정.<br>
+      <strong>탭 후:</strong> 검색창 비워짐, 카드 닫힘 → <strong>화면 4</strong>로.
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 04. 출발지 선택됨 -->
+  <!-- ============================================ -->
+  <div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="map-bg">
+          <svg class="map-roads" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M0 380 Q 130 340 260 400 T 390 420" stroke="#fff" stroke-width="14" fill="none" opacity="0.85"/>
+            <path d="M80 0 L 95 250 Q 115 400 195 480" stroke="#fff" stroke-width="10" fill="none" opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="status-bar over-map"><span>9:41</span><span>● ●●● 100%</span></div>
+
+        <div class="top-search">
+          <div class="route-summary">
+            <div class="route-row">
+              <span class="dot start"></span>
+              <span class="label">출발</span>
+              <span class="text">강남역</span>
+              <div class="clear">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </div>
+            </div>
+            <div class="route-divider"></div>
+            <div class="route-row">
+              <span class="dot end" style="opacity:0.3"></span>
+              <span class="label">도착</span>
+              <span class="text" style="color:var(--text-tertiary); font-weight:400">도착지를 검색하세요</span>
+            </div>
+            <button class="route-cta disabled">
+              경유지 찾기
+            </button>
+          </div>
+        </div>
+
+        <!-- Start pin -->
+        <div class="marker pin-start" style="top:50%; left:38%;"><span>출발</span></div>
+
+        <!-- Search prompt at bottom -->
+        <div class="bottom-sheet" style="padding-bottom: 24px;">
+          <div class="sheet-handle"></div>
+          <div style="padding: 16px 20px;">
+            <div style="font-size:14px; color:var(--text-secondary); margin-bottom:12px;">
+              <strong style="color:var(--text-primary)">출발지가 설정됐어요.</strong><br>
+              이제 도착지를 검색해주세요.
+            </div>
+            <button class="btn btn-secondary" style="width:100%; justify-content:flex-start; padding:14px 16px;">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <span style="color:var(--text-tertiary); font-weight:400">도착지 검색</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-label"><span class="num">4</span>출발지 선택됨</div>
+    <div class="annotation">
+      <strong>상단:</strong> 출발지 카드 표시(✕로 해제 가능). 도착 슬롯은 비어있음 표시.<br>
+      <strong>CTA:</strong> "경유지 찾기" 버튼은 <strong>비활성</strong> (도착지 미설정).<br>
+      <strong>가이드:</strong> 하단에 "이제 도착지 검색" 안내 + 검색 입구.
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 05. 도착지 선택됨 (둘 다 채워짐) -->
+  <!-- ============================================ -->
+  <div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="map-bg">
+          <svg class="map-roads" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M0 380 Q 130 340 260 400 T 390 420" stroke="#fff" stroke-width="14" fill="none" opacity="0.85"/>
+            <path d="M80 0 L 95 250 Q 115 400 195 480" stroke="#fff" stroke-width="10" fill="none" opacity="0.85"/>
+          </svg>
+          <!-- Route polyline -->
+          <svg class="route-line" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M150 530 Q 200 480 240 420 Q 280 360 295 290" stroke="#3274f9" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="0"/>
+            <path d="M150 530 Q 200 480 240 420 Q 280 360 295 290" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="2 6" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="status-bar over-map"><span>9:41</span><span>● ●●● 100%</span></div>
+
+        <div class="top-search">
+          <div class="route-summary">
+            <div class="route-row">
+              <span class="dot start"></span>
+              <span class="label">출발</span>
+              <span class="text">강남역</span>
+              <div class="clear">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </div>
+            </div>
+            <div class="route-divider"></div>
+            <div class="route-row">
+              <span class="dot end"></span>
+              <span class="label">도착</span>
+              <span class="text">홍대입구역</span>
+              <div class="clear">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </div>
+            </div>
+            <button class="route-cta">
+              경유지 찾기 →
+            </button>
+          </div>
+        </div>
+
+        <!-- Pins -->
+        <div class="marker pin-start" style="top:62%; left:36%;"><span>출발</span></div>
+        <div class="marker pin-end" style="top:32%; left:74%;"><span>도착</span></div>
+
+        <!-- Route info bottom sheet -->
+        <div class="bottom-sheet" style="padding-bottom: 24px;">
+          <div class="sheet-handle"></div>
+          <div style="padding: 8px 20px 8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+              <div>
+                <div style="font-size:13px; color:var(--text-secondary)">예상 경로</div>
+                <div style="display:flex; gap:14px; align-items:baseline; margin-top:2px;">
+                  <div><strong style="font-size:22px; letter-spacing:-0.5px">28분</strong></div>
+                  <div style="color:var(--text-secondary); font-size:14px">12.4km</div>
+                </div>
+              </div>
+              <div style="font-size:11px; color:var(--text-tertiary); text-align:right;">평소보다<br><strong style="color:var(--success)">3분 빠름</strong></div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary" style="flex:1; padding:12px;">
+                ⇄ 출발↔도착 바꾸기
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-label"><span class="num">5</span>도착지 선택됨 · 경로 그려짐</div>
+    <div class="annotation">
+      <strong>지도:</strong> 출발/도착 핀 + 경로 폴리라인 자동 그림.<br>
+      <strong>CTA 활성:</strong> "경유지 찾기 →" 누르면 <strong>화면 6</strong>으로.<br>
+      <strong>유틸:</strong> 출발/도착 swap 버튼.
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 06. 경유지 결과 리스트 -->
+  <!-- ============================================ -->
+  <div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="map-bg">
+          <svg class="map-roads" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M0 320 Q 130 280 260 340 T 390 360" stroke="#fff" stroke-width="14" fill="none" opacity="0.85"/>
+            <path d="M80 0 L 95 250 Q 115 380 195 460" stroke="#fff" stroke-width="10" fill="none" opacity="0.85"/>
+          </svg>
+          <svg class="route-line" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path d="M70 220 Q 150 240 220 280 Q 290 310 320 200" stroke="#3274f9" stroke-width="5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="status-bar over-map"><span>9:41</span><span>● ●●● 100%</span></div>
+
+        <!-- Compact route header -->
+        <div style="position:absolute; top:54px; left:12px; right:12px; z-index:30; background:white; border-radius:14px; box-shadow:var(--shadow-3); padding:10px 14px; display:flex; align-items:center; gap:10px;">
+          <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:0;">
+            <span class="dot start" style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>
+            <span style="font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">강남역</span>
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-tertiary);width:14px;height:14px"><path d="m9 18 6-6-6-6"/></svg>
+            <span class="dot end" style="width:8px;height:8px;border-radius:50%;background:var(--error);flex-shrink:0;"></span>
+            <span style="font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">홍대입구역</span>
+          </div>
+          <button style="font-size:12px;color:var(--accent);font-weight:600;border:none;background:transparent;flex-shrink:0;">편집</button>
+        </div>
+
+        <!-- POI markers -->
+        <div class="marker poi best" style="top:30%; left:46%;">☕<span class="num">1</span></div>
+        <div class="marker poi" style="top:36%; left:62%; width:36px; height:36px; font-size:16px;">☕<span class="num" style="width:16px;height:16px;font-size:9px">2</span></div>
+        <div class="marker poi" style="top:25%; left:30%; width:36px; height:36px; font-size:16px;">☕<span class="num" style="width:16px;height:16px;font-size:9px">3</span></div>
+
+        <!-- Results bottom sheet -->
+        <div class="results-sheet">
+          <div class="sheet-handle"></div>
+          <div class="results-header">
+            <div class="results-title">
+              <h2>스타벅스 <span class="count">12개</span></h2>
+              <button style="font-size:13px; color:var(--accent); font-weight:600; border:none; background:transparent;">⇅ 추천순</button>
+            </div>
+            <div class="results-subtitle">경로에서 가장 가기 편한 곳부터 정렬</div>
+            <div class="filter-chips" style="margin-top:10px;">
+              <span class="chip active">전체</span>
+              <span class="chip">⏱ 5분 이내</span>
+              <span class="chip">📏 1km 이내</span>
+              <span class="chip">🟢 영업 중</span>
+              <span class="chip">📍 경로 근접</span>
+            </div>
+          </div>
+
+          <div class="result-list">
+            <div class="result-card best">
+              <div class="rank">🥇</div>
+              <div class="body">
+                <div class="name">스타벅스 합정역점</div>
+                <div class="addr">서울 마포구 양화로 45 메세나폴리스</div>
+                <div class="stats">
+                  <div class="stat detour"><strong>+2분</strong> 추가</div>
+                  <div class="stat"><strong>+0.4km</strong></div>
+                  <div class="stat" style="color:var(--success)">● 영업 중</div>
+                </div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+
+            <div class="result-card">
+              <div class="rank">2</div>
+              <div class="body">
+                <div class="name">스타벅스 신촌점</div>
+                <div class="addr">서울 서대문구 연세로 34</div>
+                <div class="stats">
+                  <div class="stat detour"><strong>+4분</strong> 추가</div>
+                  <div class="stat"><strong>+0.8km</strong></div>
+                  <div class="stat" style="color:var(--success)">● 영업 중</div>
+                </div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+
+            <div class="result-card">
+              <div class="rank">3</div>
+              <div class="body">
+                <div class="name">스타벅스 홍대입구역점</div>
+                <div class="addr">서울 마포구 양화로 188</div>
+                <div class="stats">
+                  <div class="stat detour"><strong>+5분</strong> 추가</div>
+                  <div class="stat"><strong>+1.1km</strong></div>
+                  <div class="stat" style="color:var(--warning)">● 22:00 마감</div>
+                </div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-label"><span class="num">6</span>경유지 결과 리스트</div>
+    <div class="annotation">
+      <strong>상단:</strong> 출발→도착 컴팩트 요약(편집 가능).<br>
+      <strong>지도:</strong> 베스트픽 마커 강조(크고 accent), 나머지 작게.<br>
+      <strong>리스트:</strong> 추천순 기본, 카드에 "+X분 / +Ykm / 영업상태" 3개 핵심.<br>
+      <strong>탭:</strong> 카드 누르면 상세(전화/네비/즐겨찾기).
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center; margin-top:48px; font-size:12px; color:#71717a;">
+  파일: <code>docs/design/mockups/v2/index.html</code> · 토큰: design-system.md 기준
+</div>
+
+</body>
+</html>

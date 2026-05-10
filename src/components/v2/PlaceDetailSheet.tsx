@@ -1,0 +1,147 @@
+'use client';
+
+import { MapPin, Navigation, Flag, X } from 'lucide-react';
+import type { AddressSelection } from '@/components/search/AddressInput';
+
+interface PlaceDetailSheetProps {
+  place: AddressSelection | null;
+  onClose: () => void;
+  onSetAsStart: () => void;
+  onSetAsEnd: () => void;
+  startSelected?: boolean;
+  endSelected?: boolean;
+}
+
+export default function PlaceDetailSheet({
+  place,
+  onClose,
+  onSetAsStart,
+  onSetAsEnd,
+  startSelected = false,
+  endSelected = false,
+}: PlaceDetailSheetProps) {
+  if (!place) return null;
+
+  const title = place.name || place.address;
+  const subtitle = place.placeAddress || (place.name ? place.address : '');
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-[80]"
+        style={{ background: 'rgba(0, 0, 0, 0.2)' }}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[90] rounded-t-3xl"
+        style={{
+          background: 'var(--bg-surface)',
+          boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.08)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+          animation: 'sheet-slide-up 280ms cubic-bezier(0.32, 0.72, 0, 1)',
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${title} 정보`}
+      >
+        <style jsx>{`
+          @keyframes sheet-slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+        `}</style>
+
+        <div className="flex justify-center pt-2 pb-1">
+          <div
+            className="h-1.5 w-9 rounded-full"
+            style={{ background: 'var(--border-strong)' }}
+          />
+        </div>
+
+        <div className="px-5 pt-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-1 items-start gap-3">
+              <div
+                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
+                style={{
+                  background: 'rgba(var(--color-accent-rgb), 0.1)',
+                  color: 'var(--accent)',
+                }}
+              >
+                <MapPin className="h-6 w-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div
+                  className="text-lg font-bold leading-tight"
+                  style={{ color: 'var(--text-primary)', letterSpacing: '-0.3px' }}
+                >
+                  {title}
+                </div>
+                {subtitle && (
+                  <div
+                    className="mt-1 text-sm leading-snug"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {subtitle}
+                  </div>
+                )}
+                {place.category && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      style={{
+                        background: 'var(--bg-surface-muted)',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
+                      {place.category}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="닫기"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full"
+              style={{ background: 'var(--bg-surface-muted)', color: 'var(--text-secondary)' }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onSetAsStart}
+              className="flex items-center justify-center gap-1.5 rounded-xl py-3.5 text-sm font-semibold transition"
+              style={{
+                background: startSelected ? 'var(--accent)' : 'var(--bg-surface-muted)',
+                color: startSelected ? 'var(--text-on-accent, #fff)' : 'var(--text-primary)',
+                border: '1px solid var(--border-soft)',
+              }}
+            >
+              <Navigation className="h-4 w-4" style={{ color: startSelected ? '#fff' : 'var(--accent)' }} />
+              {startSelected ? '출발지로 설정됨' : '출발지로 설정'}
+            </button>
+            <button
+              type="button"
+              onClick={onSetAsEnd}
+              className="flex items-center justify-center gap-1.5 rounded-xl py-3.5 text-sm font-semibold transition"
+              style={{
+                background: endSelected ? 'var(--accent)' : 'var(--accent)',
+                color: '#fff',
+                opacity: endSelected ? 0.8 : 1,
+              }}
+            >
+              <Flag className="h-4 w-4" />
+              {endSelected ? '도착지로 설정됨' : '도착지로 설정'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
