@@ -1,4 +1,4 @@
-const CACHE_NAME = 'midwayder-v0.67.2';
+const CACHE_NAME = 'midwayder-v0.68.0';
 const OFFLINE_URL = '/offline.html';
 
 // 캐시할 정적 자산
@@ -6,8 +6,11 @@ const STATIC_ASSETS = [
   '/',
   '/offline.html',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/icons/icon.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/maskable-192.png',
+  '/icons/maskable-512.png',
 ];
 
 // Install 이벤트: 정적 자산 캐싱
@@ -38,13 +41,22 @@ self.addEventListener('activate', (event) => {
 
 // Fetch 이벤트: 네트워크 우선, 실패 시 캐시
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   // API 요청은 캐시하지 않음
   if (event.request.url.includes('/api/')) {
     return;
   }
 
   // 지도 타일 요청은 네트워크만 사용
-  if (event.request.url.includes('navermaps') || event.request.url.includes('pstatic.net')) {
+  if (
+    event.request.url.includes('navermaps') ||
+    event.request.url.includes('pstatic.net') ||
+    event.request.url.includes('kakao.com') ||
+    event.request.url.includes('kakaocdn.net')
+  ) {
     return;
   }
 
@@ -68,7 +80,7 @@ self.addEventListener('fetch', (event) => {
           }
 
           // HTML 요청은 오프라인 페이지로
-          if (event.request.headers.get('accept').includes('text/html')) {
+          if (event.request.mode === 'navigate') {
             return caches.match(OFFLINE_URL);
           }
 

@@ -33,11 +33,18 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }));
 
-const makeRequest = (period?: string) =>
-  new NextRequest(`http://localhost/api/stats${period ? `?period=${period}` : ''}`);
+const adminHeaders = () => ({
+  authorization: `Basic ${btoa('admin:test-admin')}`,
+});
+
+const makeRequest = (period?: string, authenticated = true) =>
+  new NextRequest(`http://localhost/api/stats${period ? `?period=${period}` : ''}`, {
+    headers: authenticated ? adminHeaders() : {},
+  });
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.ADMIN_PASSWORD = 'test-admin';
   // 기본 mock 설정
   mockSearchLogCount.mockResolvedValue(100);
   mockClickLogCount.mockResolvedValue(50);
@@ -51,6 +58,15 @@ beforeEach(() => {
 });
 
 describe('GET /api/stats', () => {
+  it('인증 없음 → 401', async () => {
+    const res = await GET(makeRequest(undefined, false));
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.success).toBe(false);
+    expect(mockSearchLogCount).not.toHaveBeenCalled();
+  });
+
   it('기본 period(today) → 200 + stats 반환', async () => {
     const res = await GET(makeRequest());
     const json = await res.json();

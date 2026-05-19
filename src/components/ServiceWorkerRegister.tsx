@@ -2,6 +2,19 @@
 
 import { useEffect } from 'react';
 
+type SyncManagerLike = {
+  register: (tag: string) => Promise<void>;
+};
+
+type PeriodicSyncManagerLike = {
+  register: (tag: string, options: { minInterval: number }) => Promise<void>;
+};
+
+type ServiceWorkerRegistrationWithSync = ServiceWorkerRegistration & {
+  sync?: SyncManagerLike;
+  periodicSync?: PeriodicSyncManagerLike;
+};
+
 /**
  * Service Worker 등록 컴포넌트 (v0.68.0 개선)
  * - 오프라인 지원 강화
@@ -21,6 +34,7 @@ export function ServiceWorkerRegister() {
         });
 
         console.log('[SW] Service Worker registered:', registration.scope);
+        const extendedRegistration = registration as ServiceWorkerRegistrationWithSync;
 
         // 업데이트 감지
         registration.addEventListener('updatefound', () => {
@@ -37,9 +51,9 @@ export function ServiceWorkerRegister() {
         });
 
         // 백그라운드 동기화 등록 (지원하는 경우)
-        if ('sync' in registration) {
+        if (extendedRegistration.sync) {
           try {
-            await (registration as any).sync.register('sync-favorites');
+            await extendedRegistration.sync.register('sync-search-queue');
             console.log('[SW] Background sync registered');
           } catch (syncError) {
             console.debug('[SW] Background sync not supported:', syncError);
@@ -47,11 +61,11 @@ export function ServiceWorkerRegister() {
         }
 
         // 주기적 동기화 (지원하는 경우)
-        if ('periodicSync' in registration) {
+        if (extendedRegistration.periodicSync) {
           try {
             const status = await navigator.permissions.query({ name: 'periodic-background-sync' as PermissionName });
             if (status.state === 'granted') {
-              await (registration as any).periodicSync.register('update-cache', {
+              await extendedRegistration.periodicSync.register('update-cache', {
                 minInterval: 24 * 60 * 60 * 1000, // 24시간
               });
               console.log('[SW] Periodic sync registered');

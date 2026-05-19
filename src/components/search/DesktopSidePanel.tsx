@@ -6,24 +6,20 @@
  */
 
 import { useCallback } from 'react';
-import { Share2, X, Sun, Moon, Star, ArrowUpDown } from 'lucide-react';
+import { Share2, X, Sun, Moon, Star, ArrowUpDown, Search } from 'lucide-react';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { logger } from '@/lib/logger';
 import AddressInput from '@/components/search/AddressInput';
-import CategorySelect from '@/components/search/CategorySelect';
 import ResultList from '@/components/search/ResultList';
-import FavoritesList from '@/components/search/FavoritesList';
 import RouteTypeFilter from '@/components/search/RouteTypeFilter';
 import SortFilter from '@/components/search/SortFilter';
-import MultiStopSelector from '@/components/search/MultiStopSelector';
-import RoutineBanner from '@/components/search/RoutineBanner';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
 import { addRecentSearch, getRecentSearches, removeRecentSearch, clearAllRecentSearches, type RecentSearch } from '@/lib/recent-searches';
 import { recordLocationVisit } from '@/lib/smart-location';
 import { useToast } from '@/hooks/useToast';
 import { useSortFilter } from '@/app/hooks/useSortFilter';
-import type { DetourResult } from '@/types/detour';
+
+const SIMPLE_CATEGORIES = ['카페', '편의점', '다이소', '올리브영', '스타벅스'];
 
 interface DesktopSidePanelProps {
   theme: 'light' | 'dark';
@@ -31,7 +27,6 @@ interface DesktopSidePanelProps {
   recentSearches: RecentSearch[];
   setRecentSearches: React.Dispatch<React.SetStateAction<RecentSearch[]>>;
   onOpenSaveDialog: () => void;
-  onStartCompare: (items: DetourResult[]) => void;
 }
 
 export default function DesktopSidePanel({
@@ -40,7 +35,6 @@ export default function DesktopSidePanel({
   recentSearches,
   setRecentSearches,
   onOpenSaveDialog,
-  onStartCompare,
 }: DesktopSidePanelProps) {
   const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
   const { category, results, isLoading, error, totalCandidates, hasSearched, isCached, setCategory, search, clearResults, cancelSearch } = useSearchStore();
@@ -64,10 +58,6 @@ export default function DesktopSidePanel({
     setStart(end);
     setEnd(tmp);
   }, [start, end, setStart, setEnd]);
-  const handleRoutineApply = useCallback((startAddr: string, startCoords: { lat: number; lng: number }, endAddr: string, endCoords: { lat: number; lng: number }) => {
-    setStart({ address: startAddr, coordinates: startCoords });
-    setEnd({ address: endAddr, coordinates: endCoords });
-  }, [setStart, setEnd]);
   const handleCategoryChange = useCallback((cat: string) => {
     setCategory(cat);
     if (hasSearched && start?.address && end?.address && !isLoading) {
@@ -88,7 +78,11 @@ export default function DesktopSidePanel({
     clearResults();
     selectWaypoint(null);
     setOriginalRoute(null);
-    await search({ address: start.address }, { address: end.address }, category);
+    await search(
+      { address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) },
+      { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) },
+      category
+    );
   }, [start, end, category, clearResults, selectWaypoint, setOriginalRoute, search, setRecentSearches]);
   const handleWaypointSelect = useCallback((waypoint: typeof results[0]) => {
     selectWaypoint(waypoint);
@@ -119,7 +113,7 @@ export default function DesktopSidePanel({
 
   return (
     <aside
-      className="hidden md:flex md:w-[380px] md:shrink-0 flex-col z-10"
+      className="hidden md:flex md:w-[360px] md:shrink-0 flex-col z-10"
       style={{
         background: 'var(--surface-1)',
         borderRight: '1px solid var(--border-soft)'
@@ -139,63 +133,62 @@ export default function DesktopSidePanel({
       </header>
 
       <div className="px-4 py-4 space-y-3" style={{ borderBottom: '1px solid var(--border-soft)' }}>
-        <div
-          className="rounded-[14px] p-3 space-y-2"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-soft)',
-            boxShadow: 'var(--shadow-1)',
-          }}
-        >
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: 'var(--accent)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>출발</span>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--accent)' }} />
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>출발</span>
+            </div>
+            <AddressInput density="compact" label="" value={start?.address || ''} onChange={handleStartChange} onSelect={handleStartSelect} placeholder="출발하는 곳" mapCenter={mapCenter} testId="origin-input" />
           </div>
-          <AddressInput density="compact" label="" value={start?.address || ''} onChange={handleStartChange} onSelect={handleStartSelect} placeholder="출발하는 곳" mapCenter={mapCenter} testId="origin-input" />
-        </div>
-        <div className="flex justify-center -my-1">
-          <button onClick={handleSwap} disabled={!start?.address && !end?.address} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed" style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }} title="출발지↔도착지 바꾸기">
-            <ArrowUpDown className="w-4 h-4 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
-          </button>
-        </div>
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: 'var(--success)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--text-strong)' }}>도착</span>
+          <div className="flex justify-center -my-1">
+            <button onClick={handleSwap} disabled={!start?.address && !end?.address} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-95 active:rotate-180 disabled:opacity-30 disabled:cursor-not-allowed" style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }} title="출발지↔도착지 바꾸기">
+              <ArrowUpDown className="w-4 h-4 transition-transform duration-300" style={{ color: 'var(--text-muted)' }} />
+            </button>
           </div>
-          <AddressInput density="compact" label="" value={end?.address || ''} onChange={handleEndChange} onSelect={handleEndSelect} placeholder="가고 싶은 곳" mapCenter={mapCenter} testId="destination-input" />
-        </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--success)' }} />
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-strong)' }}>도착</span>
+            </div>
+            <AddressInput density="compact" label="" value={end?.address || ''} onChange={handleEndChange} onSelect={handleEndSelect} placeholder="가고 싶은 곳" mapCenter={mapCenter} testId="destination-input" />
+          </div>
         </div>
         <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--text-muted)' }}>어디 들를까?</span>
-          <CategorySelect density="compact" selected={category} onChange={handleCategoryChange} />
-        </div>
-        {/* previewRoute is always null; RoutePreview rendered via useMapState when available */}
-        <button data-testid="search-route-btn" onClick={handleSearch} disabled={isLoading || !canSearch} className="w-full py-3 rounded-xl font-bold text-sm active:scale-[0.97] disabled:opacity-45 transition-all" style={{ background: isLoading || !canSearch ? 'var(--bg-surface-muted)' : 'var(--accent)', color: isLoading || !canSearch ? 'var(--text-muted)' : 'var(--text-on-accent)', boxShadow: isLoading || !canSearch ? 'none' : 'var(--shadow-3)' }}>
-          {isLoading ? '찾는 중...' : '경유지 찾기 🔍'}
-        </button>
-        {!results.length && !isLoading && (
-          <div>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>빠른 선택</p>
-            <div className="flex flex-wrap gap-2">
-              {[{ emoji: '☕', label: '카페' }, { emoji: '🏪', label: '편의점' }, { emoji: '🛒', label: '다이소' }, { emoji: '💄', label: '올리브영' }, { emoji: '⭐', label: '스타벅스' }].map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => setCategory(item.label)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
-                  style={{
-                    background: category === item.label ? 'var(--overlay-selected)' : 'var(--bg-surface-muted)',
-                    color: category === item.label ? 'var(--accent)' : 'var(--text-secondary)',
-                    border: `1px solid ${category === item.label ? 'var(--border-accent)' : 'transparent'}`,
-                  }}
-                >
-                  <span className="text-base">{item.emoji}</span>{item.label}
-                </button>
-              ))}
-            </div>
+          <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>들를 곳</span>
+          <div className="flex flex-wrap gap-2">
+            {SIMPLE_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => handleCategoryChange(cat)}
+                aria-pressed={category === cat}
+                className="min-h-9 rounded-full px-3 text-sm font-semibold transition-all active:scale-95"
+                style={{
+                  background: category === cat ? 'var(--accent)' : 'var(--bg-surface-muted)',
+                  color: category === cat ? 'var(--text-on-accent)' : 'var(--text-secondary)',
+                  border: `1px solid ${category === cat ? 'var(--accent)' : 'var(--border-soft)'}`,
+                }}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+        <button
+          data-testid="search-route-btn"
+          onClick={handleSearch}
+          disabled={isLoading || !canSearch}
+          className="w-full py-3 rounded-xl font-bold text-sm active:scale-[0.97] disabled:cursor-not-allowed transition-all"
+          style={{
+            background: isLoading || !canSearch ? 'var(--bg-surface-muted)' : 'var(--accent)',
+            color: isLoading || !canSearch ? 'var(--text-secondary)' : 'var(--text-on-accent)',
+            border: `1px solid ${isLoading || !canSearch ? 'var(--border-soft)' : 'var(--accent)'}`,
+            boxShadow: isLoading || !canSearch ? 'none' : 'var(--shadow-3)',
+          }}
+        >
+          {isLoading ? '찾는 중...' : '경유지 찾기'}
+        </button>
         {results.length > 0 && (
           <>
             {originalRoute && (
@@ -209,20 +202,17 @@ export default function DesktopSidePanel({
               <div className="flex items-center gap-2">
                 <button onClick={onOpenSaveDialog} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80" style={{ color: 'var(--accent)', background: 'var(--bg-surface-muted)' }}><Star className="w-3.5 h-3.5" />저장</button>
                 <button onClick={handleShare} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80" style={{ color: 'var(--accent)', background: 'var(--bg-surface-muted)' }}><Share2 className="w-3.5 h-3.5" />공유</button>
-                <button onClick={() => { if (filteredResults.length < 2) { showToast('비교할 경유지가 2개 이상 있어야 해요', 'info'); return; } onStartCompare(filteredResults.slice(0, 3)); }} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80" style={{ color: 'var(--success)', background: 'var(--bg-surface-muted)' }}>⚖️ 비교</button>
-              </div>
-            </div>
+	              </div>
+	            </div>
             <RouteTypeFilter selected={routeTypeFilter} onChange={setRouteTypeFilter} counts={routeTypeCounts} />
             <div className="pt-2"><SortFilter selected={sortBy} onChange={setSortBy} /></div>
           </>
         )}
       </div>
 
-      <div data-testid="route-result-panel" className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide">
+      <div data-testid="route-result-panel" className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
         {results.length === 0 && !isLoading && !error && (
           <>
-            <RoutineBanner onApply={handleRoutineApply} />
-            <FavoritesList onSelect={(fav) => { setStart({ address: fav.startAddress, coordinates: fav.startCoords }); setEnd({ address: fav.endAddress, coordinates: fav.endCoords }); setCategory(fav.category); }} />
             {recentSearches.length > 0 && (
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-2">
@@ -243,20 +233,28 @@ export default function DesktopSidePanel({
                 </div>
               </div>
             )}
+            {recentSearches.length === 0 && (
+              <div className="flex min-h-[220px] flex-col items-center justify-center px-5 py-8 text-center" style={{ color: 'var(--text-muted)' }}>
+                <Search className="mb-4 h-8 w-8" style={{ color: 'var(--accent)' }} />
+                <h2 className="text-base font-semibold" style={{ color: 'var(--text-strong)' }}>경로를 입력하세요</h2>
+                <p className="mt-2 text-sm leading-relaxed">
+                  출발지와 도착지를 고르고, 들를 곳을 하나 선택하면 지도 위에 결과를 보여드릴게요.
+                </p>
+              </div>
+            )}
           </>
         )}
-        {results.length >= 2 && start?.coordinates && end?.coordinates && (
-          <MultiStopSelector start={start.coordinates} end={end.coordinates} waypoints={results.map((r) => ({ id: r.place.id, name: r.place.name, address: r.place.address, coordinates: r.place.coordinates, detourDistance: r.detourCost?.distance ?? 0, detourDuration: r.detourCost?.duration ?? 0 }))} onOptimize={(ids) => { logger.debug('Optimized:', ids); showToast(`${ids.length}개 경유지 최적 경로 완성! 🎉`, 'success'); }} />
-        )}
-        <ResultList
-          results={filteredResults} selectedId={selectedWaypoint?.place.id || null}
-          isLoading={isLoading} error={error} hasSearched={hasSearched}
-          currentCategory={category} onSelect={handleWaypointSelect}
-          onCategoryChange={(cat) => { setCategory(cat); if (start?.address && end?.address) search({ address: start.address }, { address: end.address }, cat); }}
-          onRetry={() => { if (start?.address && end?.address) search({ address: start.address }, { address: end.address }, category); }}
-          onSaveRoute={onOpenSaveDialog} onExpandRadius={async () => { if (start?.address && end?.address) await search({ address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) }, { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) }, category, { bufferDistance: 2000 }); }}
-          onCancel={cancelSearch} sortBy={sortBy} onHoverResult={() => {}}
-        />
+        {(hasSearched || isLoading || error) && (
+          <ResultList
+	            results={filteredResults} selectedId={selectedWaypoint?.place.id || null}
+	            isLoading={isLoading} error={error} hasSearched={hasSearched}
+	            currentCategory={category} onSelect={handleWaypointSelect}
+	            onCategoryChange={(cat) => { setCategory(cat); if (start?.address && end?.address) search({ address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) }, { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) }, cat); }}
+	            onRetry={() => { if (start?.address && end?.address) search({ address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) }, { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) }, category); }}
+	            onSaveRoute={onOpenSaveDialog} onExpandRadius={async () => { if (start?.address && end?.address) await search({ address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) }, { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) }, category, { bufferDistance: 2000 }); }}
+	            onCancel={cancelSearch} sortBy={sortBy} onHoverResult={() => {}}
+	          />
+	        )}
       </div>
     </aside>
   );

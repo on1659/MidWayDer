@@ -116,7 +116,11 @@ export function useSearch({
     setOriginalRoute(null);
     if (savedScrollRef.current !== undefined) savedScrollRef.current = 0;
     try {
-      await search({ address: start.address }, { address: end.address }, category);
+      await search(
+        { address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) },
+        { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) },
+        category
+      );
       setBottomSheetSnap('half');
     } finally {
       endTimer();

@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // ── Admin 인증 ──
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 function checkAdminAuth(req: NextRequest): boolean {
+  if (!ADMIN_PASSWORD) return false;
+
   const authHeader = req.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Basic ')) return false;
 
   try {
     const base64 = authHeader.split(' ')[1];
-    const decoded = Buffer.from(base64, 'base64').toString();
+    const decoded = atob(base64);
     const [, password] = decoded.split(':');
     return password === ADMIN_PASSWORD;
   } catch {
@@ -77,7 +79,7 @@ export function proxy(req: NextRequest) {
   Object.entries(SECURITY_HEADERS).forEach(([k, v]) => res.headers.set(k, v));
 
   // 2) Admin 인증
-  if (req.nextUrl.pathname.startsWith('/admin')) {
+  if (req.nextUrl.pathname.startsWith('/admin') || req.nextUrl.pathname === '/stats') {
     if (!checkAdminAuth(req)) {
       return new NextResponse('Unauthorized', {
         status: 401,

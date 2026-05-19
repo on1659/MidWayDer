@@ -12,13 +12,20 @@
 2. **`correctless`의 구현자-리뷰어-적대적 QA 분리 철학**
 3. **`Pimzino`의 feature/bug 분리 워크플로우**
 4. **`shanraisshan/claude-code-best-practice`의 실전 `.claude`/`.codex` 공존 구조**
-5. **`awesome-claude-code`는 인덱스 용도**
+5. **`openai/symphony`의 issue-board-driven Codex orchestration**
+6. **`NousResearch/hermes-agent`의 long-running runtime / memory / skill learning 아이디어**
+7. **`awesome-claude-code`는 인덱스 용도**
 
 그리고 MidWayDer v2 설계의 조합 재료로는 아래 세 개를 함께 본다.
 
 - `on1659/LAMDiceBot` `feature/harness-system`
 - `obra/superpowers`
 - `garrytan/gstack`
+
+MidWayDer v3 설계의 조합 재료로는 아래 두 개를 추가로 본다.
+
+- `openai/symphony`
+- `NousResearch/hermes-agent`
 
 `autoresearch`, `Piebald`, `ATDD`는 가치가 있지만 **1차 하네스 구축 후** 보는 편이 맞다.
 
@@ -36,6 +43,17 @@ MidWayDer v2에서는 세 레퍼런스를 이렇게 역할 분담해 본다.
 
 이 조합의 자세한 설계는 [midwayder-harness-v2.md](midwayder-harness-v2.md)를 본다.
 
+## MidWayDer v3 조합 관점
+
+MidWayDer v3에서는 기존 v2 하네스 위에 두 레퍼런스를 이렇게 올린다.
+
+| 리소스 | MidWayDer에서 가져올 핵심 |
+|--------|---------------------------|
+| `openai/symphony` | `WORKFLOW.md`, issue board control plane, per-issue workspace, bounded concurrency, human-review handoff |
+| `NousResearch/hermes-agent` | long-running runtime, persistent memory 후보, skill learning, messaging gateway, model/provider abstraction |
+
+이 조합의 자세한 설계는 [midwayder-harness-v3.md](midwayder-harness-v3.md)를 본다.
+
 ---
 
 ## 우선순위 표
@@ -47,12 +65,14 @@ MidWayDer v2에서는 세 레퍼런스를 이렇게 역할 분담해 본다.
 | 3 | `joshft/correctless` | 지금 | `build`에서 Implementer/Reviewer/Adversarial QA 분리 원칙 강화 |
 | 4 | `Pimzino/claude-code-spec-workflow` | 지금 | 신규 기능과 버그 수정 플로우 분기 |
 | 5 | `shanraisshan/claude-code-best-practice` | 지금 | 실제 `.claude`/`.codex` 병행 구조와 orchestration/hook 이벤트 참고 |
-| 6 | `hesreallyhim/awesome-claude-code` | 지금 | 다음에 필요한 commands/hooks/skills를 찾는 카탈로그 |
-| 7 | `gotalab/cc-sdd` | 다음 단계 | 더 엄격한 requirements→design→tasks 확장 |
-| 8 | `uditgoenka/autoresearch` | 다음 단계 | 지표 기반 반복 개선 루프 실험 |
-| 9 | `Piebald-AI/claude-code-system-prompts` | 다음 단계 | 실제 `.claude/agents/*.md` 품질 점검 |
-| 10 | `swingerman/atdd` | 보류 | 장기적으로 acceptance-test-first 문화 검토 |
-| 11 | `yibie/awesome-autoresearch` | 보류 | autoresearch 실험 확장 시 탐색 인덱스 |
+| 6 | `openai/symphony` | 지금 | issue tracker를 Codex control plane으로 쓰는 v3 계약 |
+| 7 | `NousResearch/hermes-agent` | 지금 | 장기 실행 runtime, memory, skill learning 후보 |
+| 8 | `hesreallyhim/awesome-claude-code` | 지금 | 다음에 필요한 commands/hooks/skills를 찾는 카탈로그 |
+| 9 | `gotalab/cc-sdd` | 다음 단계 | 더 엄격한 requirements→design→tasks 확장 |
+| 10 | `uditgoenka/autoresearch` | 다음 단계 | 지표 기반 반복 개선 루프 실험 |
+| 11 | `Piebald-AI/claude-code-system-prompts` | 다음 단계 | 실제 `.claude/agents/*.md` 품질 점검 |
+| 12 | `swingerman/atdd` | 보류 | 장기적으로 acceptance-test-first 문화 검토 |
+| 13 | `yibie/awesome-autoresearch` | 보류 | autoresearch 실험 확장 시 탐색 인덱스 |
 
 ---
 
@@ -214,9 +234,65 @@ MidWayDer는 신규 기능도 있지만, 실제로는 버그 수정과 회귀 �
 
 ---
 
-## 6. `hesreallyhim/awesome-claude-code`
+## 6. `openai/symphony`
 
-### 왜 6순위인가
+### 왜 지금 넣을 가치가 있나
+
+MidWayDer는 이미 repo-local 하네스와 Codex adapter가 있다.
+다음 병목은 세션을 사람이 직접 관리하는 비용이다.
+
+`openai/symphony`는 이슈 보드를 coding agent control plane으로 보고, 각 active issue마다 isolated workspace와 Codex run을 배정하는 방식이라 MidWayDer v3에 직접 맞는다.
+
+### MidWayDer에 어떻게 반영할까
+
+- repo root에 `WORKFLOW.md`를 둔다
+- `.symphony/workspaces/`를 per-issue workspace root로 예약한다
+- issue state와 label을 `meeting`, `build`, `review`, `qa`, `improve-harness` route로 매핑한다
+- 자동 merge 대신 `Human Review` handoff를 기본값으로 둔다
+- 동시 실행은 처음에는 1~2개로 제한한다
+
+### 실제 적용 위치
+
+- `WORKFLOW.md`
+- `.symphony/README.md`
+- `docs/harness/midwayder-harness-v3.md`
+- `.codex/commands/work.md`
+- `.codex/commands/build.md`
+
+---
+
+## 7. `NousResearch/hermes-agent`
+
+### 왜 지금 넣을 가치가 있나
+
+Hermes는 MidWayDer에 곧바로 통째로 들여올 대상이라기보다,
+장기 실행 에이전트가 어떤 runtime 능력을 가져야 하는지 보여주는 참고점이다.
+
+MidWayDer에 특히 유용한 관점은:
+
+- 세션을 넘어 지속되는 memory
+- 반복 경험에서 skill을 만들고 개선하는 루프
+- CLI뿐 아니라 messaging gateway에서 작업을 이어가는 방식
+- model/provider lock-in을 줄이는 runtime abstraction
+
+### MidWayDer에 어떻게 반영할까
+
+- 현재는 Hermes runtime을 설치하지 않는다
+- `docs/harness/improvement-loop.md`의 `Observe → Suggest → Apply` 원칙 안에서만 skill/memory 후보를 다룬다
+- 반복 QA/CI/Detour/Naver Maps 절차를 skill 후보로 기록한다
+- 개인/민감 memory를 repo에 저장하지 않는다
+
+### 실제 적용 위치
+
+- `docs/harness/midwayder-harness-v3.md`
+- `docs/harness/host-portability.md`
+- 향후 `.codex/skills/*` 또는 별도 runtime adapter
+
+---
+
+## 8. `hesreallyhim/awesome-claude-code`
+
+### 왜 8순위인가
 
 이 저장소는 프레임워크가 아니라 **카탈로그**다.
 즉, 오늘 당장 설계를 결정해 주기보다, 다음에 필요한 것을 찾는 인덱스에 가깝다.
@@ -237,7 +313,7 @@ MidWayDer는 신규 기능도 있지만, 실제로는 버그 수정과 회귀 �
 
 ## Tier 2. 다음 단계에서 볼 것
 
-## 7. `gotalab/cc-sdd`
+## 9. `gotalab/cc-sdd`
 
 ### 장점
 
@@ -256,7 +332,7 @@ MidWayDer는 신규 기능도 있지만, 실제로는 버그 수정과 회귀 �
 
 ---
 
-## 8. `uditgoenka/autoresearch`
+## 10. `uditgoenka/autoresearch`
 
 ### 왜 매력적인가
 
@@ -282,7 +358,7 @@ MidWayDer는 장기적으로 아래 같은 반복 최적화 주제가 있다.
 
 ---
 
-## 9. `Piebald-AI/claude-code-system-prompts`
+## 11. `Piebald-AI/claude-code-system-prompts`
 
 ### 왜 유용한가
 
@@ -298,7 +374,7 @@ MidWayDer는 장기적으로 아래 같은 반복 최적화 주제가 있다.
 
 ## Tier 3. 장기 보류
 
-## 10. `swingerman/atdd`
+## 12. `swingerman/atdd`
 
 ### 가치
 
@@ -308,7 +384,7 @@ MidWayDer는 장기적으로 아래 같은 반복 최적화 주제가 있다.
 
 - MidWayDer는 아직 ATDD보다 API validation, E2E, mobile QA 정착이 먼저다
 
-## 11. `yibie/awesome-autoresearch`
+## 13. `yibie/awesome-autoresearch`
 
 ### 가치
 
@@ -328,7 +404,8 @@ MidWayDer는 장기적으로 아래 같은 반복 최적화 주제가 있다.
 | `build-pipeline.md` | `correctless`, Anthropic 멀티에이전트 원칙, `Pimzino` bug flow |
 | `meeting-pipeline.md` | `evaluator_optimizer`, `Pimzino` spec/bug 분리 |
 | `agent-mapping.md` | `correctless`의 역할 분리 철학 |
-| `implementation-roadmap.md` | 위 우선순위 자체를 구현 순서에 반영, `claude-code-best-practice`를 구조 참고로 사용 |
+| `implementation-roadmap.md` | 위 우선순위 자체를 구현 순서에 반영, `claude-code-best-practice`와 `openai/symphony`를 구조 참고로 사용 |
+| `midwayder-harness-v3.md` | `openai/symphony`, `NousResearch/hermes-agent`를 issue-board orchestration과 long-running runtime 후보로 반영 |
 | `claude-planned-dot-claude-changes-2026-04-13.md` | 실제 `.claude` 구현 후 `Piebald`로 점검, 필요 시 `claude-code-best-practice`와 구조 비교 |
 
 ---
@@ -349,11 +426,13 @@ MidWayDer는 장기적으로 아래 같은 반복 최적화 주제가 있다.
 2. `correctless`
 3. `Pimzino`
 4. `claude-code-best-practice`
-5. `awesome-claude-code`
-6. `cc-sdd`
-7. `autoresearch`
-8. `Piebald`
-9. `ATDD`
+5. `openai/symphony`
+6. `NousResearch/hermes-agent`
+7. `awesome-claude-code`
+8. `cc-sdd`
+9. `autoresearch`
+10. `Piebald`
+11. `ATDD`
 
 ---
 
@@ -365,6 +444,9 @@ MidWayDer는 장기적으로 아래 같은 반복 최적화 주제가 있다.
 - `shanraisshan/claude-code-best-practice`: [github.com/shanraisshan/claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice)
 - `orchestration-workflow.md`: [github.com/shanraisshan/claude-code-best-practice/blob/main/orchestration-workflow/orchestration-workflow.md](https://github.com/shanraisshan/claude-code-best-practice/blob/main/orchestration-workflow/orchestration-workflow.md)
 - `Pimzino/claude-code-spec-workflow`: [github.com/Pimzino/claude-code-spec-workflow](https://github.com/Pimzino/claude-code-spec-workflow)
+- `openai/symphony`: [github.com/openai/symphony](https://github.com/openai/symphony)
+- OpenAI Symphony article: [openai.com/index/open-source-codex-orchestration-symphony](https://openai.com/index/open-source-codex-orchestration-symphony/)
+- `NousResearch/hermes-agent`: [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)
 - `gotalab/cc-sdd`: [github.com/gotalab/cc-sdd](https://github.com/gotalab/cc-sdd)
 - `hesreallyhim/awesome-claude-code`: [github.com/hesreallyhim/awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code)
 - `uditgoenka/autoresearch`: [udit.co/projects/autoresearch](https://udit.co/projects/autoresearch)

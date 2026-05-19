@@ -22,7 +22,7 @@ export const useSavedRouteStore = create<SavedRouteState>((set, _get) => ({
       const res = await fetch('/api/routes');
       if (!res.ok) throw new Error('Failed to fetch routes');
       const data = await res.json();
-      set({ routes: data.routes, isLoading: false });
+      set({ routes: Array.isArray(data.routes) ? data.routes : [], isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
     }
@@ -41,6 +41,7 @@ export const useSavedRouteStore = create<SavedRouteState>((set, _get) => ({
         throw new Error(data.error || 'Failed to save route');
       }
       const data = await res.json();
+      if (!data.route) throw new Error('Invalid route response');
       set((state) => ({
         routes: [data.route, ...state.routes],
         isLoading: false,

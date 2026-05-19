@@ -35,6 +35,17 @@ export default function SettingsPage() {
           <NotificationSettings />
           <SyncSettings />
           <CacheSettings />
+          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">앱 정보</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Link href="/privacy" className="rounded-xl px-4 py-3 text-sm font-semibold ring-1 ring-gray-200 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-gray-700">
+                개인정보 처리방침
+              </Link>
+              <Link href="/support" className="rounded-xl px-4 py-3 text-sm font-semibold ring-1 ring-gray-200 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-gray-700">
+                지원 및 문의
+              </Link>
+            </div>
+          </section>
         </div>
       </div>
     </div>

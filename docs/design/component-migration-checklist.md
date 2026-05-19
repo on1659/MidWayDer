@@ -22,12 +22,46 @@
 |---|------|--------|------|---------|
 | 1 | 결과 카드 (result-list) | 13 | ✅ | Phase 2 완료 |
 | 2 | 필터 & 칩 | 3 | ⬜ | PR-A |
-| 3 | 지도 & 오버레이 | 4 | 🔄 부분 | PR-B |
-| 4 | Search/Overlay/Bottom UI | 5 | ⬜ | PR-C |
-| 5 | Side/Desktop 패널 | 2 | ⬜ | PR-D |
+| 3 | 지도 & 오버레이 | 7 | 🔄 부분 | PR-B |
+| 4 | Search/Overlay/Bottom UI | 12 | 🔄 부분 | PR-C |
+| 5 | Side/Desktop 패널 | 3 | 🔄 부분 | PR-D |
 | 6 | 공용 UI 컴포넌트 | 8 | ⬜ | PR-E |
 | 7 | Settings 하위 | 4 | ⬜ | PR-F |
 | 8 | 지역 (Place / Saved Routes) | 3 | ⬜ | PR-G |
+
+---
+
+## 2026-05-05 중단 세션 반영 메모
+
+UI/UX 최적화는 "전체 신규 구현"이 아니라, 2026 디자인 토큰/목업 기준으로 기존 검색·지도·상태 계약을 유지하면서 표현층을 단계적으로 이식하는 작업이다.
+
+최근 실제 코드 상태는 이 체크리스트보다 일부 앞서 있다.
+
+- `fix: align desktop shell with mockup` 커밋으로 `src/app/page.tsx`에 56px desktop rail, `src/components/search/DesktopSidePanel.tsx`에 380px side panel, desktop 우측 `PlaceDetail` pane 조건부 렌더가 들어갔다.
+- `src/components/map/RoutePolyline.tsx`와 `src/components/map/KakaoRoutePolyline.tsx`는 이미 `getAccentColor()` / `getSuccessColor()` 경유로 폴리라인 색을 토큰화했다.
+- 현재 미커밋 UI 변경은 `src/components/map/MapContainer.tsx` 중심이며, 지도 provider/폴리라인/마커 컴포넌트를 `dynamic(..., { ssr: false })`로 lazy split한 상태다.
+- `src/components/ServiceWorkerRegister.tsx`, `eslint.config.mjs`, `.eslintignore` 변경은 UI 자체보다는 빌드/린트 기준선 정리다.
+- 체크리스트의 오래된 ⬜ 표시는 실제 코드 기준으로 반드시 재검증해야 한다.
+
+### 2026-05-05 UI 방향 재조정
+
+사용자 피드백 기준으로, mockup 요소를 많이 얹는 방향은 중단한다. 현재 목표는 **첫 화면을 단순한 2-pane 검색 앱으로 회복**하는 것이다.
+
+- Desktop 기본 화면은 `왼쪽 검색 패널 + 지도`만 유지한다.
+- 56px rail, 지도 provider toggle, 도로 범례, 지도 위 통계 pod, 검색 전 feedback FAB 같은 장식성 chrome은 기본 화면에서 제거한다.
+- `DesktopSidePanel`은 출발지/도착지, 짧은 카테고리 chip, 검색 버튼, 검색 전 빈 상태만 보여준다.
+- PR-B/PR-C/PR-D의 다음 작업은 "토큰화된 장식 추가"가 아니라 "검색 전/검색 중/결과/상세 4상태를 단순하게 정리"하는 기준으로 진행한다.
+
+### 2026-05-05 Frontend Reset 결정
+
+관련 회의록: [`frontend-reset-meeting-2026-05-05.md`](./frontend-reset-meeting-2026-05-05.md)
+
+기존 UI/UX를 따르지 않고 홈 프론트엔드를 새 shell로 교체한다. 기존 `DesktopSidePanel`, desktop rail, BottomQuickBar 중심 구조는 더 이상 목표 구조가 아니다.
+
+- `src/app/page.tsx`가 새 홈 shell의 기준 파일이다.
+- API/store/map/result/detail 계약은 유지한다.
+- 새 기본 UX는 `경로 입력 → 후보 확인 → 장소 선택`으로 제한한다.
+- 이후 작업은 `ResultList`, `SearchOverlay`, `PlaceDetail`을 새 shell에 맞게 재설계하는 순서로 진행한다.
 
 ---
 
@@ -191,11 +225,11 @@
 **파일**
 - `src/components/map/KakaoWaypointMarker.tsx` ✅ (accent 토큰화 완료)
 - `src/components/map/WaypointMarker.tsx` ✅ (accent 토큰화 완료)
-- `src/components/map/KakaoMap.tsx` ⬜
-- `src/components/map/NaverMap.tsx` ⬜
-- `src/components/map/KakaoRoutePolyline.tsx` ⬜
-- `src/components/map/RoutePolyline.tsx` ⬜
-- `src/components/map/MapContainer.tsx` ⬜
+- `src/components/map/KakaoMap.tsx` ✅ (지도 컨트롤 surface/shadow 토큰 적용)
+- `src/components/map/NaverMap.tsx` ✅ (지도 컨트롤 surface/shadow 토큰 적용)
+- `src/components/map/KakaoRoutePolyline.tsx` ✅ (`getAccentColor()` / `getSuccessColor()` / `getWarningColor()` 경유)
+- `src/components/map/RoutePolyline.tsx` ✅ (`getAccentColor()` / `getSuccessColor()` 경유)
+- `src/components/map/MapContainer.tsx` 🔄 (overlay token 일부 + provider chunk lazy split 완료, 시각 QA 남음)
 
 **목표 상태**
 - 폴리라인 색 `var(--accent)` 런타임 해석 (theme-colors.ts 경유)
@@ -203,9 +237,11 @@
 - 지도 컨트롤 버튼: `--surface-2` + `--shadow-1`
 
 ### 작업 항목
-- [ ] `KakaoRoutePolyline.tsx` — polyline stroke 색 `getAccentColor()` 경유
-- [ ] `RoutePolyline.tsx` — 같음 (Naver 변종)
-- [ ] `MapContainer.tsx` — 재검색 버튼 스타일 목업 맞춤
+- [x] `KakaoRoutePolyline.tsx` — polyline stroke 색 `getAccentColor()` 경유
+- [x] `RoutePolyline.tsx` — 같음 (Naver 변종)
+- [x] `MapContainer.tsx` — provider별 지도/경로/마커 dynamic import lazy split
+- [x] `MapContainer.tsx` / `page.tsx` — provider toggle, 도로 legend, 상태 pill, 재검색 pill, 지도 FAB glass/token 스타일 반영
+- [ ] `MapContainer.tsx` — 실제 기기/브라우저 스크린샷 기반 시각 QA
 - [ ] hex 하드코딩 전부 제거 (hex-to-token-map.md 참고)
 - [ ] 다크 모드에서 마커 대비 (A/B markers 이미 tokens.html 에서 해결됨)
 
@@ -213,12 +249,17 @@
 - [ ] PA-Feature-Matrix 영역 H (H1/H2/H3/H4)
 - [ ] 실기기 iOS Safari — 지도 태그 터치 반응 확인
 
+### Verdict — 2026-05-05 Codex
+- `src/components/map/MapContainer.tsx`: provider toggle/도로 legend를 glass overlay로 정리하고, route가 없을 때 도로 legend가 뜨지 않게 조정.
+- `src/app/page.tsx`: desktop 상태 pill, 재검색 pill, 지도 FAB stack, route legend/stat pods의 overlay surface를 통일.
+- Evidence: `npm run type-check`, `npm run lint`, map 관련 Vitest, desktop smoke E2E, `npm run build` 통과.
+
 ---
 
-## 영역 4. Search / Overlay / Bottom UI — PR-C ⬜
+## 영역 4. Search / Overlay / Bottom UI — PR-C 🔄 부분
 
 **파일**
-- `src/components/search/AddressInput.tsx` ✅ 부분 (accent text 완료)
+- `src/components/search/AddressInput.tsx` ✅ 부분 (accent text + 자동완성 리스트 토큰화 완료)
 - `src/components/search/SearchOverlay.tsx` ⬜
 - `src/components/search/BottomQuickBar.tsx` ⬜
 - `src/components/search/RoutineBanner.tsx` ⬜
@@ -232,6 +273,11 @@
 - `src/components/search/SaveRouteDialog.tsx` ⬜
 - `src/components/ui/BottomSheet.tsx` ✅ (motion + a11y 완료)
 
+**현실 상태 메모**
+- `AddressInput.tsx`는 accent text와 자동완성 리스트 색/그림자 토큰화가 완료됐다.
+- `SearchOverlay.tsx`, `BottomQuickBar.tsx`, `RouteTypeFilter.tsx`에는 fallback hex/rgba가 남아 있어 PR-C/PR-A 사이에서 함께 정리해야 한다.
+- `BottomSheet.tsx`는 모션과 접근성 개선이 먼저 완료된 기준 컴포넌트로 활용한다.
+
 **목표 상태** (목업 mobile.html 참고)
 - SearchOverlay: 글래스 스택 (`backdrop-filter: blur(24px) saturate(180%)`), `--surface-3`
 - BottomQuickBar: 하단 고정, `--shadow-3`, FAB accent
@@ -239,7 +285,8 @@
 - Routine Banner: 목업의 Dynamic Island Pill 영감 디자인
 
 ### 작업 항목
-- [ ] `SearchOverlay.tsx` — glass effect + `--surface-3` 적용, 자동완성 리스트 토큰화
+- [x] `AddressInput.tsx` — 자동완성 리스트 토큰화
+- [ ] `SearchOverlay.tsx` — glass effect + `--surface-3` 적용
 - [ ] `BottomQuickBar.tsx` — FAB 그림자 `--shadow-accent-md`, 활성 버튼 그라디언트
 - [ ] `RoutineBanner.tsx` — 목업 Pill 스타일 (backdrop-blur + border-accent)
 - [ ] `ComparePanel.tsx` — 3열 비교 그리드 StatPods 재활용 검토
@@ -256,11 +303,13 @@
 
 ---
 
-## 영역 5. Side / Desktop 패널 — PR-D ⬜
+## 영역 5. Side / Desktop 패널 — PR-D 🔄 부분
 
 **파일**
-- `src/components/search/DesktopSidePanel.tsx`
-- (신규 가능성) RailNavigation — 목업 desktop.html 의 좌측 56px rail
+- `src/app/page.tsx` 🔄 (56px rail inline 구현, 우측 detail pane 조건부 렌더)
+- `src/components/search/DesktopSidePanel.tsx` 🔄 (380px side panel 구현)
+- `src/components/place/PlaceDetail.tsx` 🔄 (`variant="desktop-pane"`로 우측 pane 역할 일부 수행)
+- (후보) RailNavigation — 목업 desktop.html 의 좌측 56px rail을 별도 컴포넌트로 추출 가능
 
 **목표 상태** (목업 desktop.html 참고)
 - 4-pane 레이아웃: `56px 380px 1fr 440px`
@@ -269,10 +318,11 @@
 - Detail pane (우측 440px): 히어로 그라디언트 + StatPods 2×2
 
 ### 작업 항목
-- [ ] 현재 `DesktopSidePanel.tsx` 구조 Scout — 단일 패널인지 분리 가능한지
-- [ ] 목업 4-pane 대비 갭 분석 (before-after-gaps.md 참고)
-- [ ] 좌측 rail 신규 컴포넌트 추가 검토 (홈/검색/즐겨찾기/최근/경로/설정)
-- [ ] Split detail 패널 (카드 클릭 시 우측 상세 노출)
+- [x] 현재 `DesktopSidePanel.tsx` 구조 Scout — 380px 좌측 패널로 분리됨
+- [x] 목업 4-pane 대비 1차 갭 분석 — 56px rail + 380px panel + map + conditional detail 구조까지 반영
+- [x] 좌측 rail 신규 컴포넌트 추가 검토 — 현재는 `page.tsx` inline 구현, 추출은 후속
+- [x] Split detail 패널 — 카드 클릭 시 `PlaceDetail variant="desktop-pane"` 조건부 노출
+- [ ] desktop shell을 명시적 grid(`56px 380px 1fr 440px`)로 고정할지, 현재 flex/conditional pane 구조를 유지할지 결정
 - [ ] 카카오·네이버 지도 스타일 유지하면서 토큰만 적용
 
 ### Verification

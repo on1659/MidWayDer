@@ -8,3 +8,10 @@ Route the request through `.claude/agents/orchestrator.md` semantics:
 - choose `meeting`, `build`, `review`, or `qa`
 - preserve AGENTS.md activation rules
 - close with evidence and residual risk
+
+When invoked by Symphony or another issue-board runner:
+
+- treat issue identifier/title/state/url/labels as first-class task context
+- read `WORKFLOW.md` and `docs/harness/midwayder-harness-v3.md`
+- map labels to the smallest safe route
+- hand off successful implementation to `Human Review` unless the user explicitly asks for a stronger terminal action

@@ -37,19 +37,11 @@ describe('MapContainer', () => {
     expect(screen.getByRole('application')).toBeInTheDocument();
   });
 
-  it('renders provider toggle buttons', () => {
+  it('keeps provider selection out of the default map chrome', () => {
     render(<MapContainer {...defaultProps} />);
 
-    expect(screen.getByText('카카오')).toBeInTheDocument();
-    expect(screen.getByText('네이버')).toBeInTheDocument();
-  });
-
-  it('renders with default kakao provider selected', () => {
-    render(<MapContainer {...defaultProps} />);
-
-    // 카카오 버튼이 활성화 상태
-    const kakaoButton = screen.getByText('카카오');
-    expect(kakaoButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('카카오')).not.toBeInTheDocument();
+    expect(screen.queryByText('네이버')).not.toBeInTheDocument();
   });
 
   it('accepts all props without errors', () => {

@@ -180,12 +180,30 @@ else:
 ' "$evidence" "$progress"
 }
 
+health_hook() {
+  local event="$1"
+  bash "$PROJECT_DIR/.claude/hooks/harness-health-check.sh" "$event"
+}
+
 case "$EVENT" in
   SessionStart)
-    echo '{"systemMessage":"MidWayDer Codex harness active. Use AGENTS.md, docs/harness/*, .claude/rules/* as source of truth."}'
+    health="$(health_hook SessionStart 2>/dev/null || true)"
+    python3 -c '
+import json, sys
+base = "MidWayDer Codex harness active. Use AGENTS.md, docs/harness/*, .claude/rules/* as source of truth."
+extra = ""
+raw = sys.argv[1].strip() if len(sys.argv) > 1 else ""
+if raw:
+    try:
+        extra = json.loads(raw).get("systemMessage", "")
+    except Exception:
+        extra = ""
+message = base if not extra else base + "\n" + extra
+print(json.dumps({"systemMessage": message}, ensure_ascii=False))
+' "$health"
     ;;
   UserPromptSubmit)
-    echo '{"decision":"allow"}'
+    health_hook UserPromptSubmit
     ;;
   PreToolUse)
     pre_tool_use

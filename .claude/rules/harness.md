@@ -2,6 +2,13 @@
 
 모든 코딩 요청에 대해 MidWayDer 하네스 기준을 적용한다.
 
+**관련 문서**
+- [`workflow.md`](./workflow.md) — 파이프라인 상태 전이 / 루프 카운터 / 트랙 간 연결
+- [`qa-gates.md`](./qa-gates.md) — PA + Q축 통합 판정
+- [`design-system.md`](./design-system.md) — 토큰 규약
+- [`../meeting-team-profiles.md`](../meeting-team-profiles.md) — `/meeting` 트랙 팀 프로필 (PD/UI/UX/Backend/Frontend/QA)
+- 원본 참고: `docs/harness/external/lamdicebot/.claude/` — lamdicebot 하네스 원본 (이더 트리아지 + Codex 병렬 정찰 패턴)
+
 ## 1. 모든 요청은 먼저 Orchestrator를 지난다
 
 명시적 command가 없더라도, 일반적인 코딩 요청은 먼저 Orchestrator 관점에서 분류해라.
@@ -32,6 +39,14 @@
 - 오프라인/캐시/PWA
 - locale 구조
 - 모바일 결과 패널 + 지도 상호작용
+
+### 재트리아지 규칙
+
+- **"확인"과 "수정"은 별개 단계다.** 조사 중 수정 필요성이 생기면, 바로 고치지 말고 트리아지부터 다시 수행해라.
+- 사용자가 조사만 요청한 경우("확인해봐", "분석해봐"), 수정이 필요하다는 판단이 나오면 보고 후 사용자 승인을 받아라.
+- SIMPLE로 시작했어도 진행 중 영향 범위가 3파일+ 또는 강제 COMPLEX 영역에 닿으면 즉시 상향 재판정.
+- Scout가 보고한 영향이 최초 트리아지 수준을 넘어서면 SPEC 작성 전에 재판정.
+- 자세한 상태 전이는 [`workflow.md`](./workflow.md) §1 재트리아지 전이표 참조.
 
 ## 3. Scout 없이 큰 수정 금지
 
@@ -89,6 +104,8 @@ Scout가 아래를 보고하면 절대 깨뜨리지 마라.
 ## 10. Hook 강제 경계 (block 규칙)
 
 다음은 PostToolUse hook가 실제로 차단한다. 우회하려면 의도를 명시하고 같은 세션에서 동반 수정해라.
+
+- **트리아지 미선언 (PreToolUse)**: 현재 turn 응답에 `SIMPLE` / `STANDARD` / `COMPLEX` / `트리아지` 중 어느 것도 없으면 Edit/Write 자체가 block. 수정 전 응답 어딘가에 한 줄 선언 필수. 형식 권장: `[트리아지: SIMPLE] 한 줄 사유`. 분류 기준은 §2.
 
 - **detour 회귀**: `src/lib/detour/calculator.ts`에서 `calculateFinalScore` 함수 또는 가중치(`0.7`/`0.3`)가 사라지면 block. `constants.ts`에서 `COST_DISTANCE_WEIGHT / COST_DURATION_WEIGHT / MAX_PROXIMITY_DISTANCE / ROUTE_CUTOFF_RATIO` 누락 시 block.
 - **provider 계약 일탈**: `src/lib/map-provider/{kakao,naver}/**/*.ts` 구현 파일이 `../types`를 import하지 않거나 `IDirectionsProvider / ISearchProvider / IGeocodingProvider` 중 어느 것도 참조하지 않으면 block.

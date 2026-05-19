@@ -16,7 +16,7 @@ export function OfflineBanner() {
       <div
         role="alert"
         aria-live="assertive"
-        className="fixed top-0 left-0 right-0 z-[9999] bg-red-500 text-white py-2.5 px-4 text-center text-sm font-medium shadow-lg animate-slide-down"
+        className="fixed left-0 right-0 z-[9999] bg-red-500 text-white px-4 pb-2.5 pt-2.5 text-center text-sm font-medium shadow-lg animate-slide-down safe-top-full"
       >
         <WifiOff className="inline w-4 h-4 mr-2 -mt-0.5" aria-hidden="true" />
         오프라인 상태입니다. 일부 기능이 제한될 수 있습니다.

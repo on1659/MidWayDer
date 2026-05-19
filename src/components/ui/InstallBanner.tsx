@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Download, X } from 'lucide-react';
+import { Download, Share, X } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -21,11 +21,27 @@ interface BeforeInstallPromptEvent extends Event {
 export function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
 
   useEffect(() => {
     // 이미 설치했거나 거부한 경우 표시하지 않음
     const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed) return;
+    if (dismissed) {
+      const dismissedAt = Number(dismissed);
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+      if (Number.isFinite(dismissedAt) && Date.now() - dismissedAt < thirtyDays) return;
+      localStorage.removeItem('pwa-install-dismissed');
+    }
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    if (isStandalone) return;
+
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+    if (isIos && isSafari) {
+      const timer = setTimeout(() => setShowIosGuide(true), 3000);
+      return () => clearTimeout(timer);
+    }
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -40,14 +56,16 @@ export function InstallBanner() {
     window.addEventListener('beforeinstallprompt', handler);
 
     // 앱이 이미 설치된 경우
-    window.addEventListener('appinstalled', () => {
+    const installedHandler = () => {
       console.log('[PWA] App installed successfully');
       setDeferredPrompt(null);
       setShowBanner(false);
-    });
+    };
+    window.addEventListener('appinstalled', installedHandler);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', installedHandler);
     };
   }, []);
 
@@ -73,18 +91,20 @@ export function InstallBanner() {
 
   const handleDismiss = () => {
     setShowBanner(false);
+    setShowIosGuide(false);
     // 거부 상태 저장 (30일간 표시하지 않음)
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
-  if (!showBanner || !deferredPrompt) return null;
+  if (!showBanner && !showIosGuide) return null;
 
   return (
     <div 
-      className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 rounded-xl shadow-2xl p-4 z-50 animate-slide-up"
+      className="fixed left-4 right-4 md:left-auto md:right-4 md:w-96 rounded-xl shadow-2xl p-4 z-50 animate-slide-up"
       style={{ 
+        bottom: 'calc(5rem + env(safe-area-inset-bottom))',
         background: 'var(--bg-surface)',
-        border: '1px solid var(--border-default)'
+        border: '1px solid var(--border-soft)'
       }}
       role="dialog"
       aria-labelledby="install-title"
@@ -92,7 +112,11 @@ export function InstallBanner() {
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
-          <Download className="w-6 h-6 text-blue-500" aria-hidden="true" />
+          {showIosGuide ? (
+            <Share className="w-6 h-6 text-blue-500" aria-hidden="true" />
+          ) : (
+            <Download className="w-6 h-6 text-blue-500" aria-hidden="true" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <h3 
@@ -100,14 +124,14 @@ export function InstallBanner() {
             className="font-semibold text-base"
             style={{ color: 'var(--text-primary)' }}
           >
-            앱으로 설치하기
+            {showIosGuide ? '홈 화면에 추가하기' : '앱으로 설치하기'}
           </h3>
           <p 
             id="install-desc"
             className="text-sm mt-1"
             style={{ color: 'var(--text-secondary)' }}
           >
-            홈 화면에 추가하여 앱처럼 사용하세요
+            {showIosGuide ? '공유 버튼을 누른 뒤 "홈 화면에 추가"를 선택하세요' : '홈 화면에 추가하여 앱처럼 사용하세요'}
           </p>
         </div>
         <button
@@ -120,15 +144,17 @@ export function InstallBanner() {
         </button>
       </div>
       <div className="flex gap-2 mt-3">
-        <button
-          onClick={handleInstall}
-          className="flex-1 bg-blue-500 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          설치
-        </button>
+        {!showIosGuide && deferredPrompt && (
+          <button
+            onClick={handleInstall}
+            className="flex-1 bg-blue-500 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            설치
+          </button>
+        )}
         <button
           onClick={handleDismiss}
-          className="px-4 py-2.5 rounded-lg font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+          className={`${showIosGuide ? 'flex-1' : 'px-4'} py-2.5 rounded-lg font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2`}
           style={{ 
             color: 'var(--text-secondary)',
             background: 'var(--bg-surface-muted)'

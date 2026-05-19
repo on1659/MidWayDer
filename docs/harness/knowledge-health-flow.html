@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MidWayDer Knowledge & Health Check Flow</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #66758a;
+      --line: #d8e0ea;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --blue: #1f6feb;
+      --green: #167a3a;
+      --teal: #0f766e;
+      --amber: #a15c00;
+      --red: #b42318;
+      --shadow: 0 12px 30px rgba(23, 32, 42, 0.08);
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 30px 0 46px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 24px;
+      align-items: end;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 860px;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.05;
+      font-weight: 790;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 22px;
+      line-height: 1.25;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin-bottom: 7px;
+    }
+
+    .eyebrow {
+      color: var(--teal);
+      font-weight: 780;
+      margin-bottom: 10px;
+    }
+
+    .summary {
+      max-width: 760px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .meta {
+      display: grid;
+      gap: 9px;
+      padding: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .meta strong {
+      color: var(--ink);
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    section,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 13px;
+      font-weight: 780;
+      margin-bottom: 14px;
+    }
+
+    .blue {
+      color: var(--blue);
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .teal {
+      color: var(--teal);
+    }
+
+    .amber {
+      color: var(--amber);
+    }
+
+    .red {
+      color: var(--red);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .flow-step {
+      display: grid;
+      gap: 8px;
+      min-height: 126px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .num {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: #eaf2ff;
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .flow-step strong {
+      font-size: 15px;
+    }
+
+    .flow-step p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .arrow-row {
+      display: none;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .file {
+      display: grid;
+      gap: 4px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .file code {
+      width: fit-content;
+      color: #243447;
+      background: #eef2f7;
+    }
+
+    .file p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+      background: #eef2f7;
+      color: #243447;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+    }
+
+    .check {
+      padding: 12px 13px;
+      border-left: 4px solid var(--line);
+      background: #fbfcfe;
+      border-radius: 6px;
+    }
+
+    .check strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .check p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .line-blue {
+      border-left-color: var(--blue);
+    }
+
+    .line-green {
+      border-left-color: var(--green);
+    }
+
+    .line-teal {
+      border-left-color: var(--teal);
+    }
+
+    .line-amber {
+      border-left-color: var(--amber);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    .table th,
+    .table td {
+      padding: 13px 12px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .callout {
+      background: #f4f9ff;
+      border-color: #b8cbea;
+    }
+
+    .callout h2 {
+      color: #174ea6;
+    }
+
+    .template {
+      white-space: pre-wrap;
+      overflow-x: auto;
+      padding: 14px;
+      border-radius: 8px;
+      background: #111827;
+      color: #f8fafc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 960px) {
+      header,
+      .two,
+      .three,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        width: min(100% - 24px, 1180px);
+        padding-top: 18px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .summary {
+        font-size: 16px;
+      }
+
+      .flow-step {
+        min-height: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">MidWayDer Knowledge Layer</p>
+        <h1>실수와 교훈이 하네스 개선으로 이어지는 방식</h1>
+        <p class="summary">
+          Knowledge base는 진행 기록이 아니라 재발 방지용 기억이다.
+          5프롬프트마다 health-check 훅이 지금 작업에서 남길 교훈이 있는지, 하네스와 Symphony/Hermes-style 흐름이 제대로 쓰이는지 상기시킨다.
+        </p>
+      </div>
+      <aside class="meta" aria-label="운영 상태">
+        <div><strong>저장소</strong> <code>docs/knowledge/</code></div>
+        <div><strong>훅</strong> <code>UserPromptSubmit</code></div>
+        <div><strong>주기</strong> 5 prompts</div>
+        <div><strong>상태 파일</strong> <code>.symphony/logs/</code></div>
+      </aside>
+    </header>
+
+    <section class="grid">
+      <span class="badge blue">Runtime Flow</span>
+      <h2>돌아가는 흐름</h2>
+      <div class="flow" aria-label="knowledge health check flow">
+        <div class="flow-step">
+          <span class="num">1</span>
+          <strong>사용자 프롬프트</strong>
+          <p>Codex 또는 Claude에 새 요청이 들어온다.</p>
+        </div>
+        <div class="flow-step">
+          <span class="num">2</span>
+          <strong>Hook 실행</strong>
+          <p><code>UserPromptSubmit</code>이 <code>harness-health-check.sh</code>를 호출한다.</p>
+        </div>
+        <div class="flow-step">
+          <span class="num">3</span>
+          <strong>카운터 증가</strong>
+          <p><code>.symphony/logs/harness-health-counter</code>에 횟수를 저장한다.</p>
+        </div>
+        <div class="flow-step">
+          <span class="num">4</span>
+          <strong>5회마다 점검</strong>
+          <p>5의 배수면 Harness, Symphony, Memory 질문을 띄운다.</p>
+        </div>
+        <div class="flow-step">
+          <span class="num">5</span>
+          <strong>Knowledge 기록</strong>
+          <p>반복될 만한 실수는 <code>mistakes-and-lessons.md</code>에 남긴다.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid two">
+      <section>
+        <span class="badge green">What Gets Stored</span>
+        <h2>Knowledge에 저장되는 것</h2>
+        <div class="checklist">
+          <div class="check line-green">
+            <strong>반복 실수</strong>
+            <p>API validation 누락, locale 누락, mobile safe-area 누락, detour score 의미 흔들림.</p>
+          </div>
+          <div class="check line-green">
+            <strong>회귀와 감지 방법</strong>
+            <p>어떤 테스트나 리뷰에서 잡혔는지, 다음에는 어떻게 더 빨리 잡을지.</p>
+          </div>
+          <div class="check line-green">
+            <strong>하네스 문제</strong>
+            <p>route 오분류, Scout 생략, QA 증거 부족, hook 오탐/과차단.</p>
+          </div>
+          <div class="check line-green">
+            <strong>Symphony 운영 교훈</strong>
+            <p>이슈가 너무 컸는지, child issue가 필요했는지, Human Review handoff가 충분했는지.</p>
+          </div>
+          <div class="check line-green">
+            <strong>Hermes-style skill 후보</strong>
+            <p>반복되는 QA/CI/Detour/Naver Maps 절차를 나중에 스킬로 승격할 후보.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="badge red">What Does Not Belong</span>
+        <h2>저장하지 않는 것</h2>
+        <div class="checklist">
+          <div class="check line-amber">
+            <strong>사람 탓</strong>
+            <p>누가 실수했는지는 기록하지 않는다. 원인과 방지책만 남긴다.</p>
+          </div>
+          <div class="check line-amber">
+            <strong>비밀값</strong>
+            <p>API key, token, board id, 개인 memory, tracker export는 저장하지 않는다.</p>
+          </div>
+          <div class="check line-amber">
+            <strong>검증 안 된 정책 변경</strong>
+            <p>한 번 겪은 일을 곧바로 block hook이나 강제 규칙으로 승격하지 않는다.</p>
+          </div>
+          <div class="check line-amber">
+            <strong>일일 작업 로그 전체</strong>
+            <p>진행 기록은 <code>docs/progress/</code>, knowledge는 재발 방지 교훈만.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section>
+      <span class="badge teal">Files</span>
+      <h2>파일 역할</h2>
+      <div class="file-list">
+        <div class="file">
+          <code>docs/knowledge/README.md</code>
+          <p>knowledge base의 운영 원칙. 사실/추측 분리, 사람 탓 금지, 재발 가능성 기준.</p>
+        </div>
+        <div class="file">
+          <code>docs/knowledge/mistakes-and-lessons.md</code>
+          <p>실제 실수/교훈 저장소. Context, Impact, Root cause, Prevention, Follow-up 형식으로 기록.</p>
+        </div>
+        <div class="file">
+          <code>docs/knowledge/harness-health-checks.md</code>
+          <p>5프롬프트마다 볼 체크리스트. Harness, Symphony, Hermes-style memory 질문을 정리.</p>
+        </div>
+        <div class="file">
+          <code>.claude/hooks/harness-health-check.sh</code>
+          <p>Claude/Codex 양쪽에서 재사용하는 health-check hook.</p>
+        </div>
+        <div class="file">
+          <code>.symphony/logs/harness-health-counter</code>
+          <p>프롬프트 횟수 카운터. runtime state라 git에 커밋하지 않음.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid three">
+      <section>
+        <span class="badge blue">Harness Check</span>
+        <h2>하네스 질문</h2>
+        <div class="checklist">
+          <div class="check line-blue">
+            <strong>Route</strong>
+            <p>이 요청은 meeting, build, review, qa, improve-harness 중 어디인가?</p>
+          </div>
+          <div class="check line-blue">
+            <strong>Roles</strong>
+            <p>AGENTS.md의 역할과 실제 처리 방식이 맞는가?</p>
+          </div>
+          <div class="check line-blue">
+            <strong>Evidence</strong>
+            <p>필요한 Scout, review, QA 증거를 생략하지 않았는가?</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="badge green">Symphony Check</span>
+        <h2>이슈 운영 질문</h2>
+        <div class="checklist">
+          <div class="check line-green">
+            <strong>Ticket Shape</strong>
+            <p>작업이 하나의 이슈로 설명 가능한가?</p>
+          </div>
+          <div class="check line-green">
+            <strong>Split</strong>
+            <p>너무 넓다면 child issue로 쪼개야 하는가?</p>
+          </div>
+          <div class="check line-green">
+            <strong>Handoff</strong>
+            <p>Done이 아니라 Human Review로 넘길 증거가 있는가?</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="badge teal">Memory Check</span>
+        <h2>기억/스킬 질문</h2>
+        <div class="checklist">
+          <div class="check line-teal">
+            <strong>Lesson</strong>
+            <p>이번 작업에서 반복될 만한 실수나 교훈이 있었는가?</p>
+          </div>
+          <div class="check line-teal">
+            <strong>Skill Candidate</strong>
+            <p>체크리스트나 스킬로 만들 만큼 반복되는가?</p>
+          </div>
+          <div class="check line-teal">
+            <strong>Safety</strong>
+            <p>Observe → Suggest → Apply 승인 흐름을 지켰는가?</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section>
+      <span class="badge amber">Record Format</span>
+      <h2>기록 템플릿</h2>
+      <pre class="template">## YYYY-MM-DD - 짧은 제목
+
+- Context:
+- What happened:
+- Impact:
+- Root cause:
+- Detection:
+- Prevention:
+- Follow-up:
+- Status:</pre>
+    </section>
+
+    <section class="callout">
+      <h2>한 줄로 보면</h2>
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>진행 기록</td>
+            <td><code>docs/progress/</code>에 “무엇을 했는가”를 남김.</td>
+          </tr>
+          <tr>
+            <td>Knowledge</td>
+            <td><code>docs/knowledge/</code>에 “다음에 무엇을 조심해야 하는가”를 남김.</td>
+          </tr>
+          <tr>
+            <td>Health hook</td>
+            <td>5프롬프트마다 이 교훈이 하네스, Symphony, Hermes-style memory로 이어질지 묻는다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

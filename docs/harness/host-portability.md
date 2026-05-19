@@ -21,6 +21,7 @@
 Core workflow = portable
 Current runtime adapter = Claude
 Future adapter = Codex
+Future orchestration adapter = Symphony / Hermes-style runtime
 ```
 
 ---
@@ -250,6 +251,17 @@ MidWayDer는 지금:
 4. hook 로직이 shell/scripts로 분리돼 재사용 가능한가 — `.codex/hooks/codex-hook-dispatch.sh`가 `.claude/hooks/*.sh` 재사용
 5. Claude-specific 표현이 core 문서에 섞여 있지 않은가 — 계속 점검
 
+## Symphony / Hermes adapter 체크리스트
+
+1. `WORKFLOW.md`가 repo-owned issue execution contract로 존재하는가 — 완료
+2. issue metadata를 route selection에 사용할 수 있는가 — 완료
+3. per-issue workspace/log 위치가 git ignore 되는가 — 완료
+4. 성공한 작업의 기본 종착점이 `Human Review`인가 — 완료
+5. Hermes식 persistent memory/skill learning이 하네스 개선 루프를 우회하지 않는가 — 계속 점검
+6. 실제 runner/token/board 설정이 repo에 커밋되지 않는가 — 계속 점검
+7. 반복 실수/교훈을 `docs/knowledge/*`로 남기는가 — 완료
+8. `UserPromptSubmit` 5회마다 health check hook이 작동하는가 — 완료
+
 ---
 
 ## 하지 말아야 할 것
@@ -266,3 +278,7 @@ MidWayDer는 지금:
 MidWayDer 하네스는
 **"Claude에서 시작하지만, Claude에 갇히지 않는다"**
 이 원칙으로 운영하는 것이 맞다.
+
+v3부터는 여기에 한 줄을 더한다.
+
+**"세션을 직접 지휘하기보다, 이슈가 세션을 부르게 한다."**

@@ -2,6 +2,8 @@
 
 > 목적: `LAMDiceBot`의 repo-local 하네스, `Superpowers`의 실행 규율, `gstack`의 planning/review 운영감을 섞어 MidWayDer에 맞는 v2 하네스 구조를 명시한다.
 
+> 후속 확장: issue-board-driven Codex orchestration은 [midwayder-harness-v3.md](midwayder-harness-v3.md)를 따른다.
+
 ---
 
 ## 한 줄 결론
@@ -403,6 +405,14 @@ Codex adapter는 나중에 아래처럼 붙인다.
 
 - planning은 Claude / execution은 Codex 같은 조합 실험
 - review / qa를 host-agnostic 형태로 정착
+
+## Phase E. Issue-board Operations
+
+- `WORKFLOW.md`를 repo-owned Symphony contract로 사용
+- issue label/state를 `meeting`, `build`, `review`, `qa`, `improve-harness` route로 매핑
+- per-issue workspace를 `.symphony/workspaces/` 아래에 격리
+- 성공한 작업은 기본적으로 `Human Review`로 넘긴다
+- Hermes식 long-running runtime, persistent memory, skill learning은 v3에서 별도 실험한다
 
 ---
 

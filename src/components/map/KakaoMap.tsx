@@ -8,7 +8,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
 import type { Coordinates } from '@/types/location';
 
 interface KakaoMapProps {
@@ -101,47 +100,12 @@ export default function KakaoMap({
       level: zoom,
     });
 
-    // 지도 타입 컨트롤 추가
-    const mapTypeControl = new window.kakao.maps.MapTypeControl();
-    mapInstance.addControl(mapTypeControl, window.kakao.maps.ControlPosition.TOPRIGHT);
-
     setMap(mapInstance);
     onMapReady?.(mapInstance);
   }, [isLoaded, center, zoom, map, onMapReady]);
 
   return (
     <div ref={mapRef} className="w-full h-full relative">
-      {/* Custom zoom controls — desktop only; mobile keeps native map pinch/gesture controls unobstructed. */}
-      {map && (
-        <div className="absolute right-3 bottom-24 hidden md:flex flex-col gap-3 z-10">
-          <button
-            onClick={() => map.setLevel(map.getLevel() - 1)}
-            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-transform"
-            style={{
-              background: 'var(--surface-2)',
-              boxShadow: 'var(--shadow-1)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-soft)',
-            }}
-            aria-label="확대"
-          >
-            <Plus className="w-5 h-5" aria-hidden="true" />
-          </button>
-          <button
-            onClick={() => map.setLevel(map.getLevel() + 1)}
-            className="w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-transform"
-            style={{
-              background: 'var(--surface-2)',
-              boxShadow: 'var(--shadow-1)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-soft)',
-            }}
-            aria-label="축소"
-          >
-            <Minus className="w-5 h-5" aria-hidden="true" />
-          </button>
-        </div>
-      )}
       {!isLoaded && (
         <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-surface-muted)' }}>
           {loadError ? (

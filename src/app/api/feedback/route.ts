@@ -9,6 +9,22 @@ const feedbackSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
+function isAdminRequest(request: NextRequest): boolean {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) return false;
+
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader?.startsWith('Basic ')) return false;
+
+  try {
+    const decoded = atob(authHeader.split(' ')[1]);
+    const [, password] = decoded.split(':');
+    return password === adminPassword;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -37,6 +53,13 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  if (!isAdminRequest(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' } }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');

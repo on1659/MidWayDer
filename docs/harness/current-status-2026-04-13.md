@@ -1,4 +1,4 @@
-# MidWayDer 하네스 현행 상태 (2026-04-13, updated 2026-04-14)
+# MidWayDer 하네스 현행 상태 (2026-04-13, updated 2026-05-04)
 
 > 목적: 오늘 기준으로 저장소에 실제 존재하는 것과 존재하지 않는 것을 분리해, `docs/harness/`가 설계 문서인지 운영 문서인지 헷갈리지 않게 한다.
 
@@ -6,8 +6,8 @@
 
 ## 한 줄 판단
 
-MidWayDer는 2026-04-14 기준으로 **코어 `.claude` 하네스 골격이 구현된 상태**다.
-아직 운영 튜닝과 Codex 병행 구조는 남았지만, 최소 진입점과 역할 파일, 규칙, Hook, MCP는 실제 파일로 존재한다.
+MidWayDer는 2026-05-04 기준으로 **코어 `.claude` 하네스, Codex companion adapter, Symphony/Hermes v3 repo contract가 구현된 상태**다.
+아직 실제 Symphony runner와 Hermes runtime은 붙이지 않았지만, 최소 진입점과 역할 파일, 규칙, Hook, MCP, Codex mirror, issue-board workflow contract는 실제 파일로 존재한다.
 
 더 정확히 말하면:
 
@@ -17,6 +17,9 @@ MidWayDer는 2026-04-14 기준으로 **코어 `.claude` 하네스 골격이 구�
 - QA 설정: 있음
 - worktree 흔적: 있음
 - 하네스 전용 명령/에이전트/Hook/MCP: **있음**
+- Codex companion adapter: **있음**
+- Symphony/Hermes v3 repo contract: **있음**
+- Knowledge base: **있음**
 
 즉, 이제 `docs/harness/`는 순수 설계 문서만이 아니라
 **이미 생성된 `.claude` 골격의 운영 설명 문서**이기도 하다.
@@ -237,7 +240,36 @@ MidWayDer는 2026-04-14 기준으로 **코어 `.claude` 하네스 골격이 구�
 - Codex 어댑터는 `.claude/hooks/*.sh`를 재사용하므로 guard 로직을 중복 정의하지 않는다.
 - 현재 구조는 Claude-first에서 Claude + Codex companion 구조로 확장됐다.
 
-### 3. 고급 Guard
+### 3. Symphony/Hermes v3 repo contract
+
+2026-05-04 기준 추가됨:
+
+- `WORKFLOW.md`
+- `.symphony/README.md`
+- `docs/harness/midwayder-harness-v3.md`
+- `docs/knowledge/README.md`
+- `docs/knowledge/mistakes-and-lessons.md`
+- `docs/knowledge/harness-health-checks.md`
+- `.claude/hooks/harness-health-check.sh`
+
+의미:
+
+- `WORKFLOW.md`는 issue metadata를 Codex prompt로 바꾸는 repo-owned Symphony contract다.
+- `.symphony/workspaces/`와 `.symphony/logs/`는 git ignore 대상이다.
+- 현재 자동화의 기본 종착점은 `Done`이 아니라 `Human Review`다.
+- Hermes는 즉시 도입된 runtime이 아니라, long-running agent, memory, skill learning, messaging gateway를 위한 참고 레이어다.
+- 반복 실수와 교훈은 `docs/knowledge/mistakes-and-lessons.md`에 남긴다.
+- `UserPromptSubmit` 5회마다 health check hook이 Harness/Symphony/Hermes-style memory 사용 상태를 상기시킨다.
+
+아직 하지 않은 것:
+
+- 실제 Symphony daemon 실행
+- Linear/GitHub token 또는 board id 설정
+- issue 상태 자동 전환
+- 자동 merge
+- Hermes runtime 설치/이관
+
+### 4. 고급 Guard
 
 아직 없음:
 

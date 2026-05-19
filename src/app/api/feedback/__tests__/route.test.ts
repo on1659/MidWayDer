@@ -23,7 +23,12 @@ vi.mock('@/lib/db/prisma', () => ({
 describe('Feedback API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.ADMIN_PASSWORD = 'test-admin';
   });
+
+  const adminHeaders = {
+    authorization: `Basic ${btoa('admin:test-admin')}`,
+  };
 
   describe('POST /api/feedback', () => {
     it('should create new feedback', async () => {
@@ -112,7 +117,7 @@ describe('Feedback API', () => {
 
       const { GET } = await import('../route');
 
-      const res = await GET(new NextRequest('http://localhost/api/feedback'));
+      const res = await GET(new NextRequest('http://localhost/api/feedback', { headers: adminHeaders }));
       const json = await res.json();
 
       expect(res.status).toBe(200);
@@ -130,7 +135,7 @@ describe('Feedback API', () => {
 
       const { GET } = await import('../route');
 
-      const req = new NextRequest('http://localhost/api/feedback?category=bug');
+      const req = new NextRequest('http://localhost/api/feedback?category=bug', { headers: adminHeaders });
       const res = await GET(req);
       const _json = await res.json();
 
@@ -140,6 +145,17 @@ describe('Feedback API', () => {
           where: { category: 'bug' },
         })
       );
+    });
+
+    it('should reject unauthenticated admin reads', async () => {
+      const { GET } = await import('../route');
+
+      const res = await GET(new NextRequest('http://localhost/api/feedback'));
+      const json = await res.json();
+
+      expect(res.status).toBe(401);
+      expect(json.success).toBe(false);
+      expect(mockPrisma.feedback.findMany).not.toHaveBeenCalled();
     });
   });
 });

@@ -58,10 +58,10 @@ function SharePageContent() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative h-dvh w-full overflow-hidden">
       {/* 헤더 */}
       <div 
-        className="absolute top-0 left-0 right-0 z-10 p-4 shadow-sm"
+        className="safe-top absolute left-0 right-0 top-0 z-10 p-4 shadow-sm"
         style={{ background: 'var(--bg-surface)' }}
       >
         <div className="flex items-center justify-between">
@@ -84,7 +84,7 @@ function SharePageContent() {
       </div>
 
       {/* 지도 */}
-      <div className="absolute inset-0" style={{ paddingTop: '88px' }}>
+      <div className="absolute inset-0" style={{ paddingTop: 'calc(88px + env(safe-area-inset-top))' }}>
         <MapContainer
           originalRoute={originalRoute || null}
           waypoints={results}
@@ -156,7 +156,7 @@ function SharePageContent() {
 export default function SharePage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen" style={{ background: 'var(--bg-app)' }}>
+      <div className="flex h-dvh items-center justify-center" style={{ background: 'var(--bg-app)' }}>
         <div className="w-full max-w-sm mx-4 space-y-4 animate-pulse">
           <div className="h-20 rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />
           <div className="h-64 rounded-2xl" style={{ background: 'var(--bg-surface-muted)' }} />

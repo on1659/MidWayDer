@@ -118,6 +118,7 @@ LAMDiceBot 레퍼런스는 실시간 게임, MidWayDer는 경로 추천 앱이�
 | [meeting-pipeline.md](meeting-pipeline.md) | 기능 착수 전 검토/회의 하네스 파이프라인 | 높음 |
 | [decision-framework.md](decision-framework.md) | 무엇이 MidWayDer에 맞는 올바른 개발방향인지 판정하는 기준 | 최우선 |
 | [midwayder-harness-v2.md](midwayder-harness-v2.md) | LAMDiceBot + Superpowers + gstack를 섞은 MidWayDer v2 하네스 설계안 | 최우선 |
+| [midwayder-harness-v3.md](midwayder-harness-v3.md) | Harness + Hermes + Symphony를 섞어 issue-board-driven Codex 운영으로 확장하는 설계안 | 최우선 |
 | [host-portability.md](host-portability.md) | Claude-first이지만 Claude-only가 아니게 만드는 host 전략 | 높음 |
 | [agent-mapping.md](agent-mapping.md) | `AGENTS.md`의 팀/역할을 하네스 운영 역할에 매핑 | 최우선 |
 | [hooks-spec.md](hooks-spec.md) | MidWayDer 맞춤 Guard 사양 | 최우선 |
@@ -126,6 +127,12 @@ LAMDiceBot 레퍼런스는 실시간 게임, MidWayDer는 경로 추천 앱이�
 | [external-references.md](external-references.md) | 외부 레퍼런스를 우선순위별로 정리하고 어느 문서에 반영할지 매핑 | 최우선 |
 | [improvement-loop.md](improvement-loop.md) | 하네스 자기개선 루프를 Observe / Suggest / Apply로 안전하게 운영하는 방식 | 높음 |
 | [claude-planned-dot-claude-changes-2026-04-13.md](claude-planned-dot-claude-changes-2026-04-13.md) | 실제 `.claude/` 파일 설계안 | 높음 |
+
+관련 기억 저장소:
+
+- `docs/knowledge/README.md`
+- `docs/knowledge/mistakes-and-lessons.md`
+- `docs/knowledge/harness-health-checks.md`
 
 ---
 
@@ -160,22 +167,27 @@ LAMDiceBot 레퍼런스는 실시간 게임, MidWayDer는 경로 추천 앱이�
 [host-portability.md](host-portability.md)는
 현재 하네스가 Claude-first이지만 Claude-only로 굳지 않도록 어떤 부분을 core로 보고 어떤 부분을 adapter로 볼지 정리한다.
 
-### 7. 강제 장치 읽기
+### 7. v3 확장 읽기
+
+[midwayder-harness-v3.md](midwayder-harness-v3.md)는
+기존 하네스를 issue-board-driven Codex orchestration으로 확장할 때 `WORKFLOW.md`, `.symphony/`, Hermes식 runtime 후보를 어떻게 다룰지 정리한다.
+
+### 8. 강제 장치 읽기
 
 [hooks-spec.md](hooks-spec.md)와 [playwright-mcp.md](playwright-mcp.md)를 읽으면
 "어디까지는 자동으로 막고, 어디부터는 증거 기반으로 확인할 것인가"가 보인다.
 
-### 8. 실제 구현 로드맵 읽기
+### 9. 실제 구현 로드맵 읽기
 
 [implementation-roadmap.md](implementation-roadmap.md)를 읽으면
 문서를 실제 `.claude/` 파일로 옮길 때 어떤 순서로, 어떤 묶음으로 구현해야 하는지 바로 보인다.
 
-### 9. 실제 구현 계획 읽기
+### 10. 실제 구현 계획 읽기
 
 마지막으로 [claude-planned-dot-claude-changes-2026-04-13.md](claude-planned-dot-claude-changes-2026-04-13.md)를 읽는다.
 이 문서는 이후 실제 `.claude/`에 손댈 때 바로 체크리스트로 쓸 수 있다.
 
-### 10. 외부 레퍼런스 우선순위 읽기
+### 11. 외부 레퍼런스 우선순위 읽기
 
 [external-references.md](external-references.md)는 외부 리소스를 단순 링크 모음이 아니라
 "지금 반영할 것 / 다음 단계에 볼 것 / 보류할 것"으로 정리한 문서다.
@@ -209,12 +221,21 @@ MidWayDer에서 계약은 보통 아래다.
 - 모바일 핵심 사용자 플로우
 - 검색/지도/결과 패널 상호작용
 
-### 3. Plan Before Patch
+### 3. Issue Before Session
+
+v3에서는 작업 단위를 Codex 세션이 아니라 이슈/티켓으로 본다.
+
+- 사람이 세션을 하나씩 여는 대신 issue board가 작업의 제어면이 된다.
+- `WORKFLOW.md`가 issue metadata를 Codex prompt로 바꾸는 repo-owned contract다.
+- 성공한 구현은 기본적으로 `Done`이 아니라 `Human Review`로 넘긴다.
+- 자세한 기준은 [midwayder-harness-v3.md](midwayder-harness-v3.md)를 따른다.
+
+### 4. Plan Before Patch
 
 파일 수가 늘어나거나 계층을 넘나들기 시작하면, 구현보다 계획이 먼저다.
 기획/아키텍처/UX/QA가 최소한 짧게라도 선행돼야 한다.
 
-### 4. Direction Before Build
+### 5. Direction Before Build
 
 좋은 아이디어처럼 보여도 MidWayDer 핵심 가치와 멀면 우선순위를 낮춘다.
 회의 단계에서는 반드시 [decision-framework.md](decision-framework.md)의 아래 다섯 축으로 판단한다.
@@ -225,7 +246,7 @@ MidWayDer에서 계약은 보통 아래다.
 - Evidence and Measurability
 - Complexity vs Value
 
-### 5. Evidence Before Approval
+### 6. Evidence Before Approval
 
 리뷰어의 "코드상 괜찮아 보임"만으로는 부족하다.
 MidWayDer에서는 아래 증거 중 일부가 함께 있어야 한다.

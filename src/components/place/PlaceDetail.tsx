@@ -375,12 +375,13 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm, variant = 'f
 
           {/* Navigation Apps */}
           <div className="mb-3">
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>네비게이션 앱으로 열기</p>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>내비게이션 앱으로 열기</p>
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => handleNavigate('kakao')}
                 className="py-2.5 px-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5"
                 style={{ background: '#FEE500', color: '#3C1E1E' }}
+                aria-label="카카오내비로 열기"
               >
                 <Navigation className="w-4 h-4" />
                 카카오
@@ -389,6 +390,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm, variant = 'f
                 onClick={() => handleNavigate('naver')}
                 className="py-2.5 px-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5"
                 style={{ background: '#03C75A', color: 'white' }}
+                aria-label="네이버지도로 열기"
               >
                 <Navigation className="w-4 h-4" />
                 네이버
@@ -397,6 +399,7 @@ export default function PlaceDetail({ waypoint, onClose, onConfirm, variant = 'f
                 onClick={() => handleNavigate('tmap')}
                 className="py-2.5 px-3 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5"
                 style={{ background: '#E94235', color: 'white' }}
+                aria-label="티맵으로 열기"
               >
                 <Navigation className="w-4 h-4" />
                 티맵

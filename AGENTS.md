@@ -137,6 +137,42 @@ Claude-first 하네스와 동일한 규칙을 Codex에서도 사용한다.
 
 ---
 
+## Symphony / Hermes 운영
+
+MidWayDer v3는 기존 하네스 위에 issue-board-driven orchestration을 추가한다.
+
+### 기준 문서
+
+| 계층 | 기준 |
+|------|------|
+| v3 설계 | `docs/harness/midwayder-harness-v3.md` |
+| Symphony workflow | `WORKFLOW.md` |
+| Runtime workspace | `.symphony/*` |
+| Knowledge base | `docs/knowledge/*` |
+| Codex route mirror | `.codex/commands/*` |
+| 하네스 개선 루프 | `docs/harness/improvement-loop.md` |
+
+### 역할 분담
+
+| 계층 | 역할 |
+|------|------|
+| Harness | MidWayDer의 route, contract, QA, guard 기준 정의 |
+| Symphony | 이슈/작업 보드를 읽고 Codex 실행과 per-issue workspace를 조율 |
+| Hermes-style runtime | 장기 실행, memory, skill learning, messaging gateway 후보 |
+
+### 운영 원칙
+
+1. 이슈/티켓은 Codex 세션보다 상위 작업 단위다.
+2. `WORKFLOW.md`는 issue metadata를 Codex prompt로 바꾸는 repo-owned contract다.
+3. 자동화된 구현은 기본적으로 `Human Review`에서 멈춘다.
+4. `.symphony/workspaces/`와 `.symphony/logs/`는 커밋하지 않는다.
+5. Hermes식 memory/skill 자동개선은 `Observe → Suggest → Apply` 승인 흐름을 우회하지 않는다.
+6. token, board id, 개인 memory, tracker export는 repo에 저장하지 않는다.
+7. 반복 실수/교훈은 `docs/knowledge/mistakes-and-lessons.md`에 기록하고, 필요할 때만 hook/QA/skill 후보로 승격한다.
+8. `UserPromptSubmit` 5회마다 하네스/Symphony/Hermes-style memory가 잘 작동 중인지 health check hook이 상기시킨다.
+
+---
+
 ## 상태 범례
 
 | 상태 | 의미 |

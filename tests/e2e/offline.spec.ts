@@ -4,55 +4,67 @@ const waitAppReady = async (page: Page) => {
   await page.goto('/');
   const splash = page.getByTestId('splash-screen');
   await expect(splash).toBeVisible();
-  await expect(splash).toBeHidden({ timeout: 30000 }); // 15초 → 30초로 증가
+  await expect(splash).toBeHidden({ timeout: 30000 });
+};
+
+const waitForServiceWorker = async (page: Page) => {
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await expect.poll(async () => {
+    return await page.evaluate(async () => {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      return registrations.length;
+    });
+  }, { timeout: 15000 }).toBeGreaterThan(0);
 };
 
 test.describe('Offline Mode E2E', () => {
   test('오프라인 모드 - 초기 로드 정상', async ({ page }) => {
     await waitAppReady(page);
-    
-    // 기본 UI 요소 확인
+
     await expect(page.getByTestId('splash-screen')).toBeHidden();
+    await expect.poll(async () => {
+      const mobile = await page.getByTestId('open-search-overlay-btn').isVisible().catch(() => false);
+      const desktop = await page.getByTestId('origin-input').isVisible().catch(() => false);
+      return mobile || desktop;
+    }).toBe(true);
   });
 
   test('오프라인 모드 - Service Worker 등록 확인', async ({ page }) => {
-    await page.goto('/');
-    
-    // Service Worker 등록 확인 (비동기)
-    const swRegistered = await page.evaluate(async () => {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      return registrations.length > 0;
-    });
-    
-    // 초기 로드 시에는 아직 등록 안 되었을 수 있음 - 폴백 허용
-    expect(swRegistered !== undefined).toBe(true);
+    await waitAppReady(page);
+    await waitForServiceWorker(page);
   });
 
   test('오프라인 모드 - 네트워크 차단 후 복구', async ({ page }) => {
     await waitAppReady(page);
-    
-    // 오프라인 설정
+    await waitForServiceWorker(page);
+
     await page.context().setOffline(true);
-    
-    // 잠시 대기
     await page.waitForTimeout(500);
-    
-    // 온라인 복구
+    await expect.poll(async () => page.evaluate(() => navigator.onLine)).toBe(false);
+
     await page.context().setOffline(false);
-    
-    // 페이지 새로고침 가능 확인
     await page.reload();
     await expect(page.getByTestId('splash-screen')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('splash-screen')).toBeHidden({ timeout: 30000 });
   });
 
-  test('오프라인 모드 - 캐시된 리소스 로드', async ({ page }) => {
-    // 첫 방문 - 리소스 캐시
+  test('오프라인 모드 - 캐시된 앱 셸 로드', async ({ page }) => {
     await waitAppReady(page);
-    
-    // 페이지 새로고침
+    await waitForServiceWorker(page);
+
     await page.reload();
-    
-    // 스플래시 후 정상 로드
     await expect(page.getByTestId('splash-screen')).toBeHidden({ timeout: 5000 });
+
+    const cachedShell = await page.evaluate(async () => {
+      const keys = await caches.keys();
+      for (const key of keys) {
+        const cache = await caches.open(key);
+        if (await cache.match('/offline.html')) return true;
+      }
+      return false;
+    });
+    expect(cachedShell).toBe(true);
   });
 });

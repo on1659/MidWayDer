@@ -4,6 +4,8 @@ out
 .DS_Store
 .bkit/
 .claude/worktrees/
+.symphony/workspaces/
+.symphony/logs/
 
 # Keep environment variables out of version control
 .env

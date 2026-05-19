@@ -9,11 +9,19 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    "**/.next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
     // Auto-generated folders:
     "coverage/**",
+    "**/coverage/**",
+    "node_modules/**",
+    "**/node_modules/**",
+    // Local orchestration/runtime workspaces:
+    ".claude/**",
+    ".codex/**",
+    ".symphony/**",
   ]),
   {
     rules: {

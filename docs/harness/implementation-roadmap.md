@@ -100,7 +100,8 @@ MidWayDer 하네스는 한 번에 완성하지 않는다.
 | 6 | Warn Guards | provider/detour/i18n/mobile/cache guard 추가 | 1~2 |
 | 7 | `/meeting` Harness | 회의 진입점과 형식 정리 | 1 |
 | 8 | Host Portability | host-agnostic core와 Codex adapter 준비 | 1 |
-| 9 | Future Guards | 필요 시 미래 Guard 검토 | 나중 |
+| 9 | Symphony/Hermes Contract | `WORKFLOW.md`와 issue-board orchestration 문서화 | 1 |
+| 10 | Future Guards | 필요 시 미래 Guard 검토 | 나중 |
 
 ---
 
@@ -520,7 +521,84 @@ Claude-first 하네스가 안정화된 뒤, 필요할 때만 `.codex/` 동반 �
 
 ---
 
-## Phase 8. Future Guards
+## Phase 8. Host Portability
+
+### 목표
+
+Claude-first 하네스를 host-agnostic core와 host-specific adapter로 안정화한다.
+
+2026-04-25 기준 Codex companion adapter는 구현됐다.
+
+### 확인 파일
+
+- `AGENTS.md`
+- `.codex/README.md`
+- `.codex/commands/*`
+- `.codex/hooks.json`
+- `.codex/hooks/codex-hook-dispatch.sh`
+- `docs/harness/host-portability.md`
+
+### 완료 기준
+
+- core workflow 기준은 `docs/harness/*`에 남아 있다.
+- `.claude/*`와 `.codex/*`는 adapter로 설명된다.
+- guard 로직은 중복 구현하지 않고 `.claude/hooks/*.sh`를 재사용한다.
+
+---
+
+## Phase 9. Symphony/Hermes Contract
+
+### 목표
+
+Codex 세션을 사람이 직접 관리하는 방식에서, 이슈/작업 보드가 Codex 실행을 부르는 방식으로 확장할 준비를 한다.
+
+2026-05-04 기준 repo contract는 추가됐다.
+
+### 추가 파일
+
+- `WORKFLOW.md` — 완료
+- `.symphony/README.md` — 완료
+- `docs/harness/midwayder-harness-v3.md` — 완료
+- `docs/knowledge/*` — 완료
+- `.claude/hooks/harness-health-check.sh` — 완료
+
+### 갱신 파일
+
+- `.gitignore` — `.symphony/workspaces/`, `.symphony/logs/` ignore
+- `.codex/commands/work.md` — issue metadata 처리 원칙
+- `.codex/commands/build.md` — Symphony handoff 원칙
+- `.claude/settings.json` — SessionStart/UserPromptSubmit health check 연결
+- `.codex/hooks/codex-hook-dispatch.sh` — Codex UserPromptSubmit health check 연결
+
+### 참고 레퍼런스
+
+- `openai/symphony`
+  - issue tracker를 Codex control plane으로 쓰는 spec
+  - repo-owned `WORKFLOW.md`
+  - per-issue workspace
+  - bounded concurrency
+- `NousResearch/hermes-agent`
+  - long-running agent runtime
+  - persistent memory
+  - skill learning
+  - messaging gateway
+
+### 이 단계에서 하지 말 것
+
+- token이나 board id를 repo에 커밋하기
+- 자동 merge 켜기
+- 사람이 승인하지 않은 하네스 self-modification 허용하기
+- Hermes runtime으로 즉시 전면 이관하기
+
+### 완료 기준
+
+- issue를 수동으로 Codex에 넘겨도 `WORKFLOW.md` 기준 closeout이 나온다.
+- Symphony runner를 붙일 때 추가 설계 없이 repo contract를 읽을 수 있다.
+- 자동화는 `Human Review` handoff에서 멈춘다.
+
+---
+
+## Phase 10. Future Guards
 
 ### 목표
 

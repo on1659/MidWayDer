@@ -4,13 +4,36 @@
  * 간단한 통계 조회 (인증 없음, 나중에 추가 가능)
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
+function isAdminRequest(request: NextRequest): boolean {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) return false;
+
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader?.startsWith('Basic ')) return false;
+
+  try {
+    const decoded = atob(authHeader.split(' ')[1]);
+    const [, password] = decoded.split(':');
+    return password === adminPassword;
+  } catch {
+    return false;
+  }
+}
+
+export async function GET(request: NextRequest) {
+  if (!isAdminRequest(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' } }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'today'; // today, week, month, all

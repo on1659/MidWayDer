@@ -7,7 +7,7 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./src/test/setup.ts'],
     // environmentMatchGlobs 제거 — 파일별 // @vitest-environment jsdom 주석으로 대체
-    exclude: ['**/node_modules/**', '**/tests/e2e/**'],
+    exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/.claude/worktrees/**', '**/.symphony/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
