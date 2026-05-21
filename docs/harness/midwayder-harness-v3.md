@@ -14,6 +14,7 @@ MidWayDer v3는
 - **Harness**: 무엇을 지켜야 하는지 정하는 프로젝트 운영 규칙
 - **Codex adapter**: 그 규칙을 Codex 세션에서 실행하는 호스트 어댑터
 - **Symphony**: 이슈/작업 보드를 읽어 Codex 실행을 자동으로 배정하는 오케스트레이터
+- **Goal Loop**: Ralph Loop 계열의 장기 목표 실행을 `docs/harness/goal-loop.md`의 Goal Contract와 evidence check로 제한하는 실행 wrapper
 - **Hermes**: 장기 실행 에이전트, persistent memory, skill learning, messaging gateway를 참고할 runtime 방향
 - **Knowledge**: 작업 중 반복 실수와 교훈을 `docs/knowledge/*`에 남기고, 검증된 패턴만 hook/QA/skill로 승격하는 기억 계층
 
@@ -32,6 +33,8 @@ Issue / Task Board
 Symphony Orchestrator
   ↓
 Per-Issue Workspace
+  ↓
+Goal Contract / Goal Loop
   ↓
 Codex Session
   ↓
@@ -228,6 +231,28 @@ Symphony가 Codex에 넘기는 prompt는 반드시 아래를 포함한다.
 - PR 또는 human review handoff
 
 이 계약의 repo-local 구현은 `WORKFLOW.md`다.
+
+---
+
+## Goal Loop Policy
+
+MidWayDer는 Ralph Loop 계열의 장기 실행 패턴을 `Goal Loop`라는 이름으로 제한 적용한다.
+
+기준 문서:
+
+- `docs/harness/goal-loop.md`
+- `.claude/commands/goal.md`
+- `.codex/commands/goal.md`
+
+운영 원칙:
+
+1. issue나 사용자 요청을 먼저 Goal Contract로 고정한다.
+2. Goal Loop는 route를 대체하지 않고 `meeting / build / review / qa / improve-harness` 위에 얹힌다.
+3. 한 번의 루프는 하나의 bounded slice만 수행한다.
+4. 각 slice 뒤에는 evidence check를 남긴다.
+5. 같은 실패가 3회 반복되면 멈추고 범위 축소 또는 `meeting` 전환을 제안한다.
+6. destructive action, secret exposure risk, acceptance criteria 불명확성은 즉시 정지 조건이다.
+7. 성공한 구현은 `Human Review` handoff에서 멈춘다.
 
 ---
 

@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
+import { getRecentSearches, removeRecentSearch } from '@/lib/recent-searches';
+import { getPlaceFavorites, removePlaceFavorite } from '@/lib/place-favorites';
 
 // ── Mock 외부 의존성 ─────────────────────────────────────────────
 vi.mock('@/lib/recent-searches', () => ({
@@ -48,6 +50,8 @@ describe('SearchOverlay', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.mocked(getRecentSearches).mockReturnValue([]);
+    vi.mocked(getPlaceFavorites).mockReturnValue([]);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
     const mod = await import('../SearchOverlay');
     SearchOverlay = mod.default;
@@ -72,12 +76,95 @@ describe('SearchOverlay', () => {
     expect(screen.queryByTestId('mobile-origin-input')).toBeNull();
     expect(screen.queryByTestId('mobile-destination-input')).toBeNull();
     expect(screen.getByTestId('mobile-place-search-input')).toBeInTheDocument();
-    expect(screen.getByTestId('mobile-route-summary')).toHaveTextContent('출발 강남역');
-    expect(screen.getByTestId('mobile-route-summary')).toHaveTextContent('도착 서울역');
+    expect(screen.getByTestId('mobile-route-summary')).toHaveAttribute('data-route-ready', 'true');
+    expect(screen.getByTestId('mobile-route-start-row')).toHaveTextContent('강남역');
+    expect(screen.getByTestId('mobile-route-end-row')).toHaveTextContent('서울역');
     expect(screen.getByTestId('mobile-search-sticky-footer')).toBeInTheDocument();
     expect(screen.getByTestId('mobile-search-route-btn')).toBeEnabled();
     expect(screen.queryByTestId('mobile-transport-tabs')).toBeNull();
     expect(screen.getByText('경유지 종류')).toBeInTheDocument();
+  });
+
+  it('모바일 경로 상태는 긴 주소와 액션 버튼을 375px 폭용 고정 구조로 렌더링함', () => {
+    const onGPS = vi.fn();
+    const onSwap = vi.fn();
+
+    render(
+      <SearchOverlay
+        {...defaultProps}
+        startAddress="서울특별시 강남구 테헤란로 아주 긴 출발지 주소 123"
+        endAddress="서울특별시 마포구 양화로 아주 긴 도착지 주소 456"
+        canSearch
+        onGPS={onGPS}
+        onSwap={onSwap}
+      />
+    );
+
+    expect(screen.getByTestId('mobile-route-summary')).toHaveAttribute('data-route-ready', 'true');
+    expect(screen.getByTestId('mobile-route-start-row')).toHaveTextContent('출발');
+    expect(screen.getByTestId('mobile-route-start-row')).toHaveTextContent('서울특별시 강남구 테헤란로 아주 긴 출발지 주소 123');
+    expect(screen.getByTestId('mobile-route-end-row')).toHaveTextContent('도착');
+    expect(screen.getByTestId('mobile-route-end-row')).toHaveTextContent('서울특별시 마포구 양화로 아주 긴 도착지 주소 456');
+    expect(screen.getByRole('button', { name: '현재 위치를 출발지로 설정' })).toHaveClass('h-10', 'w-10');
+    expect(screen.getByRole('button', { name: '출발지와 도착지 바꾸기' })).toHaveClass('h-10', 'w-10');
+  });
+
+  it('최근 검색과 저장 장소 행은 긴 텍스트와 보조 버튼을 375px 폭용 grid로 분리함', () => {
+    const onCategoryChange = vi.fn();
+    const onInstantSearch = vi.fn();
+    vi.mocked(getPlaceFavorites).mockReturnValue([
+      {
+        placeId: 'place-1',
+        placeName: '서울특별시청역 근처 아주 긴 저장 장소 이름 테스트 지점',
+        category: '브런치 카페',
+        address: '서울특별시 중구 세종대로 아주 긴 도로명 주소 110 15층 1501호',
+        lat: 37.5665,
+        lng: 126.978,
+        savedAt: new Date(2026, 4, 21).getTime(),
+      },
+    ]);
+    vi.mocked(getRecentSearches).mockReturnValue([
+      {
+        id: 'recent-1',
+        startAddress: '서울특별시 강남구 테헤란로 아주 긴 출발지 주소 123',
+        endAddress: '서울특별시 마포구 양화로 아주 긴 도착지 주소 456',
+        category: '대형 베이커리 카페',
+        timestamp: new Date(2026, 4, 21).getTime(),
+      },
+    ]);
+
+    render(
+      <SearchOverlay
+        {...defaultProps}
+        onCategoryChange={onCategoryChange}
+        onInstantSearch={onInstantSearch}
+      />
+    );
+
+    expect(screen.getByTestId('mobile-saved-place-row')).toHaveClass(
+      'grid',
+      'grid-cols-[auto_minmax(0,1fr)_auto]'
+    );
+    expect(screen.getByRole('button', { name: /카테고리로 검색/ })).toHaveClass('min-w-0');
+    expect(screen.getByRole('button', { name: /즐겨찾기 삭제/ })).toHaveClass('h-9', 'w-9', 'shrink-0');
+
+    expect(screen.getByTestId('mobile-recent-search-row')).toHaveClass(
+      'grid',
+      'grid-cols-[auto_minmax(0,1fr)_auto]'
+    );
+    expect(screen.getByRole('button', { name: /경로 입력/ })).toHaveClass('min-w-0');
+    expect(screen.getByText('05.21.')).toHaveClass('truncate', 'text-right');
+    expect(screen.getByRole('button', { name: /즉시 검색/ })).toHaveClass('h-9', 'w-9', 'shrink-0');
+    expect(screen.getByRole('button', { name: /검색 기록 삭제/ })).toHaveClass('h-9', 'w-9', 'shrink-0');
+
+    fireEvent.click(screen.getByRole('button', { name: /즉시 검색/ }));
+    expect(onInstantSearch).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: /검색 기록 삭제/ }));
+    expect(removeRecentSearch).toHaveBeenCalledWith('recent-1');
+
+    fireEvent.click(screen.getByRole('button', { name: /즐겨찾기 삭제/ }));
+    expect(removePlaceFavorite).toHaveBeenCalledWith('place-1');
   });
 
   it('장소 선택 시 하단 장소 액션 시트를 표시함', async () => {
@@ -86,8 +173,8 @@ describe('SearchOverlay', () => {
       json: async () => ({
         results: [
           {
-            name: '카페 마일드',
-            address: '서울 중구 세종대로 110',
+            name: '카페 마일드 서울시청점 아주 긴 장소명 테스트',
+            address: '서울 중구 세종대로 110 아주 긴 상세 주소 15층 1501호',
             lat: 37.5665,
             lng: 126.978,
             category: '카페',
@@ -102,9 +189,17 @@ describe('SearchOverlay', () => {
     await waitFor(() => expect(screen.getByRole('option', { name: /카페 마일드/ })).toBeInTheDocument(), { timeout: 1500 });
     fireEvent.click(screen.getByRole('option', { name: /카페 마일드/ }));
 
-    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('카페 마일드');
-    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('서울 중구 세종대로 110');
+    expect(screen.getByTestId('mobile-search-overlay-scroll')).toHaveStyle({
+      paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 17.5rem)',
+    });
+    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveStyle({
+      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5.75rem)',
+    });
+    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('카페 마일드 서울시청점 아주 긴 장소명 테스트');
+    expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('서울 중구 세종대로 110 아주 긴 상세 주소 15층 1501호');
+    expect(screen.getByTestId('mobile-select-start-btn')).toHaveClass('min-w-0', 'whitespace-nowrap');
     expect(screen.getByTestId('mobile-select-start-btn')).toHaveTextContent('출발지로 선택');
+    expect(screen.getByTestId('mobile-select-end-btn')).toHaveClass('min-w-0', 'whitespace-nowrap');
     expect(screen.getByTestId('mobile-select-end-btn')).toHaveTextContent('도착지로 선택');
   });
 
@@ -114,6 +209,19 @@ describe('SearchOverlay', () => {
     const onStartSelect = vi.fn();
     const onEndSelect = vi.fn();
     vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        results: [
+          {
+            name: '카페 마일드',
+            address: '서울 중구 세종대로 110',
+            lat: 37.5665,
+            lng: 126.978,
+            category: '카페',
+          },
+        ],
+      }),
+    } as Response).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         results: [
@@ -151,7 +259,14 @@ describe('SearchOverlay', () => {
       placeAddress: '서울 중구 세종대로 110',
       category: '카페',
     }));
+    expect(screen.queryByTestId('mobile-selected-place-sheet')).toBeNull();
+    expect(screen.getByTestId('mobile-search-overlay-scroll')).toHaveStyle({
+      paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)',
+    });
 
+    fireEvent.change(screen.getByTestId('mobile-place-search-input'), { target: { value: '카페2' } });
+    await waitFor(() => expect(screen.getByRole('option', { name: /카페 마일드/ })).toBeInTheDocument(), { timeout: 1500 });
+    fireEvent.click(screen.getByRole('option', { name: /카페 마일드/ }));
     fireEvent.click(screen.getByTestId('mobile-select-end-btn'));
     expect(onEndChange).toHaveBeenCalledWith('카페 마일드');
     expect(onEndSelect).toHaveBeenCalledWith(expect.objectContaining({
@@ -161,6 +276,10 @@ describe('SearchOverlay', () => {
       placeAddress: '서울 중구 세종대로 110',
       category: '카페',
     }));
+    expect(screen.queryByTestId('mobile-selected-place-sheet')).toBeNull();
+    expect(screen.getByTestId('mobile-search-overlay-scroll')).toHaveStyle({
+      paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)',
+    });
   });
 
   it('경유지 찾기 실행을 부모 핸들러로 전달함', () => {

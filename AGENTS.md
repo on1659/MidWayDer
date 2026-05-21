@@ -150,6 +150,7 @@ MidWayDer v3는 기존 하네스 위에 issue-board-driven orchestration을 추�
 | Runtime workspace | `.symphony/*` |
 | Knowledge base | `docs/knowledge/*` |
 | Codex route mirror | `.codex/commands/*` |
+| Goal loop | `docs/harness/goal-loop.md` |
 | 하네스 개선 루프 | `docs/harness/improvement-loop.md` |
 
 ### 역할 분담
@@ -158,6 +159,7 @@ MidWayDer v3는 기존 하네스 위에 issue-board-driven orchestration을 추�
 |------|------|
 | Harness | MidWayDer의 route, contract, QA, guard 기준 정의 |
 | Symphony | 이슈/작업 보드를 읽고 Codex 실행과 per-issue workspace를 조율 |
+| Goal Loop | 이슈/사용자 목표를 Goal Contract로 고정하고 bounded slice + evidence check로 반복 실행 |
 | Hermes-style runtime | 장기 실행, memory, skill learning, messaging gateway 후보 |
 
 ### 운영 원칙
@@ -170,6 +172,7 @@ MidWayDer v3는 기존 하네스 위에 issue-board-driven orchestration을 추�
 6. token, board id, 개인 memory, tracker export는 repo에 저장하지 않는다.
 7. 반복 실수/교훈은 `docs/knowledge/mistakes-and-lessons.md`에 기록하고, 필요할 때만 hook/QA/skill 후보로 승격한다.
 8. `UserPromptSubmit` 5회마다 하네스/Symphony/Hermes-style memory가 잘 작동 중인지 health check hook이 상기시킨다.
+9. Ralph Loop 계열 장기 실행은 `docs/harness/goal-loop.md`의 Goal Contract, stop condition, Human Review handoff를 따른다.
 
 ---
 

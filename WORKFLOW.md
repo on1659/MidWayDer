@@ -24,6 +24,7 @@ hooks:
   before_run: |
     test -f AGENTS.md
     test -f docs/harness/midwayder-harness-v3.md
+    test -f docs/harness/goal-loop.md
   after_run: |
     git status --short
   timeout_ms: 60000
@@ -40,6 +41,10 @@ codex:
   turn_timeout_ms: 3600000
   read_timeout_ms: 5000
   stall_timeout_ms: 300000
+goal_loop:
+  max_slices: 3
+  max_repeated_failures: 3
+  terminal_handoff_state: Human Review
 ---
 
 # MidWayDer Symphony Workflow
@@ -62,7 +67,8 @@ Before changing files, read these repository-owned contracts:
 1. `AGENTS.md`
 2. `docs/harness/README.md`
 3. `docs/harness/midwayder-harness-v3.md`
-4. The route-specific command mirror under `.codex/commands/`
+4. `docs/harness/goal-loop.md`
+5. The route-specific command mirror under `.codex/commands/`
 
 Treat `AGENTS.md` and `docs/harness/*` as the source of truth. Treat `.claude/*` and `.codex/*` as host adapters.
 
@@ -99,6 +105,8 @@ Preserve these project contracts:
 4. For complex work, scout first and write the affected files, contracts, and test plan before editing.
 5. Use the repo's existing patterns and tests. Do not invent a new architecture unless the issue explicitly asks for one and `meeting` approves it.
 6. If the issue is too broad, split it by filing or proposing child issues rather than forcing one large PR.
+7. Treat the issue as a Goal Loop source: write a Goal Contract, execute one bounded slice at a time, and run an evidence check after each slice.
+8. Stop the loop if destructive action requires approval, acceptance criteria are unclear, the same failure repeats 3 times, or a Human Review handoff is reached.
 
 ## Evidence And Handoff
 
@@ -110,5 +118,6 @@ Close every run with:
 - Residual risks.
 - Follow-up issues suggested, if any.
 - PR link or clear human-review handoff.
+- Goal Loop result: completed, blocked, or escalated.
 
 Successful implementation usually ends in `Human Review`, not directly in `Done`.

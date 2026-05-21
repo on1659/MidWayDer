@@ -252,6 +252,7 @@ export default function SearchOverlay({
     onStartChange(selectedPlace.address);
     onStartSelect?.(selectedPlace);
     setPlaceQuery(selectedPlace.address);
+    setSelectedPlace(null);
   };
 
   const handleSelectAsEnd = () => {
@@ -259,7 +260,13 @@ export default function SearchOverlay({
     onEndChange(selectedPlace.address);
     onEndSelect?.(selectedPlace);
     setPlaceQuery(selectedPlace.address);
+    setSelectedPlace(null);
   };
+
+  const overlayScrollPaddingBottom = selectedPlace
+    ? 'calc(env(safe-area-inset-bottom, 0px) + 17.5rem)'
+    : 'calc(env(safe-area-inset-bottom, 0px) + 6rem)';
+  const selectedPlaceSheetBottom = 'calc(env(safe-area-inset-bottom, 0px) + 5.75rem)';
 
   return (
     <div
@@ -333,7 +340,11 @@ export default function SearchOverlay({
         </div>
       </div>
 
-      <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${selectedPlace ? 'pb-72' : 'pb-24'}`} data-testid="mobile-search-overlay-scroll">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        style={{ paddingBottom: overlayScrollPaddingBottom }}
+        data-testid="mobile-search-overlay-scroll"
+      >
       {voiceError && (
         <div className={`mx-4 mt-2 rounded-xl px-4 py-2.5 text-center text-sm font-bold ${voiceError.includes('완료') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {voiceError}
@@ -399,23 +410,34 @@ export default function SearchOverlay({
       </section>
 
       <section
-        className="mx-4 mt-3 rounded-[1.2rem] bg-white px-3 py-2.5 shadow-sm"
+        className="mx-4 mt-3 rounded-[1.2rem] bg-white p-3 shadow-sm"
         style={{ border: '1px solid rgba(15,23,42,0.08)' }}
         data-testid="mobile-route-summary"
+        data-route-ready={canSearch ? 'true' : 'false'}
         aria-label="현재 경로 상태"
       >
-        <div className="flex items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap gap-1.5">
-              <span className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-extrabold ${startAddress ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                출발 {startAddress || '미선택'}
-              </span>
-              <span className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-extrabold ${endAddress ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                도착 {endAddress || '미선택'}
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2.5">
+          <div className="min-w-0 space-y-1.5">
+            <div
+              data-testid="mobile-route-start-row"
+              className={`grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 rounded-2xl px-2.5 py-2 ${startAddress ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}
+            >
+              <span className="text-[11px] font-black leading-none">출발</span>
+              <span className="truncate text-[13px] font-extrabold leading-none" title={startAddress || '미선택'}>
+                {startAddress || '미선택'}
               </span>
             </div>
-            <p className="mt-1 px-1 text-[11px] font-bold text-slate-500">
-              {canSearch ? '경유지 찾기를 실행할 수 있습니다' : '장소를 검색해 출발지와 도착지를 선택하세요'}
+            <div
+              data-testid="mobile-route-end-row"
+              className={`grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 rounded-2xl px-2.5 py-2 ${endAddress ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}
+            >
+              <span className="text-[11px] font-black leading-none">도착</span>
+              <span className="truncate text-[13px] font-extrabold leading-none" title={endAddress || '미선택'}>
+                {endAddress || '미선택'}
+              </span>
+            </div>
+            <p className="px-1 text-[11px] font-bold leading-tight text-slate-500">
+              {canSearch ? '경유지 찾기를 실행할 수 있습니다' : '장소 선택 후 출발지와 도착지를 지정하세요'}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
@@ -424,7 +446,7 @@ export default function SearchOverlay({
                 type="button"
                 onClick={onGPS}
                 disabled={gpsLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition active:scale-95 disabled:opacity-50"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition active:scale-95 disabled:opacity-50"
                 aria-label="현재 위치를 출발지로 설정"
               >
                 <LocateFixed className={`h-4 w-4 ${gpsLoading ? 'animate-pulse' : ''}`} aria-hidden="true" />
@@ -435,7 +457,7 @@ export default function SearchOverlay({
                 type="button"
                 onClick={onSwap}
                 disabled={!startAddress && !endAddress}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition active:scale-95 disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition active:scale-95 disabled:opacity-40"
                 aria-label="출발지와 도착지 바꾸기"
               >
                 <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
@@ -501,7 +523,8 @@ export default function SearchOverlay({
             {placeFavorites.map((place) => (
               <div
                 key={place.placeId}
-                className="flex min-h-[54px] items-center gap-2 px-3"
+                data-testid="mobile-saved-place-row"
+                className="grid min-h-[54px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3"
               >
                 <Star className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
                 <button
@@ -509,14 +532,15 @@ export default function SearchOverlay({
                   onClick={() => onCategoryChange(place.category)}
                   aria-label={`${place.placeName} 카테고리로 검색`}
                 >
-                  <p className="truncate text-[15px] font-bold text-slate-900">
+                  <p className="truncate text-[15px] font-bold text-slate-900" title={place.placeName}>
                     {place.placeName}
                   </p>
-                  <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">
+                  <p className="mt-0.5 truncate text-xs font-semibold text-slate-500" title={`${place.category} · ${place.address}`}>
                     {place.category} · {place.address}
                   </p>
                 </button>
                 <button
+                  type="button"
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition-all active:scale-95"
                   onClick={(e) => { e.stopPropagation(); handlePlaceFavDelete(place.placeId); }}
                   title="즐겨찾기 삭제"
@@ -541,35 +565,41 @@ export default function SearchOverlay({
             {recentSearches.map((item) => (
               <div
                 key={item.id}
-                className="flex min-h-[58px] items-center gap-2 px-3"
+                data-testid="mobile-recent-search-row"
+                className="grid min-h-[58px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3"
               >
                 <Clock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
                 <button
                   className="min-w-0 flex-1 py-3 text-left"
                   onClick={() => handleRecentSelect(item)}
+                  aria-label={`${item.startAddress}에서 ${item.endAddress} 경로 입력`}
                 >
                   <p className="truncate text-[15px] font-bold route-text-truncate text-slate-900" title={`${item.startAddress} → ${item.endAddress}`}>
                     {item.startAddress} → {item.endAddress}
                   </p>
-                  <p className="mt-0.5 text-xs font-semibold text-slate-500">{item.category}</p>
+                  <p className="mt-0.5 truncate text-xs font-semibold text-slate-500" title={item.category}>{item.category}</p>
                 </button>
-                <span className="shrink-0 text-xs font-semibold text-slate-400">{formatRecentDate(item.timestamp)}</span>
-                <button
-                  onClick={() => handleInstantSearchClick(item)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-blue-600 transition-all active:scale-95"
-                  title="바로 검색 실행"
-                  aria-label={`${item.startAddress}에서 ${item.endAddress} 즉시 검색`}
-                >
-                  ↗
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition-all active:scale-95"
-                  title="삭제"
-                  aria-label={`${item.startAddress} 검색 기록 삭제`}
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="grid shrink-0 grid-cols-[2.25rem_2.25rem_2.25rem] items-center gap-1">
+                  <span className="truncate text-right text-xs font-semibold text-slate-400">{formatRecentDate(item.timestamp)}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleInstantSearchClick(item)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-blue-600 transition-all active:scale-95"
+                    title="바로 검색 실행"
+                    aria-label={`${item.startAddress}에서 ${item.endAddress} 즉시 검색`}
+                  >
+                    <Search className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleRecentDelete(item.id); }}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition-all active:scale-95"
+                    title="삭제"
+                    aria-label={`${item.startAddress} 검색 기록 삭제`}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -580,11 +610,11 @@ export default function SearchOverlay({
       {selectedPlace && (
         <div
           data-testid="mobile-selected-place-sheet"
-          className="fixed inset-x-0 z-[2147483001] px-4"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 82px)' }}
+          className="fixed inset-x-0 z-[2147483002] px-4"
+          style={{ bottom: selectedPlaceSheetBottom }}
         >
           <div
-            className="rounded-[1.35rem] bg-white p-4 shadow-[0_20px_55px_-28px_rgba(15,23,42,0.75)]"
+            className="max-h-[11.75rem] overflow-hidden rounded-[1.35rem] bg-white p-4 shadow-[0_20px_55px_-28px_rgba(15,23,42,0.75)]"
             style={{ border: '1px solid rgba(15,23,42,0.1)' }}
           >
             <div className="flex items-start gap-3">
@@ -605,7 +635,7 @@ export default function SearchOverlay({
                 data-testid="mobile-select-start-btn"
                 type="button"
                 onClick={handleSelectAsStart}
-                className="min-h-11 rounded-2xl bg-blue-600 px-3 text-sm font-black text-white transition active:scale-[0.98]"
+                className="min-h-11 min-w-0 rounded-2xl bg-blue-600 px-3 text-sm font-black leading-tight whitespace-nowrap text-white transition active:scale-[0.98]"
               >
                 출발지로 선택
               </button>
@@ -613,7 +643,7 @@ export default function SearchOverlay({
                 data-testid="mobile-select-end-btn"
                 type="button"
                 onClick={handleSelectAsEnd}
-                className="min-h-11 rounded-2xl bg-slate-900 px-3 text-sm font-black text-white transition active:scale-[0.98]"
+                className="min-h-11 min-w-0 rounded-2xl bg-slate-900 px-3 text-sm font-black leading-tight whitespace-nowrap text-white transition active:scale-[0.98]"
               >
                 도착지로 선택
               </button>

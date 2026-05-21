@@ -9,6 +9,7 @@
 - `docs/harness/README.md`
 - `docs/harness/build-pipeline.md`
 - `docs/harness/meeting-pipeline.md`
+- `docs/harness/goal-loop.md`
 - `docs/harness/decision-framework.md`
 - `docs/harness/agent-mapping.md`
 - `docs/harness/hooks-spec.md`
@@ -34,7 +35,7 @@
 
 `Command → Orchestrator → Agent → Skill` 계층을 혼동하지 마라.
 
-- Command: `/work`, `/build`, `/meeting`, `/review`, `/qa`
+- Command: `/work`, `/goal`, `/build`, `/meeting`, `/review`, `/qa`
 - Orchestrator:
   - Router: `orchestrator.md`
   - Route-specific: `build-orchestrator.md`, `meeting-orchestrator.md`, `review-orchestrator.md`, `qa-orchestrator.md`
@@ -45,6 +46,8 @@
 
 - 일반 자연어 요청:
   - Router Orchestrator가 먼저 route를 분류
+- 장기 목표 요청:
+  - `/goal` 또는 Goal Loop wrapper가 Goal Contract를 만든 뒤 route를 분류
 - 명시적 command 요청:
   - 해당 command가 route-specific orchestrator를 직접 호출한다
 
@@ -53,11 +56,12 @@
 1. 요청을 먼저 router orchestrator가 라우팅한다.
 2. route-specific orchestrator가 triage한다.
 3. 방향이 애매하면 `decision-framework.md` 기준으로 `meeting`에서 먼저 판정한다.
-4. `STANDARD / COMPLEX`면 Scout 정찰을 먼저 수행한다.
-5. `must-preserve contracts`를 명시한다.
-6. 필요한 역할만 활성화한다.
-7. 구현자와 리뷰어를 분리한다.
-8. 증거 없이 종료하지 않는다.
+4. 장기 목표면 `goal-loop.md` 기준으로 Goal Contract와 stop condition을 먼저 작성한다.
+5. `STANDARD / COMPLEX`면 Scout 정찰을 먼저 수행한다.
+6. `must-preserve contracts`를 명시한다.
+7. 필요한 역할만 활성화한다.
+8. 구현자와 리뷰어를 분리한다.
+9. 증거 없이 종료하지 않는다.
 
 ## MidWayDer 전용 경계 포인트
 

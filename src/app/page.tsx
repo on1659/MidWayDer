@@ -17,7 +17,6 @@ import {
   MapPin,
   Navigation,
   Moon,
-  RefreshCw,
   Search,
   Settings,
   Share2,
@@ -31,6 +30,7 @@ import SearchOverlay from '@/components/search/SearchOverlay';
 import MapClickSheet from '@/components/place/MapClickSheet';
 import HomeShell from '@/components/home/HomeShell';
 import MobileHomeShell from '@/components/home/MobileHomeShell';
+import MapReSearchButton from '@/components/home/MapReSearchButton';
 import ToastContainer from '@/components/ui/ToastContainer';
 import { useRouteStore } from '@/store/route-store';
 import { useSearchStore } from '@/store/search-store';
@@ -199,12 +199,14 @@ export default function HomePage() {
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
-  const mapCenter = start?.coordinates || SEOUL_CENTER;
+  const routeSearchCenter = start?.coordinates || SEOUL_CENTER;
+  const mapDisplayCenter = selectedWaypoint?.place.coordinates || routeSearchCenter;
   const canSearch = Boolean(start?.address && end?.address);
   const hasVisibleResults = hasSearched || isLoading || Boolean(error);
   const mapRoute = hasSearched ? originalRoute : null;
   const mapWaypoints = hasSearched ? filteredResults : [];
   const searchStatus: SearchStatus = isLoading ? 'loading' : error ? 'error' : results.length > 0 ? 'done' : 'idle';
+  const shouldShowMapReSearch = (mapPanned || mapZoomed) && hasSearched && !isLoading;
 
   const statusCopy = useMemo(() => {
     if (searchStatus === 'loading') return '경로 주변 후보를 찾고 있어요';
@@ -422,7 +424,7 @@ export default function HomePage() {
         error={error}
       >
         <MapContainer
-          center={mapCenter}
+          center={mapDisplayCenter}
           zoom={12}
           originalRoute={mapRoute}
           detourRoute={selectedWaypoint ? { toWaypoint: selectedWaypoint.routes.toWaypoint, fromWaypoint: selectedWaypoint.routes.fromWaypoint } : null}
@@ -437,15 +439,11 @@ export default function HomePage() {
           onResetInteraction={resetMapInteraction}
         />
 
-        {(mapPanned || mapZoomed) && hasSearched && !isLoading && (
-          <button
-            className="absolute left-1/2 top-4 z-20 flex min-h-11 -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold backdrop-blur-xl transition-all active:scale-95"
-            style={{ ...controlSurface, color: 'var(--accent)' }}
-            onClick={rerunMapSearch}
-          >
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            이 지역 재검색
-          </button>
+        {shouldShowMapReSearch && (
+          <>
+            <MapReSearchButton variant="desktop" onClick={rerunMapSearch} />
+            <MapReSearchButton variant="mobile" onClick={rerunMapSearch} />
+          </>
         )}
 
         <section
@@ -502,7 +500,7 @@ export default function HomePage() {
                   onChange={handleStartChange}
                   onSelect={handleStartSelect}
                   placeholder="출발하는 곳"
-                  mapCenter={mapCenter}
+                  mapCenter={routeSearchCenter}
                   testId="origin-input"
                 />
               </div>
@@ -532,7 +530,7 @@ export default function HomePage() {
                   onChange={handleEndChange}
                   onSelect={handleEndSelect}
                   placeholder="도착하는 곳"
-                  mapCenter={mapCenter}
+                  mapCenter={routeSearchCenter}
                   testId="destination-input"
                 />
               </div>
@@ -728,7 +726,7 @@ export default function HomePage() {
             onEndChange={handleEndChange}
             onStartSelect={handleStartSelect}
             onEndSelect={handleEndSelect}
-            mapCenter={mapCenter}
+            mapCenter={routeSearchCenter}
             onCategoryChange={handleCategoryChange}
             onSearch={() => {
               setSearchOverlayOpen(false);
@@ -794,18 +792,6 @@ export default function HomePage() {
           />
         )}
 
-        {selectedWaypoint && (
-          <div className="md:hidden">
-            <PlaceDetail
-              waypoint={selectedWaypoint}
-              onClose={() => selectWaypoint(null)}
-              onConfirm={(wp) => {
-                selectWaypoint(wp);
-                if (wp.routes.original) setOriginalRoute(wp.routes.original);
-              }}
-            />
-          </div>
-        )}
       </HomeShell>
 
       {selectedWaypoint && (

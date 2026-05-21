@@ -21,6 +21,9 @@ user-invocable: true
 - 리팩터링
 - 신규 기능 추가
 
+Goal Loop 안에서 호출된 경우에는 하나의 bounded slice만 구현하고,
+남은 acceptance criteria와 다음 slice를 closeout에 남긴다.
+
 ## 출력
 
 build orchestrator의 closeout 형식을 따른다.

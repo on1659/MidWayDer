@@ -20,6 +20,8 @@ Codex-facing files:
 - `.codex/agents/README.md` maps Claude agent roles to Codex subagent usage.
 - `../WORKFLOW.md` is the Symphony-style issue execution contract for
   board-driven Codex runs.
+- `../docs/harness/goal-loop.md` defines the project-local Goal Loop contract
+  for Ralph Loop style long-running work.
 - `../docs/harness/midwayder-harness-v3.md` defines how Harness, Hermes-style
   runtime ideas, and Symphony orchestration fit together.
 - `../docs/knowledge/*` stores mistakes, lessons, and harness health-check

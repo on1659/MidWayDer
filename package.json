@@ -9,6 +9,8 @@
     "analyze": "ANALYZE=true npm run build",
     "type-check": "tsc --noEmit",
     "lint": "eslint",
+    "goal": "bash scripts/goal-loop.sh",
+    "goal:gui": "node scripts/goal-loop-gui.js",
     "check": "tsx scripts/check-env.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

@@ -5,6 +5,7 @@ import { Bookmark, ChevronDown, ChevronUp, Navigation, SlidersHorizontal } from 
 import type { DetourResult } from '@/types/detour';
 import MobileCategoryRail from './MobileCategoryRail';
 import MobileSearchEntry from './MobileSearchEntry';
+import { MOBILE_HOME_LAYOUT } from './mobileHomeLayout';
 
 function formatKm(meters: number): string {
   return `${(meters / 1000).toFixed(meters >= 10000 ? 0 : 1)}km`;
@@ -52,6 +53,7 @@ export default function MobileHomeShell({
   onRetry,
 }: MobileHomeShellProps) {
   const [isResultSheetExpanded, setIsResultSheetExpanded] = useState(true);
+  const [expandedWaypointOverrideId, setExpandedWaypointOverrideId] = useState<string | null>(null);
   const dragStartYRef = useRef<number | null>(null);
   const hasResults = results.length > 0;
   const shouldShowResultSheet = !isLoading && (hasSearched || Boolean(error));
@@ -69,8 +71,18 @@ export default function MobileHomeShell({
   const resultSubtext = '#334155';
   const resultMuted = '#64748b';
   const resultBorder = '#dbe7f5';
-  const resultSheetMaxHeight = isResultSheetExpanded ? '58dvh' : '34dvh';
-  const resultSheetHeaderHeight = '78px';
+  const isResultSheetExpandedForView = hasResults && selectedWaypointId && expandedWaypointOverrideId !== selectedWaypointId
+    ? false
+    : isResultSheetExpanded;
+  const resultSheetMaxHeight = isResultSheetExpandedForView
+    ? MOBILE_HOME_LAYOUT.resultSheetExpandedHeight
+    : MOBILE_HOME_LAYOUT.resultSheetCollapsedHeight;
+  const resultSheetHeaderHeight = MOBILE_HOME_LAYOUT.resultSheetHeaderHeight;
+
+  const setResultSheetExpandedForView = (nextExpanded: boolean) => {
+    setExpandedWaypointOverrideId(selectedWaypointId && nextExpanded ? selectedWaypointId : null);
+    setIsResultSheetExpanded(nextExpanded);
+  };
 
   const handleResultSheetDragEnd = (clientY: number) => {
     if (dragStartYRef.current === null) return;
@@ -78,11 +90,17 @@ export default function MobileHomeShell({
     dragStartYRef.current = null;
 
     if (Math.abs(deltaY) < 28) {
-      setIsResultSheetExpanded((current) => !current);
+      setResultSheetExpandedForView(!isResultSheetExpandedForView);
       return;
     }
 
-    setIsResultSheetExpanded(deltaY < 0);
+    setResultSheetExpandedForView(deltaY < 0);
+  };
+
+  const handleResultSelect = (result: DetourResult) => {
+    onResultSelect(result);
+    setExpandedWaypointOverrideId(null);
+    setIsResultSheetExpanded(false);
   };
 
   return (
@@ -108,7 +126,7 @@ export default function MobileHomeShell({
           data-testid="mobile-live-status-pill"
           className="absolute left-1/2 z-[995] hidden -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 text-xs font-extrabold max-md:flex"
           style={{
-            top: 'calc(max(0.75rem, env(safe-area-inset-top)) + 8.35rem)',
+            top: `calc(${MOBILE_HOME_LAYOUT.topInset} + ${MOBILE_HOME_LAYOUT.liveStatusTopOffset})`,
             background: 'rgba(10,10,15,0.78)',
             color: 'white',
             border: '1px solid rgba(255,255,255,0.1)',
@@ -122,10 +140,33 @@ export default function MobileHomeShell({
         </div>
       )}
 
+      {!shouldShowResultSheet && !isLoading && (
+        <div
+          data-testid="mobile-bottom-search-cta"
+          className="absolute inset-x-4 bottom-4 z-[995] hidden max-md:block"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition active:scale-[0.98]"
+            style={{
+              background: 'var(--accent)',
+              color: 'var(--text-on-accent)',
+              border: '1px solid var(--accent)',
+              boxShadow: '0 18px 36px -22px rgba(37,99,235,0.75)',
+            }}
+          >
+            <Navigation className="h-4 w-4" aria-hidden="true" />
+            <span className="min-w-0 truncate">조건 입력하고 경유지 찾기</span>
+          </button>
+        </div>
+      )}
+
       {shouldShowResultSheet && (
         <section
           data-testid="mobile-result-sheet"
-          data-state={isResultSheetExpanded ? 'expanded' : 'collapsed'}
+          data-state={isResultSheetExpandedForView ? 'expanded' : 'collapsed'}
           className="absolute inset-x-3 bottom-0 z-[1000] isolate overflow-hidden rounded-t-[1.75rem] transition-none"
           style={{
             maxHeight: resultSheetMaxHeight,
@@ -140,11 +181,11 @@ export default function MobileHomeShell({
           <button
             type="button"
             data-testid="mobile-result-sheet-handle"
-            aria-label={isResultSheetExpanded ? '결과 시트 접기' : '결과 시트 펼치기'}
-            aria-expanded={isResultSheetExpanded}
+            aria-label={isResultSheetExpandedForView ? '결과 시트 접기' : '결과 시트 펼치기'}
+            aria-expanded={isResultSheetExpandedForView}
             className="flex min-h-7 w-full items-center justify-center gap-2 pt-1.5 text-[11px] font-black"
             style={{ color: resultMuted, touchAction: 'none' }}
-            onClick={() => setIsResultSheetExpanded((current) => !current)}
+            onClick={() => setResultSheetExpandedForView(!isResultSheetExpandedForView)}
             onTouchStart={(event) => { dragStartYRef.current = event.touches[0].clientY; }}
             onTouchEnd={(event) => {
               event.preventDefault();
@@ -152,7 +193,7 @@ export default function MobileHomeShell({
             }}
           >
             <span className="h-1.5 w-12 rounded-full" style={{ background: '#cbd5e1' }} />
-            {isResultSheetExpanded ? <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />}
+            {isResultSheetExpandedForView ? <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />}
           </button>
           <div className="px-3.5 pb-2 pt-1" style={{ borderBottom: `1px solid ${resultBorder}` }}>
             <div className="flex items-start justify-between gap-3">
@@ -191,13 +232,17 @@ export default function MobileHomeShell({
 
           <div data-testid="mobile-result-list" className="overflow-y-auto px-3 py-2 scrollbar-hide" style={{ maxHeight: `calc(${resultSheetMaxHeight} - ${resultSheetHeaderHeight} - env(safe-area-inset-bottom))` }}>
             {error ? (
-              <div className="rounded-3xl p-4" style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }}>
-                <p className="text-sm font-extrabold" style={{ color: 'var(--text-strong)' }}>검색이 막혔어요</p>
-                <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>{error}</p>
+              <div
+                data-testid="mobile-error-result"
+                className="rounded-3xl p-4"
+                style={{ background: 'var(--bg-surface-muted)', border: '1px solid var(--border-soft)' }}
+              >
+                <p className="text-sm font-extrabold leading-tight" style={{ color: 'var(--text-strong)' }}>검색이 막혔어요</p>
+                <p className="mt-1 break-keep text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{error}</p>
                 <button
                   type="button"
                   onClick={onRetry}
-                  className="mt-4 min-h-11 rounded-2xl px-4 text-sm font-extrabold"
+                  className="mt-4 flex min-h-11 w-full min-w-0 items-center justify-center rounded-2xl px-4 text-center text-sm font-extrabold leading-tight whitespace-nowrap"
                   style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
                 >
                   다시 검색
@@ -215,11 +260,14 @@ export default function MobileHomeShell({
                 <p className="mt-1 text-sm font-semibold leading-relaxed" style={{ color: resultSubtext }}>
                   {routeLabel} 주변에 조건에 맞는 후보가 없어요. 카테고리나 경로를 바꾸거나 다시 검색해 보세요.
                 </p>
-                <div className="mt-4 flex gap-2">
+                <div
+                  data-testid="mobile-empty-result-actions"
+                  className="mt-4 grid min-w-0 grid-cols-2 gap-2"
+                >
                   <button
                     type="button"
                     onClick={onOpenSearch}
-                    className="min-h-11 flex-1 rounded-2xl px-4 text-sm font-extrabold"
+                    className="flex min-h-11 min-w-0 items-center justify-center rounded-2xl px-3 text-center text-sm font-extrabold leading-tight whitespace-nowrap"
                     style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
                   >
                     조건 수정
@@ -227,7 +275,7 @@ export default function MobileHomeShell({
                   <button
                     type="button"
                     onClick={onRetry}
-                    className="min-h-11 flex-1 rounded-2xl px-4 text-sm font-extrabold"
+                    className="flex min-h-11 min-w-0 items-center justify-center rounded-2xl px-3 text-center text-sm font-extrabold leading-tight whitespace-nowrap"
                     style={{ background: '#ffffff', color: resultText, border: `1px solid ${resultBorder}` }}
                   >
                     다시 검색
@@ -243,8 +291,9 @@ export default function MobileHomeShell({
                     <button
                       key={result.place.id}
                       type="button"
+                      data-testid={`mobile-result-card-${result.place.id}`}
                       data-result-index={index}
-                      onClick={() => onResultSelect(result)}
+                      onClick={() => handleResultSelect(result)}
                       onMouseEnter={() => onResultHover(result.place.id)}
                       onMouseLeave={() => onResultHover(null)}
                       aria-label={`지도에서 ${result.place.name} 보기`}
@@ -255,27 +304,44 @@ export default function MobileHomeShell({
                         boxShadow: index === 0 ? '0 14px 34px -24px rgba(37,99,235,0.55)' : '0 10px 28px -24px rgba(15,23,42,0.35)',
                       }}
                     >
-                      <div className="flex items-start gap-2">
+                      <div className="grid min-w-0 grid-cols-[1.5rem_minmax(0,1fr)] items-start gap-2">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black" style={{ background: index === 0 ? '#3b82f6' : '#e2e8f0', color: index === 0 ? '#ffffff' : resultText }}>
                           {index + 1}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h3 className="line-clamp-1 text-base font-black leading-snug" style={{ color: resultText }}>{result.place.name}</h3>
-                              <p className="mt-0.5 line-clamp-1 text-xs font-bold leading-snug" style={{ color: resultSubtext }}>{address}</p>
+                          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_1.75rem] items-start gap-2">
+                            <div className="min-w-0 overflow-hidden">
+                              <h3 className="max-w-full truncate break-keep text-base font-black leading-snug" title={result.place.name} style={{ color: resultText }}>{result.place.name}</h3>
+                              <p className="mt-0.5 max-w-full truncate break-keep text-xs font-bold leading-snug" title={address} style={{ color: resultSubtext }}>{address}</p>
                             </div>
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: selected ? '#2563eb' : '#eaf2ff', color: selected ? '#ffffff' : '#1d4ed8', border: selected ? '1px solid #2563eb' : '1px solid #bfdbfe' }}>
+                            <span data-testid={`mobile-result-map-action-${result.place.id}`} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: selected ? '#2563eb' : '#eaf2ff', color: selected ? '#ffffff' : '#1d4ed8', border: selected ? '1px solid #2563eb' : '1px solid #bfdbfe' }}>
                               <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
                             </span>
                           </div>
-                          <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] font-black" style={{ color: resultSubtext }}>
-                            <span className="shrink-0 whitespace-nowrap">+{formatMin(result.detourCost.duration)}</span>
-                            <span className="shrink-0 whitespace-nowrap">{formatKm(result.detourCost.distance)}</span>
-                            <span className="shrink-0 whitespace-nowrap">{Math.round(result.finalScore)}점</span>
-                            {index === 0 && <span className="ml-0.5 inline-flex min-h-4 min-w-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-1 text-[10px] leading-none" style={{ background: '#2563eb', color: '#ffffff' }}>BEST</span>}
-                            {selected && <span className="inline-flex min-h-4 min-w-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-1 text-[10px] leading-none" style={{ background: '#dbeafe', color: '#1d4ed8' }}>표시 중</span>}
+                          <div
+                            data-testid={`mobile-result-stats-${result.place.id}`}
+                            className="mt-2 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1.5"
+                            style={{ color: resultSubtext }}
+                          >
+                            <span className="min-w-0 overflow-hidden rounded-xl px-2 py-1.5 text-center" style={{ background: '#f1f5f9' }}>
+                              <span className="block truncate text-[10px] font-black leading-none" style={{ color: resultMuted }}>우회</span>
+                              <span className="mt-0.5 block truncate text-[12px] font-black leading-none tabular-nums">+{formatMin(result.detourCost.duration)}</span>
+                            </span>
+                            <span className="min-w-0 overflow-hidden rounded-xl px-2 py-1.5 text-center" style={{ background: '#f1f5f9' }}>
+                              <span className="block truncate text-[10px] font-black leading-none" style={{ color: resultMuted }}>거리</span>
+                              <span className="mt-0.5 block truncate text-[12px] font-black leading-none tabular-nums">{formatKm(result.detourCost.distance)}</span>
+                            </span>
+                            <span className="min-w-0 overflow-hidden rounded-xl px-2 py-1.5 text-center" style={{ background: '#eef6ff', color: '#1d4ed8' }}>
+                              <span className="block truncate text-[10px] font-black leading-none" style={{ color: '#2563eb' }}>점수</span>
+                              <span className="mt-0.5 block truncate text-[12px] font-black leading-none tabular-nums">{Math.round(result.finalScore)}점</span>
+                            </span>
                           </div>
+                          {(index === 0 || selected) && (
+                            <div data-testid={`mobile-result-badges-${result.place.id}`} className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5 overflow-hidden text-[10px] font-black leading-none">
+                              {index === 0 && <span className="inline-flex min-h-4 min-w-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-1" style={{ background: '#2563eb', color: '#ffffff' }}>BEST</span>}
+                              {selected && <span className="inline-flex min-h-4 min-w-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-1" style={{ background: '#dbeafe', color: '#1d4ed8' }}>표시 중</span>}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </button>

@@ -9,6 +9,7 @@ Use `.claude/agents/build-orchestrator.md` semantics:
 - preserve API/store/hook contracts
 - implement with bounded ownership
 - run review and QA evidence appropriate to the risk
+- when invoked inside Goal Loop, execute one bounded slice and report the remaining acceptance criteria
 
 For Symphony issue execution:
 

@@ -1,3 +1,6 @@
+import { getCategoryIcon } from '@/lib/category-icons';
+import { MOBILE_HOME_LAYOUT } from './mobileHomeLayout';
+
 export type MobileCategoryRailProps = {
   categories: string[];
   selectedCategory: string;
@@ -11,7 +14,7 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
       data-testid="mobile-category-rail"
       className="absolute inset-x-0 z-[990] hidden overflow-x-auto px-4 pb-1 max-md:block scrollbar-hide"
       style={{
-        top: 'calc(max(0.75rem, env(safe-area-inset-top)) + 3.45rem)',
+        top: `calc(${MOBILE_HOME_LAYOUT.topInset} + ${MOBILE_HOME_LAYOUT.categoryRailTopOffset})`,
         scrollSnapType: 'x mandatory',
       }}
       aria-label="들를 곳 카테고리"
@@ -39,6 +42,16 @@ export default function MobileCategoryRail({ categories, selectedCategory, disab
                 WebkitBackdropFilter: 'blur(18px) saturate(160%)',
               }}
             >
+              <span
+                data-testid="mobile-category-chip-icon"
+                aria-hidden="true"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[12px]"
+                style={{
+                  background: active ? 'rgba(255,255,255,0.18)' : 'rgba(15,23,42,0.06)',
+                }}
+              >
+                {getCategoryIcon(item)}
+              </span>
               <span className="min-w-0 truncate">{item}</span>
             </button>
           );
