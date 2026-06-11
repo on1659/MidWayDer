@@ -93,6 +93,7 @@ export function useMapState(): UseMapStateReturn {
       mapIdleIgnoreRef.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMapPanned(false);
+      setMapZoomed(false);
       const t = setTimeout(() => { mapIdleIgnoreRef.current = false; }, 2000);
       return () => clearTimeout(t);
     }

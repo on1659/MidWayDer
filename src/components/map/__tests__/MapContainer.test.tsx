@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import MapContainer from '../MapContainer';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import MapContainer, { attachNaverMapInteractionEvents } from '../MapContainer';
 
 // Types
 import type { Coordinates, Route } from '@/types/location';
@@ -31,6 +31,11 @@ const defaultProps = {
 };
 
 describe('MapContainer', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
   it('renders map container', () => {
     render(<MapContainer {...defaultProps} />);
 
@@ -55,5 +60,67 @@ describe('MapContainer', () => {
 
     const { container } = render(<MapContainer {...customProps} />);
     expect(container).toBeTruthy();
+  });
+
+  it('maps Naver click and idle events into shared map callbacks', () => {
+    const listeners: Record<string, Array<{ handler: (event?: unknown) => void; remove: ReturnType<typeof vi.fn> }>> = {};
+    const addListener = vi.fn((_target: unknown, eventName: string, handler: (event?: unknown) => void) => {
+      const listener = { handler, remove: vi.fn() };
+      listeners[eventName] = [...(listeners[eventName] || []), listener];
+      return listener;
+    });
+    const removeListener = vi.fn();
+    vi.stubGlobal('naver', { maps: { Event: { addListener, removeListener } } });
+
+    const map = {
+      getCenter: () => ({ lat: () => 37.5663, lng: () => 126.9779 }),
+    } as unknown as naver.maps.Map;
+    const onMapClick = vi.fn();
+    const onMapIdle = vi.fn();
+
+    const cleanup = attachNaverMapInteractionEvents({ map, onMapClick, onMapIdle });
+
+    listeners.click[0].handler({ coord: { lat: () => 37.5, lng: () => 127.0 } });
+    listeners.idle[0].handler();
+
+    expect(onMapClick).toHaveBeenCalledWith({ lat: 37.5, lng: 127.0 });
+    expect(onMapIdle).toHaveBeenCalledWith({ lat: 37.5663, lng: 126.9779 });
+
+    cleanup();
+
+    expect(listeners.click[0].remove).toHaveBeenCalledTimes(1);
+    expect(listeners.idle[0].remove).toHaveBeenCalledTimes(1);
+    expect(removeListener).not.toHaveBeenCalled();
+  });
+
+  it('maps Naver drag and zoom events into mobile re-search interaction state', () => {
+    vi.useFakeTimers();
+    const listeners: Record<string, Array<{ handler: (event?: unknown) => void; remove: ReturnType<typeof vi.fn> }>> = {};
+    const addListener = vi.fn((_target: unknown, eventName: string, handler: (event?: unknown) => void) => {
+      const listener = { handler, remove: vi.fn() };
+      listeners[eventName] = [...(listeners[eventName] || []), listener];
+      return listener;
+    });
+    vi.stubGlobal('naver', { maps: { Event: { addListener, removeListener: vi.fn() } } });
+
+    const map = {
+      getCenter: () => ({ lat: () => 37.5663, lng: () => 126.9779 }),
+    } as unknown as naver.maps.Map;
+    const onMapInteraction = vi.fn();
+    const onResetInteraction = vi.fn();
+
+    const cleanup = attachNaverMapInteractionEvents({ map, onMapInteraction, onResetInteraction });
+
+    listeners.dragstart[0].handler();
+    listeners.dragend[0].handler();
+    listeners.zoom_changed[0].handler();
+
+    expect(onMapInteraction).toHaveBeenCalledTimes(2);
+    expect(onResetInteraction).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1000);
+    expect(onResetInteraction).toHaveBeenCalledTimes(2);
+
+    cleanup();
   });
 });

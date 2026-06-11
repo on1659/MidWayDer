@@ -142,21 +142,37 @@ describe('useMapState — 훅 (jsdom 환경)', () => {
     expect(result.current.mapPanned).toBe(false);
   });
 
-  it('renderHook: 결과 변경 시 mapPanned 자동 리셋', async () => {
+  it('renderHook: 결과 변경 시 mapPanned와 mapZoomed를 함께 리셋', async () => {
     const nonEmptyResults = [makeResult()];
 
-    // hasSearched=true → handleMapIdle이 mapPanned=true 설정 가능
+    // hasSearched=true → 지도 조작 이벤트가 재검색 상태를 켤 수 있음
     mockUseSearchStore.mockReturnValue({ results: [], hasSearched: true });
     const { result, rerender } = renderHook(() => useMapState());
 
-    act(() => { result.current.handleMapIdle(); });
+    act(() => { result.current.handleMapInteraction(); });
     expect(result.current.mapPanned).toBe(true);
+    expect(result.current.mapZoomed).toBe(true);
 
-    // 결과가 채워지면 mapPanned 자동 리셋
+    // 결과가 채워지면 지도 이동/줌 재검색 상태를 함께 리셋
     mockUseSearchStore.mockReturnValue({ results: nonEmptyResults, hasSearched: true });
     await act(async () => { rerender(); });
 
     expect(result.current.mapPanned).toBe(false);
+    expect(result.current.mapZoomed).toBe(false);
+  });
+
+  it('renderHook: resetMapInteraction은 지도 이동/줌 재검색 상태를 모두 끈다', () => {
+    mockUseSearchStore.mockReturnValue({ results: [], hasSearched: true });
+    const { result } = renderHook(() => useMapState());
+
+    act(() => { result.current.handleMapInteraction(); });
+    expect(result.current.mapPanned).toBe(true);
+    expect(result.current.mapZoomed).toBe(true);
+
+    act(() => { result.current.resetMapInteraction(); });
+
+    expect(result.current.mapPanned).toBe(false);
+    expect(result.current.mapZoomed).toBe(false);
   });
 
   it('renderHook: handleMapClick 성공 시 mapClickInfo 업데이트', async () => {

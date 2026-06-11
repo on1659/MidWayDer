@@ -96,6 +96,87 @@ async function mockAllAPIs(page: Page, results = MOCK_RESULTS_5, searchDelayMs =
   });
 }
 
+async function installKakaoMapMock(page: Page) {
+  await page.addInitScript(() => {
+    const eventListeners: Record<string, Array<(event?: unknown) => void>> = {};
+
+    class MockLatLng {
+      constructor(private latValue: number, private lngValue: number) {}
+      getLat() { return this.latValue; }
+      getLng() { return this.lngValue; }
+    }
+
+    class MockMap {
+      private center: MockLatLng;
+      constructor(_container: HTMLElement, options: { center: MockLatLng }) {
+        this.center = options.center;
+      }
+      getCenter() { return this.center; }
+      panTo(center: MockLatLng) { this.center = center; }
+      setBounds() {}
+    }
+
+    class MockLatLngBounds {
+      extend() {}
+    }
+
+    class MockPolyline {
+      setMap() {}
+    }
+
+    class MockCustomOverlay {
+      setMap() {}
+    }
+
+    class MockSize {
+      constructor(public width: number, public height: number) {}
+    }
+
+    class MockPoint {
+      constructor(public x: number, public y: number) {}
+    }
+
+    class MockMarkerImage {
+      constructor(public src: string, public size: MockSize, public options?: { offset?: MockPoint }) {}
+    }
+
+    class MockMarker {
+      setMap() {}
+      setImage() {}
+    }
+
+    const event = {
+      addListener: (_target: unknown, eventName: string, handler: (event?: unknown) => void) => {
+        eventListeners[eventName] = [...(eventListeners[eventName] || []), handler];
+        return handler;
+      },
+      removeListener: () => undefined,
+    };
+
+    const testWindow = window as unknown as Record<string, unknown>;
+
+    testWindow.kakao = {
+      maps: {
+        LatLng: MockLatLng,
+        Map: MockMap,
+        LatLngBounds: MockLatLngBounds,
+        Polyline: MockPolyline,
+        CustomOverlay: MockCustomOverlay,
+        Size: MockSize,
+        Point: MockPoint,
+        MarkerImage: MockMarkerImage,
+        Marker: MockMarker,
+        event,
+        load: (callback: () => void) => callback(),
+      },
+    };
+    testWindow.__emitKakaoMapEvent = (eventName: string) => {
+      eventListeners[eventName]?.forEach((handler) => handler());
+    };
+    testWindow.__kakaoMapListenerCount = (eventName: string) => eventListeners[eventName]?.length || 0;
+  });
+}
+
 async function waitAppReady(
   page: Page,
   opts?: {
@@ -210,6 +291,113 @@ test.describe('Mobile UI', () => {
     expect(expandedBox).toBeTruthy();
     expect(expandedBox!.height).toBeGreaterThan(collapsedBox!.height + 32);
     expect(expandedBox!.height).toBeLessThanOrEqual(viewportSize!.height * 0.6);
+  });
+
+  test('375px에서 재검색 버튼과 선택 장소 focus pill이 결과 시트와 겹치지 않아야 한다', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'mobile project only');
+
+    await page.setViewportSize({ width: 375, height: 667 });
+    await installKakaoMapMock(page);
+
+    const longName = '다이소 강남점 아주 긴 지하상가 연결통로 입구 앞';
+    const longResult = makeMockResult('mock-1', longName, {
+      place: {
+        id: 'mock-1',
+        name: longName,
+        category: '다이소',
+        address: '서울 강남구 테헤란로 mock-1',
+        roadAddress: '서울특별시 강남구 아주긴도로명로 123번길 45 지하 2층 연결통로 가장 안쪽 출입구',
+        coordinates: { lat: 37.4981, lng: 127.0281 },
+        phone: '02-000-0000',
+      },
+      detourCost: { distance: 12800, duration: 5940, costScore: 7 },
+      finalScore: 100,
+    });
+
+    await mockAllAPIs(page, [longResult, ...MOCK_RESULTS_5.slice(1)]);
+    const sheet = await gotoWithSearch(page);
+
+    await expect.poll(async () => page.evaluate(() => {
+      const testWindow = window as Window & { __kakaoMapListenerCount?: (eventName: string) => number };
+      return testWindow.__kakaoMapListenerCount?.('idle') || 0;
+    }), { timeout: 5000 }).toBeGreaterThan(0);
+
+    await page.waitForTimeout(2100);
+    await page.evaluate(() => {
+      const testWindow = window as Window & { __emitKakaoMapEvent?: (eventName: string) => void };
+      testWindow.__emitKakaoMapEvent?.('idle');
+    });
+
+    const reSearchButton = page.getByTestId('mobile-map-research-button');
+    await expect(reSearchButton).toBeVisible();
+
+    await sheet.getByRole('button', { name: new RegExp(`지도에서 ${longName} 보기`) }).click();
+
+    const focusPill = page.getByTestId('mobile-map-focus-pill');
+    await expect(sheet).toHaveAttribute('data-state', 'collapsed');
+    await expect(focusPill).toBeVisible();
+    await expect(focusPill).toContainText(longName);
+    await expect(focusPill).toContainText('100점');
+    await expect(reSearchButton).toBeVisible();
+
+    const layout = await page.evaluate(() => {
+      const readBox = (testId: string) => {
+        const element = document.querySelector(`[data-testid="${testId}"]`);
+        const rect = element?.getBoundingClientRect();
+        return rect
+          ? { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left, width: rect.width, height: rect.height }
+          : null;
+      };
+      const focus = document.querySelector('[data-testid="mobile-map-focus-pill"]');
+      const focusRect = focus?.getBoundingClientRect();
+      const focusChildOverflow = focus && focusRect
+        ? Array.from(focus.querySelectorAll('span')).some((child) => {
+            const rect = child.getBoundingClientRect();
+            return rect.left < focusRect.left - 0.5 || rect.right > focusRect.right + 0.5;
+          })
+        : true;
+
+      return {
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        search: readBox('open-search-overlay-btn'),
+        rail: readBox('mobile-category-rail'),
+        reSearch: readBox('mobile-map-research-button'),
+        focus: readBox('mobile-map-focus-pill'),
+        sheet: readBox('mobile-result-sheet'),
+        focusChildOverflow,
+      };
+    });
+
+    expect(layout.viewport).toEqual({ width: 375, height: 667 });
+    expect(layout.search).toBeTruthy();
+    expect(layout.rail).toBeTruthy();
+    expect(layout.reSearch).toBeTruthy();
+    expect(layout.focus).toBeTruthy();
+    expect(layout.sheet).toBeTruthy();
+    expect(layout.search!.bottom).toBeLessThan(layout.rail!.top);
+    expect(layout.rail!.bottom).toBeLessThan(layout.reSearch!.top);
+    expect(layout.reSearch!.bottom).toBeLessThan(layout.focus!.top);
+    expect(layout.focus!.bottom).toBeLessThanOrEqual(layout.sheet!.top - 6);
+    expect(layout.focus!.left).toBeGreaterThanOrEqual(16);
+    expect(layout.focus!.right).toBeLessThanOrEqual(359);
+    expect(layout.sheet!.bottom).toBeGreaterThanOrEqual(666);
+    expect(layout.focusChildOverflow).toBe(false);
+
+    await Promise.all([
+      page.waitForResponse((response) => response.url().includes('/api/search') && response.request().method() === 'POST'),
+      reSearchButton.click(),
+    ]);
+    await expect(reSearchButton).not.toBeVisible();
+    await expect(focusPill).not.toBeVisible();
+    await expect(sheet).toHaveAttribute('data-state', 'expanded');
+
+    await sheet.getByRole('button', { name: new RegExp(`지도에서 ${longName} 보기`) }).click();
+    await expect(sheet).toHaveAttribute('data-state', 'collapsed');
+    await expect(focusPill).toBeVisible();
+
+    await focusPill.click();
+    await expect(sheet).toHaveAttribute('data-state', 'expanded');
+    await expect(focusPill).not.toBeVisible();
   });
 
   test('결과가 없을 때는 단순 검색 진입점만 보여야 한다', async ({ page, isMobile }) => {

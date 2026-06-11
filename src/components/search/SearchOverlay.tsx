@@ -247,21 +247,64 @@ export default function SearchOverlay({
     setPlaceQuery(place.address);
   };
 
+  const focusPlaceSearchInput = () => {
+    const focusInput = () => {
+      dialogRef.current
+        ?.querySelector<HTMLInputElement>('[data-testid="mobile-place-search-input"]')
+        ?.focus();
+    };
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(focusInput);
+      return;
+    }
+
+    window.setTimeout(focusInput, 0);
+  };
+
   const handleSelectAsStart = () => {
     if (!selectedPlace) return;
     onStartChange(selectedPlace.address);
     onStartSelect?.(selectedPlace);
-    setPlaceQuery(selectedPlace.address);
+    setPlaceQuery('');
     setSelectedPlace(null);
+    focusPlaceSearchInput();
   };
 
   const handleSelectAsEnd = () => {
     if (!selectedPlace) return;
     onEndChange(selectedPlace.address);
     onEndSelect?.(selectedPlace);
-    setPlaceQuery(selectedPlace.address);
+    setPlaceQuery('');
     setSelectedPlace(null);
+    focusPlaceSearchInput();
   };
+
+  const missingRouteStep = !startAddress ? 'start' : !endAddress ? 'end' : null;
+  const placeSearchPlaceholder = missingRouteStep === 'start'
+    ? '출발지로 지정할 장소 검색'
+    : missingRouteStep === 'end'
+      ? '도착지로 지정할 장소 검색'
+      : '장소 또는 주소 검색';
+  const routeStepHint = missingRouteStep === 'start'
+    ? '장소를 검색하고 출발지로 선택하세요'
+    : missingRouteStep === 'end'
+      ? '다음으로 도착지를 검색해 선택하세요'
+      : '경유지 종류를 고르고 검색을 실행하세요';
+  const searchButtonLabel = isLoading
+    ? '찾는 중...'
+    : missingRouteStep === 'start'
+      ? '출발지 선택 필요'
+      : missingRouteStep === 'end'
+        ? '도착지 선택 필요'
+        : '경유지 찾기';
+  const selectedPlaceHint = missingRouteStep === 'start'
+    ? '출발지로 지정하면 다음에 도착지를 고를 수 있어요'
+    : missingRouteStep === 'end'
+      ? '도착지로 지정하면 경유지 검색 준비가 끝나요'
+      : '필요한 경로 위치로 다시 지정할 수 있어요';
+  const startButtonEmphasis = missingRouteStep !== 'end';
+  const endButtonEmphasis = missingRouteStep === 'end';
 
   const overlayScrollPaddingBottom = selectedPlace
     ? 'calc(env(safe-area-inset-bottom, 0px) + 17.5rem)'
@@ -402,7 +445,7 @@ export default function SearchOverlay({
           value={placeQuery}
           onChange={handlePlaceQueryChange}
           onSelect={handlePlaceSelect}
-          placeholder="장소 또는 주소 검색"
+          placeholder={placeSearchPlaceholder}
           mapCenter={mapCenter}
           testId="mobile-place-search-input"
           onSubmit={canSearch && !isLoading ? handleSearch : undefined}
@@ -437,7 +480,7 @@ export default function SearchOverlay({
               </span>
             </div>
             <p className="px-1 text-[11px] font-bold leading-tight text-slate-500">
-              {canSearch ? '경유지 찾기를 실행할 수 있습니다' : '장소 선택 후 출발지와 도착지를 지정하세요'}
+              <span data-testid="mobile-route-step-hint">{routeStepHint}</span>
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
@@ -628,6 +671,9 @@ export default function SearchOverlay({
                 <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-500">
                   {selectedPlace.placeAddress || selectedPlace.address}
                 </p>
+                <p data-testid="mobile-selected-place-next-step" className="mt-1 truncate text-xs font-black text-blue-600">
+                  {selectedPlaceHint}
+                </p>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -635,7 +681,7 @@ export default function SearchOverlay({
                 data-testid="mobile-select-start-btn"
                 type="button"
                 onClick={handleSelectAsStart}
-                className="min-h-11 min-w-0 rounded-2xl bg-blue-600 px-3 text-sm font-black leading-tight whitespace-nowrap text-white transition active:scale-[0.98]"
+                className={`min-h-11 min-w-0 rounded-2xl px-3 text-sm font-black leading-tight whitespace-nowrap transition active:scale-[0.98] ${startButtonEmphasis ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-200'}`}
               >
                 출발지로 선택
               </button>
@@ -643,7 +689,7 @@ export default function SearchOverlay({
                 data-testid="mobile-select-end-btn"
                 type="button"
                 onClick={handleSelectAsEnd}
-                className="min-h-11 min-w-0 rounded-2xl bg-slate-900 px-3 text-sm font-black leading-tight whitespace-nowrap text-white transition active:scale-[0.98]"
+                className={`min-h-11 min-w-0 rounded-2xl px-3 text-sm font-black leading-tight whitespace-nowrap transition active:scale-[0.98] ${endButtonEmphasis ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white'}`}
               >
                 도착지로 선택
               </button>
@@ -681,7 +727,7 @@ export default function SearchOverlay({
             }}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
-            {isLoading ? '찾는 중...' : '경유지 찾기'}
+            {searchButtonLabel}
           </button>
         </div>
       </div>

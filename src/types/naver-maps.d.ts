@@ -8,6 +8,7 @@ declare namespace naver {
   namespace maps {
     class Map {
       constructor(element: HTMLElement, options: MapOptions);
+      getCenter(): LatLng;
       setCenter(latlng: LatLng): void;
       setZoom(zoom: number): void;
       fitBounds(bounds: LatLngBounds, margin?: Margin): void;
@@ -17,6 +18,8 @@ declare namespace naver {
 
     class LatLng {
       constructor(lat: number, lng: number);
+      lat(): number;
+      lng(): number;
     }
 
     class LatLngBounds {
@@ -49,11 +52,17 @@ declare namespace naver {
     }
 
     namespace Event {
+      interface Listener {
+        remove?: () => void;
+      }
+
       function addListener(
         target: unknown,
         event: string,
-        handler: () => void
-      ): void;
+        handler: (event?: unknown) => void
+      ): Listener;
+
+      function removeListener(listener: Listener): void;
     }
 
     enum Position {

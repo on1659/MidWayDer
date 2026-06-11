@@ -186,7 +186,6 @@ export default function HomePage() {
     hoveredWaypointId,
     setHoveredWaypointId,
     mapPanned,
-    setMapPanned,
     mapZoomed,
     handleMapClick,
     handleMapIdle,
@@ -299,7 +298,7 @@ export default function HomePage() {
     resetRouteDisplay();
   }, [end, resetRouteDisplay, setEnd, setStart, start]);
 
-  const runSearch = useCallback(async (nextCategory = category) => {
+  const runSearch = useCallback(async (nextCategory = category, extraOptions?: { forceRefresh?: boolean }) => {
     const endTimer = startTimer('search_duration');
     if (!start?.address || !end?.address) {
       endTimer();
@@ -322,7 +321,8 @@ export default function HomePage() {
       await search(
         { address: start.address, ...(start.coordinates ? { coordinates: start.coordinates } : {}) },
         { address: end.address, ...(end.coordinates ? { coordinates: end.coordinates } : {}) },
-        nextCategory
+        nextCategory,
+        extraOptions
       );
     } finally {
       endTimer();
@@ -376,10 +376,11 @@ export default function HomePage() {
   }, [category, end, search, start]);
 
   const rerunMapSearch = useCallback(async () => {
-    setMapPanned(false);
+    resetMapInteraction();
     if (!start?.address || !end?.address) return;
-    await runSearch(category);
-  }, [category, end?.address, runSearch, setMapPanned, start?.address]);
+    // 사용자가 명시적으로 누른 재검색은 클라이언트 캐시를 우회해 결과를 갱신한다 (서버 캐시는 그대로 활용)
+    await runSearch(category, { forceRefresh: true });
+  }, [category, end?.address, resetMapInteraction, runSearch, start?.address]);
 
   const desktopPanelClass = hasVisibleResults
     ? 'absolute inset-y-4 left-4 z-30 hidden w-[420px] max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl md:flex'

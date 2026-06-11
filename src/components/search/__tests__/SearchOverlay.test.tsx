@@ -109,6 +109,38 @@ describe('SearchOverlay', () => {
     expect(screen.getByRole('button', { name: '출발지와 도착지 바꾸기' })).toHaveClass('h-10', 'w-10');
   });
 
+  it('빈 경로 슬롯에 맞춰 장소 검색 placeholder와 CTA를 안내함', () => {
+    const { rerender } = render(<SearchOverlay {...defaultProps} />);
+
+    expect(screen.getByPlaceholderText('출발지로 지정할 장소 검색')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-route-step-hint')).toHaveTextContent('장소를 검색하고 출발지로 선택하세요');
+    expect(screen.getByTestId('mobile-search-route-btn')).toHaveTextContent('출발지 선택 필요');
+
+    rerender(
+      <SearchOverlay
+        {...defaultProps}
+        startAddress="강남역"
+      />
+    );
+
+    expect(screen.getByPlaceholderText('도착지로 지정할 장소 검색')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-route-step-hint')).toHaveTextContent('다음으로 도착지를 검색해 선택하세요');
+    expect(screen.getByTestId('mobile-search-route-btn')).toHaveTextContent('도착지 선택 필요');
+
+    rerender(
+      <SearchOverlay
+        {...defaultProps}
+        startAddress="강남역"
+        endAddress="서울역"
+        canSearch
+      />
+    );
+
+    expect(screen.getByPlaceholderText('장소 또는 주소 검색')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-route-step-hint')).toHaveTextContent('경유지 종류를 고르고 검색을 실행하세요');
+    expect(screen.getByTestId('mobile-search-route-btn')).toHaveTextContent('경유지 찾기');
+  });
+
   it('최근 검색과 저장 장소 행은 긴 텍스트와 보조 버튼을 375px 폭용 grid로 분리함', () => {
     const onCategoryChange = vi.fn();
     const onInstantSearch = vi.fn();
@@ -197,6 +229,8 @@ describe('SearchOverlay', () => {
     });
     expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('카페 마일드 서울시청점 아주 긴 장소명 테스트');
     expect(screen.getByTestId('mobile-selected-place-sheet')).toHaveTextContent('서울 중구 세종대로 110 아주 긴 상세 주소 15층 1501호');
+    expect(screen.getByTestId('mobile-selected-place-next-step')).toHaveClass('truncate');
+    expect(screen.getByTestId('mobile-selected-place-next-step')).toHaveTextContent('출발지로 지정하면 다음에 도착지를 고를 수 있어요');
     expect(screen.getByTestId('mobile-select-start-btn')).toHaveClass('min-w-0', 'whitespace-nowrap');
     expect(screen.getByTestId('mobile-select-start-btn')).toHaveTextContent('출발지로 선택');
     expect(screen.getByTestId('mobile-select-end-btn')).toHaveClass('min-w-0', 'whitespace-nowrap');
@@ -263,6 +297,8 @@ describe('SearchOverlay', () => {
     expect(screen.getByTestId('mobile-search-overlay-scroll')).toHaveStyle({
       paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)',
     });
+    expect(screen.getByTestId('mobile-place-search-input')).toHaveValue('');
+    await waitFor(() => expect(screen.getByTestId('mobile-place-search-input')).toHaveFocus());
 
     fireEvent.change(screen.getByTestId('mobile-place-search-input'), { target: { value: '카페2' } });
     await waitFor(() => expect(screen.getByRole('option', { name: /카페 마일드/ })).toBeInTheDocument(), { timeout: 1500 });
@@ -280,6 +316,8 @@ describe('SearchOverlay', () => {
     expect(screen.getByTestId('mobile-search-overlay-scroll')).toHaveStyle({
       paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)',
     });
+    expect(screen.getByTestId('mobile-place-search-input')).toHaveValue('');
+    await waitFor(() => expect(screen.getByTestId('mobile-place-search-input')).toHaveFocus());
   });
 
   it('경유지 찾기 실행을 부모 핸들러로 전달함', () => {

@@ -12,6 +12,78 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Coordinates, Route } from '@/types/location';
 import type { DetourResult } from '@/types/detour';
 
+type NaverPointerEvent = {
+  coord?: {
+    lat: () => number;
+    lng: () => number;
+  };
+};
+
+type NaverMapEventHandlers = {
+  map: naver.maps.Map;
+  onMapClick?: (coords: Coordinates) => void;
+  onMapIdle?: (center: Coordinates) => void;
+  onMapInteraction?: () => void;
+  onResetInteraction?: () => void;
+};
+
+export function attachNaverMapInteractionEvents({
+  map,
+  onMapClick,
+  onMapIdle,
+  onMapInteraction,
+  onResetInteraction,
+}: NaverMapEventHandlers): () => void {
+  const eventApi = window.naver?.maps.Event;
+  if (!eventApi) return () => {};
+
+  const listeners: naver.maps.Event.Listener[] = [];
+  const resetTimers: number[] = [];
+  const addListener = (eventName: string, handler: (event?: unknown) => void) => {
+    listeners.push(eventApi.addListener(map, eventName, handler));
+  };
+
+  if (onMapClick) {
+    addListener('click', (event) => {
+      const coord = (event as NaverPointerEvent | undefined)?.coord;
+      if (!coord) return;
+      onMapClick({ lat: coord.lat(), lng: coord.lng() });
+    });
+  }
+
+  if (onMapIdle) {
+    addListener('idle', () => {
+      const center = map.getCenter();
+      onMapIdle({ lat: center.lat(), lng: center.lng() });
+    });
+  }
+
+  if (onMapInteraction) {
+    addListener('dragstart', () => onMapInteraction());
+    addListener('zoom_changed', () => {
+      onMapInteraction();
+      if (onResetInteraction) {
+        resetTimers.push(window.setTimeout(onResetInteraction, 1000));
+      }
+    });
+  }
+
+  if (onResetInteraction) {
+    addListener('dragend', () => onResetInteraction());
+  }
+
+  return () => {
+    resetTimers.forEach((timer) => window.clearTimeout(timer));
+    listeners.forEach((listener) => {
+      if (typeof listener.remove === 'function') {
+        listener.remove();
+        return;
+      }
+      eventApi.removeListener(listener);
+    });
+  };
+}
+
 function MapLoading({ label = '지도를 준비하는 중...' }: { label?: string }) {
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-surface-muted)' }}>
@@ -121,6 +193,18 @@ export default function MapContainer({
   const handleKakaoMapReady = useCallback((map: kakao.maps.Map) => {
     setKakaoMap(map);
   }, []);
+
+  // 네이버맵 이벤트도 MapContainer의 공통 콜백 계약으로 변환한다.
+  useEffect(() => {
+    if (!naverMap) return;
+    return attachNaverMapInteractionEvents({
+      map: naverMap,
+      onMapClick,
+      onMapIdle,
+      onMapInteraction,
+      onResetInteraction,
+    });
+  }, [naverMap, onMapClick, onMapIdle, onMapInteraction, onResetInteraction]);
 
   // 카카오맵 클릭 이벤트 (지도 클릭으로 장소 선택)
   useEffect(() => {

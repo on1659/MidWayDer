@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { DetourResult } from '@/types/detour';
 import MobileHomeShell from '../MobileHomeShell';
@@ -154,13 +154,44 @@ describe('MobileHomeShell', () => {
 
     expect(screen.getByRole('heading', { name: '1개 경유지' })).toBeInTheDocument();
     expect(screen.getByText('4개 후보 중 선별')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-result-sheet-header')).toHaveClass('px-3', 'pb-2');
+    expect(screen.getByTestId('mobile-result-sheet-meta')).toHaveClass('flex', 'min-w-0', 'overflow-hidden');
+    expect(screen.getByTestId('mobile-result-candidate-summary')).toHaveClass('shrink-0', 'truncate', 'whitespace-nowrap');
+    expect(screen.getByTestId('mobile-result-route-context')).toHaveClass('min-w-0', 'flex-1', 'truncate', 'whitespace-nowrap');
+    expect(screen.getByTestId('mobile-result-route-context')).toHaveTextContent('강남역 → 홍대입구역');
     expect(screen.getByText('테스트 편의점')).toBeInTheDocument();
     expect(screen.getByTestId('mobile-result-stats-place-1')).toHaveTextContent('우회');
     expect(screen.getByTestId('mobile-result-stats-place-1')).toHaveTextContent('+3분');
     expect(screen.getByTestId('mobile-result-stats-place-1')).toHaveTextContent('0.3km');
     expect(screen.getByTestId('mobile-result-stats-place-1')).toHaveTextContent('91점');
-    expect(screen.getByRole('button', { name: '경로 저장' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '경로 저장' })).toHaveClass('h-8', 'w-8');
+    expect(screen.getByRole('button', { name: '조건 수정' })).toHaveClass('h-8', 'w-8');
     expect(screen.queryByTestId('mobile-bottom-search-cta')).toBeNull();
+  });
+
+  it('긴 경로 문맥도 결과 시트 header action 영역을 밀지 않음', () => {
+    render(
+      <MobileHomeShell
+        {...defaultProps}
+        startAddress="서울특별시 강남구 테헤란로 아주 긴 출발지 빌딩 지하 2층 201호"
+        endAddress="서울특별시 마포구 월드컵북로 아주 긴 도착지 오피스 타워 35층"
+        results={[makeResult()]}
+        hasSearched
+        totalCandidates={123}
+      />
+    );
+
+    expect(screen.getByTestId('mobile-result-sheet-header').firstElementChild).toHaveClass(
+      'grid',
+      'grid-cols-[minmax(0,1fr)_auto]'
+    );
+    expect(screen.getByTestId('mobile-result-route-context')).toHaveClass('min-w-0', 'truncate');
+    expect(screen.getByTestId('mobile-result-route-context')).toHaveAttribute(
+      'title',
+      '서울특별시 강남구 테헤란로 아주 긴 출발지 빌딩 지하 2층 201호 → 서울특별시 마포구 월드컵북로 아주 긴 도착지 오피스 타워 35층'
+    );
+    expect(screen.getByRole('button', { name: '경로 저장' })).toHaveClass('h-8', 'w-8');
+    expect(screen.getByRole('button', { name: '조건 수정' })).toHaveClass('h-8', 'w-8');
   });
 
   it('선택된 결과 카드도 좁은 폭용 점수 영역과 상태 배지를 유지함', () => {
@@ -205,14 +236,22 @@ describe('MobileHomeShell', () => {
 
     const card = screen.getByTestId('mobile-result-card-place-long');
     expect(card.firstElementChild).toHaveClass('grid', 'grid-cols-[1.5rem_minmax(0,1fr)]');
-    expect(screen.getByText(result.place.name)).toHaveClass('max-w-full', 'truncate');
-    expect(screen.getByText(result.place.roadAddress!)).toHaveClass('max-w-full', 'truncate');
+    expect(within(card).getByText(result.place.name)).toHaveClass('max-w-full', 'truncate');
+    expect(within(card).getByText(result.place.roadAddress!)).toHaveClass('max-w-full', 'truncate');
     expect(screen.getByTestId('mobile-result-map-action-place-long')).toHaveClass('h-7', 'w-7', 'shrink-0');
     expect(screen.getByTestId('mobile-result-stats-place-long')).toHaveClass(
       'grid',
       'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]'
     );
     expect(screen.getByTestId('mobile-result-badges-place-long')).toHaveClass('flex-wrap', 'overflow-hidden');
+    expect(screen.getByTestId('mobile-map-focus-pill')).toHaveClass(
+      'grid-cols-[auto_minmax(0,1fr)_auto]',
+      'min-w-0'
+    );
+    expect(within(screen.getByTestId('mobile-map-focus-pill')).getByText(result.place.name)).toHaveClass('truncate');
+    expect(screen.getByTestId('mobile-map-focus-pill')).toHaveStyle({
+      bottom: 'calc(30dvh + env(safe-area-inset-bottom, 0px) + 0.5rem)',
+    });
     expect(screen.getByTestId('mobile-result-stats-place-long')).toHaveTextContent('+99분');
     expect(screen.getByTestId('mobile-result-stats-place-long')).toHaveTextContent('13km');
     expect(screen.getByTestId('mobile-result-stats-place-long')).toHaveTextContent('100점');
@@ -244,6 +283,59 @@ describe('MobileHomeShell', () => {
     });
   });
 
+  it('새 검색 결과가 도착하면 이전 marker focus로 접힌 결과 시트를 다시 펼침', () => {
+    const firstResult = makeResult({
+      place: {
+        id: 'place-1',
+        name: '첫 번째 편의점',
+        category: '편의점',
+        address: '서울시 마포구 양화로 1',
+        coordinates: { lat: 37.55, lng: 126.92 },
+      },
+    });
+    const nextResult = makeResult({
+      place: {
+        id: 'place-2',
+        name: '다음 편의점',
+        category: '편의점',
+        address: '서울시 마포구 양화로 2',
+        coordinates: { lat: 37.56, lng: 126.93 },
+      },
+    });
+    const { rerender } = render(
+      <MobileHomeShell
+        {...defaultProps}
+        results={[firstResult]}
+        hasSearched
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '지도에서 첫 번째 편의점 보기' }));
+
+    expect(screen.getByTestId('mobile-result-sheet')).toHaveAttribute('data-state', 'collapsed');
+
+    rerender(
+      <MobileHomeShell
+        {...defaultProps}
+        results={[]}
+        hasSearched
+        isLoading
+      />
+    );
+    rerender(
+      <MobileHomeShell
+        {...defaultProps}
+        results={[nextResult]}
+        hasSearched
+        isLoading={false}
+      />
+    );
+
+    expect(screen.getByTestId('mobile-result-sheet')).toHaveAttribute('data-state', 'expanded');
+    expect(screen.getByTestId('mobile-result-sheet')).toHaveStyle({ height: '58dvh' });
+    expect(screen.getByRole('button', { name: '지도에서 다음 편의점 보기' })).toBeInTheDocument();
+  });
+
   it('지도 marker 선택으로 selectedWaypointId가 바뀌어도 결과 시트를 낮게 접음', () => {
     const result = makeResult();
     const { rerender } = render(
@@ -269,11 +361,15 @@ describe('MobileHomeShell', () => {
     expect(screen.getByTestId('mobile-result-sheet')).toHaveAttribute('data-state', 'collapsed');
     expect(screen.getByTestId('mobile-result-sheet')).toHaveStyle({ height: '30dvh' });
     expect(screen.getByTestId('mobile-result-badges-place-1')).toHaveTextContent('표시 중');
+    expect(screen.getByTestId('mobile-map-focus-pill')).toHaveTextContent('테스트 편의점');
+    expect(screen.getByTestId('mobile-map-focus-pill')).toHaveTextContent('지도에 표시 중');
+    expect(screen.getByTestId('mobile-map-focus-pill')).toHaveTextContent('91점');
 
-    fireEvent.click(screen.getByTestId('mobile-result-sheet-handle'));
+    fireEvent.click(screen.getByTestId('mobile-map-focus-pill'));
 
     expect(screen.getByTestId('mobile-result-sheet')).toHaveAttribute('data-state', 'expanded');
     expect(screen.getByTestId('mobile-result-sheet')).toHaveStyle({ height: '58dvh' });
+    expect(screen.queryByTestId('mobile-map-focus-pill')).toBeNull();
   });
 
 });
