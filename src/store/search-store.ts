@@ -82,7 +82,7 @@ interface SearchState {
   /** 카테고리 변경 */
   setCategory: (category: string) => void;
   /** 검유지 검색 */
-  search: (start: SearchWaypointsRequest['start'], end: SearchWaypointsRequest['end'], category: string, extraOptions?: { bufferDistance?: number }) => Promise<void>;
+  search: (start: SearchWaypointsRequest['start'], end: SearchWaypointsRequest['end'], category: string, extraOptions?: { bufferDistance?: number; forceRefresh?: boolean }) => Promise<void>;
   /** 검색 결과 초기화 */
   clearResults: () => void;
   /** 검색 취소 */
@@ -178,8 +178,8 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     const endCoords = isCoordinates(end.coordinates) ? end.coordinates : isCoordinates(end) ? end : null;
     const routeHash = startCoords && endCoords ? hashRoute(startCoords, endCoords) : null;
 
-    // 1. 캐시 확인
-    const cached = routeHash ? getCachedSearch(routeHash, category) : null;
+    // 1. 캐시 확인 (forceRefresh = 사용자 명시 재검색 — 캐시 읽기를 건너뛰고 응답으로 캐시를 갱신)
+    const cached = routeHash && !extraOptions?.forceRefresh ? getCachedSearch(routeHash, category) : null;
 
     if (cached) {
       logger.debug('✅ Cache HIT:', routeHash, category);

@@ -153,6 +153,7 @@ function startRun(body) {
     exitCode: null,
     signal: null,
     output: "",
+    lastOutputAt: new Date().toISOString(),
     command: `bash ${runArgs.map(shellWord).join(" ")}`,
     child: null,
     stopRequested: false,
@@ -538,6 +539,7 @@ function stopChild(run) {
 
 function appendOutput(run, chunk) {
   run.output = trimOutput(run.output + chunk.toString());
+  run.lastOutputAt = new Date().toISOString();
 }
 
 function trimOutput(output) {
@@ -557,6 +559,8 @@ function serializeRun(run) {
     signal: run.signal,
     command: run.command,
     output: run.output,
+    outputBytes: Buffer.byteLength(run.output || "", "utf8"),
+    lastOutputAt: run.lastOutputAt || run.endedAt || run.startedAt || "",
     dashboard: parseDashboard(run.output),
   };
 }
@@ -577,6 +581,7 @@ function parseDashboard(output) {
   const result = parseScalarField(closeout, "Result");
   const route = parseScalarField(closeout, "Route");
   const goal = parseScalarField(closeout, "Goal") || parsePromptGoal(text);
+  const currentActivity = extractCurrentActivity(text);
   const sliceMatches = [...text.matchAll(/== Goal Loop slice\s+(\d+)\/(\d+)\s+==/g)];
   const currentSlice = sliceMatches.length ? sliceMatches.at(-1)[1] : "";
   const maxSlices = sliceMatches.length ? sliceMatches.at(-1)[2] : "";
@@ -585,6 +590,7 @@ function parseDashboard(output) {
     goal,
     route,
     result,
+    currentActivity,
     markers,
     completed,
     remaining,
@@ -643,6 +649,34 @@ function parseFieldBlock(section, label) {
 function parsePromptGoal(text) {
   const match = text.match(/\nGoal:\n-\s+(.+?)(?:\n\n|\nDone when:)/s);
   return match ? match[1].trim().split("\n")[0] : "";
+}
+
+function extractCurrentActivity(text) {
+  const source = String(text || "");
+  const tail = source.slice(-12000);
+
+  const commandMatches = [...tail.matchAll(/(?:^|\n)(?:\$ )?((?:npm|npx|pnpm|yarn|git)\s+[^\n]+)/g)]
+    .map((match) => match[1].trim())
+    .filter((line) => !line.includes("diff --git"));
+  const lastCommand = commandMatches.at(-1);
+  if (lastCommand) return `검증/명령 실행 중: ${lastCommand.slice(0, 140)}`;
+
+  const diffMatches = [...tail.matchAll(/diff --git a\/([^\s]+) b\/[^\s]+/g)].map((match) => match[1]);
+  const lastDiff = diffMatches.at(-1);
+  if (lastDiff) return `파일 수정 중: ${lastDiff}`;
+
+  const testMatches = [...tail.matchAll(/([A-Za-z0-9_./-]+(?:test|spec)\.[jt]sx?)/g)].map((match) => match[1]);
+  const lastTest = testMatches.at(-1);
+  if (lastTest) return `테스트 확인 중: ${lastTest}`;
+
+  const fileMatches = [...tail.matchAll(/([A-Za-z0-9_./-]+\.(?:tsx|ts|jsx|js|css|md))/g)]
+    .map((match) => match[1])
+    .filter((file) => !file.includes("node_modules") && !file.includes(".codex/.tmp"));
+  const lastFile = fileMatches.at(-1);
+  if (lastFile) return `파일 확인 중: ${lastFile}`;
+
+  if (/hook:|WARN|codex_core/i.test(tail)) return "Codex 실행 준비/훅 처리 중";
+  return "";
 }
 
 function extractStopMarkers(text) {
@@ -766,6 +800,11 @@ function pageHtml() {
       letter-spacing: 0;
     }
     .status {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .activity {
       font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
@@ -1054,7 +1093,10 @@ function pageHtml() {
     <section class="output">
       <header>
         <h2 title="Codex 실행 로그입니다. 긴 줄은 줄바꿈하지 않고 가로 스크롤로 확인합니다.">실행 로그</h2>
-        <span id="runId" class="status">실행 없음</span>
+        <div class="status-wrap">
+          <span id="activity" class="activity" title="최근 출력이 언제 있었는지와 로그 크기를 보여줍니다. 실행 중인데 오래 변하지 않으면 멈춘 것일 수 있습니다.">활동 없음</span>
+          <span id="runId" class="status">실행 없음</span>
+        </div>
       </header>
       <div id="dashboard" class="dashboard"></div>
       <pre id="output"></pre>
@@ -1066,6 +1108,7 @@ function pageHtml() {
     const outputEl = document.getElementById("output");
     const runStateEl = document.getElementById("runState");
     const runIdEl = document.getElementById("runId");
+    const activityEl = document.getElementById("activity");
     const metaEl = document.getElementById("meta");
     const dashboardEl = document.getElementById("dashboard");
     const startButton = document.getElementById("start");
@@ -1080,6 +1123,8 @@ function pageHtml() {
     const promptLabel = document.getElementById("promptLabel");
     let promptMode = "goal";
     let currentRunId = null;
+    let lastSeenBytes = 0;
+    let lastSeenAt = Date.now();
     let timer = null;
 
     async function loadTemplate() {
@@ -1168,19 +1213,28 @@ function pageHtml() {
       const run = data.run;
       const isRunning = Boolean(run && !run.done);
       if (run) {
+        const outputBytes = Number(run.outputBytes || (run.output || "").length);
+        if (outputBytes !== lastSeenBytes) {
+          lastSeenBytes = outputBytes;
+          lastSeenAt = Date.now();
+        }
         outputEl.textContent = run.output || "";
         outputEl.scrollTop = outputEl.scrollHeight;
         runIdEl.textContent = run.id;
         metaEl.textContent = run.command + (run.promptPath ? " | " + run.promptPath : "");
+        activityEl.textContent = formatActivity(isRunning, run, outputBytes);
+        activityEl.title = activityHelp(isRunning, run, outputBytes);
       } else {
         runIdEl.textContent = "실행 없음";
         metaEl.textContent = "";
+        activityEl.textContent = "활동 없음";
+        activityEl.title = "아직 실행 로그가 없습니다.";
       }
       const dashboard = normalizeDashboard(data.goalState || {}, run ? run.dashboard || {} : {});
       renderDashboard(dashboard);
       const visibleStatus = isRunning ? "running" : (dashboard.status || "idle");
       runStateEl.textContent = statusLabel(visibleStatus);
-      renderSignal(visibleStatus);
+      renderSignal(visibleStatus, isRunning ? Date.now() - lastSeenAt : 0);
       updateControls(isRunning, data.goalState);
       if (run && run.done) {
         currentRunId = null;
@@ -1196,6 +1250,7 @@ function pageHtml() {
         status: state.status || "",
         route: dashboard.route || "",
         result: dashboard.result || state.status || "",
+        currentActivity: dashboard.currentActivity || state.nextSlice || "",
         markers: dashboard.markers || [],
         completed: state.completed && state.completed.length ? state.completed : dashboard.completed,
         remaining: state.remaining && state.remaining.length ? state.remaining : dashboard.remaining,
@@ -1218,11 +1273,49 @@ function pageHtml() {
       stopButton.disabled = !isRunning;
     }
 
-    function renderSignal(status) {
+    function formatActivity(isRunning, run, outputBytes) {
+      const ageMs = isRunning ? Date.now() - lastSeenAt : ageFromIso(run.lastOutputAt || run.endedAt);
+      const age = formatAge(ageMs);
+      const size = formatBytes(outputBytes);
+      if (isRunning) return "최근 출력 " + age + " 전 · " + size;
+      return "마지막 출력 " + age + " 전 · " + size;
+    }
+
+    function activityHelp(isRunning, run, outputBytes) {
+      if (!isRunning) return "이 run은 끝났습니다. 마지막 출력 시각과 로그 크기입니다.";
+      const ageMs = Date.now() - lastSeenAt;
+      if (ageMs < 45000) return "최근 출력이 계속 들어오고 있어 실제로 진행 중일 가능성이 높습니다.";
+      if (ageMs < 180000) return "프로세스는 살아 있지만 최근 출력이 잠잠합니다. 모델이 생각 중이거나 네트워크 대기 중일 수 있습니다.";
+      return "프로세스는 살아 있지만 3분 이상 새 출력이 없습니다. 멈춤 가능성이 있으니 로그와 CPU를 확인하세요.";
+    }
+
+    function ageFromIso(value) {
+      const time = Date.parse(value || "");
+      return Number.isFinite(time) ? Math.max(0, Date.now() - time) : 0;
+    }
+
+    function formatAge(ms) {
+      const seconds = Math.max(0, Math.floor(ms / 1000));
+      if (seconds < 60) return seconds + "초";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return minutes + "분";
+      return Math.floor(minutes / 60) + "시간";
+    }
+
+    function formatBytes(bytes) {
+      const n = Number(bytes || 0);
+      if (n < 1024) return n + "B";
+      if (n < 1024 * 1024) return Math.round(n / 1024) + "KB";
+      return (n / 1024 / 1024).toFixed(1) + "MB";
+    }
+
+    function renderSignal(status, quietMs) {
       const state = String(status || "idle").toLowerCase();
-      lampRed.classList.toggle("on", state === "blocked");
-      lampYellow.classList.toggle("on", state === "continue" || state === "human_review");
-      lampGreen.classList.toggle("on", state === "running");
+      const quiet = state === "running" && quietMs > 45000;
+      const stale = state === "running" && quietMs > 180000;
+      lampRed.classList.toggle("on", state === "blocked" || stale);
+      lampYellow.classList.toggle("on", state === "continue" || state === "human_review" || quiet);
+      lampGreen.classList.toggle("on", state === "running" && !quiet);
       const description = {
         running: "초록: 지금 Codex가 실행 중입니다. 로그가 계속 늘어날 수 있습니다.",
         continue: "노랑: 현재는 멈춰 있지만 다음 작업을 이어갈 수 있습니다.",
@@ -1231,7 +1324,13 @@ function pageHtml() {
         done: "회색: 목표가 완료된 상태입니다.",
         idle: "회색: 아직 실행 중인 작업이 없습니다.",
       };
-      document.getElementById("traffic").title = description[state] || description.idle;
+      if (stale) {
+        document.getElementById("traffic").title = "빨강: 프로세스는 살아 있지만 3분 이상 새 출력이 없습니다. 멈춤 가능성이 있습니다.";
+      } else if (quiet) {
+        document.getElementById("traffic").title = "노랑: 실행 중이지만 최근 출력이 잠잠합니다. 모델 대기 중일 수 있습니다.";
+      } else {
+        document.getElementById("traffic").title = description[state] || description.idle;
+      }
     }
 
     function statusLabel(status) {
@@ -1257,6 +1356,7 @@ function pageHtml() {
         '<div class="dash-grid">',
         card("목표", dashboard.goal || "불러온 목표 없음", "full", "현재 목표 루프가 추적 중인 전체 목표입니다."),
         card("상태", statusLabel(dashboard.status || "idle"), "", "실행 중인지, 이어갈 수 있는지, 검토가 필요한지 보여줍니다."),
+        card("현재 작업", dashboard.currentActivity || "아직 파악 중", "full", "실행 로그에서 최근 명령, 수정 파일, 테스트 파일을 추정해 지금 무엇을 하는 중인지 보여줍니다."),
         card("루프 위치", slice, "", "현재 실행 안에서 몇 번째 작은 작업인지 보여줍니다."),
         card("경로 / 결과", [dashboard.route, dashboard.result].filter(Boolean).join(" / ") || "실행 중 또는 결과 없음", "", "목표 루프가 판단한 처리 경로와 마무리 결과입니다."),
         card("마지막 실행", [dashboard.lastRunId, updated].filter(Boolean).join(" | ") || "없음", "full", "가장 최근 실행 id와 갱신 시각입니다."),

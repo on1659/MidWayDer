@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ChevronRight, Clock, Route as RouteIcon, Filter } from 'lucide-react';
 import type { DetourResult } from '@/types/detour';
-import { getBusinessStatus, getMinutesUntilClose } from '@/lib/business-hours';
+import { getBusinessStatus, getBusinessHoursRange, getMinutesUntilClose } from '@/lib/business-hours';
 
 interface WaypointResultsSheetProps {
   results: DetourResult[];
@@ -187,10 +187,13 @@ function ResultCard({ result, rank, isBest, isSelected, onClick }: ResultCardPro
     if (!businessStatus.label || businessStatus.label === '정보 없음') return null;
     // 30분 이내 마감 임박: "22:00 마감" 형식 (목업 D-11 정합성)
     if (businessStatus.isOpen && minutesUntilClose != null && minutesUntilClose <= 30) {
-      const closeAt = new Date(Date.now() + minutesUntilClose * 60 * 1000);
-      const hh = String(closeAt.getHours()).padStart(2, '0');
-      const mm = String(closeAt.getMinutes()).padStart(2, '0');
-      return { text: `● ${hh}:${mm} 마감`, color: 'var(--color-warning-current)' };
+      const range = getBusinessHoursRange(result.place.businessHours);
+      if (range) {
+        const endTotal = range.endMin % (24 * 60);
+        const hh = String(Math.floor(endTotal / 60)).padStart(2, '0');
+        const mm = String(endTotal % 60).padStart(2, '0');
+        return { text: `● ${hh}:${mm} 마감`, color: 'var(--color-warning-current)' };
+      }
     }
     return {
       text: `● ${businessStatus.label}`,

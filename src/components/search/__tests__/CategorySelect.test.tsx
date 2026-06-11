@@ -58,10 +58,10 @@ describe('CategorySelect', () => {
 
     const 카페Button = screen.getByText('카페').closest('button');
     expect(카페Button).toHaveStyle({
-      background: 'var(--overlay-selected)',
-      color: 'var(--accent)',
+      background: 'var(--accent)',
+      color: 'var(--text-on-accent)',
     });
-    expect(카페Button).toHaveAttribute('style', expect.stringContaining('border: 1px solid var(--border-accent)'));
+    expect(카페Button).toHaveAttribute('style', expect.stringContaining('border: 1px solid var(--accent)'));
   });
 
   it('직접 입력 버튼 클릭 시 입력 모드 전환', () => {

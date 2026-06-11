@@ -22,6 +22,8 @@ const eslintConfig = defineConfig([
     ".claude/**",
     ".codex/**",
     ".symphony/**",
+    // Plain Node CJS tooling scripts (require() 허용; TS 스크립트는 계속 린트):
+    "scripts/**/*.js",
   ]),
   {
     rules: {

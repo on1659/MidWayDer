@@ -109,10 +109,10 @@ const CategorySelectComponent = ({ selected, onChange, density = 'default' }: Ca
                 density === 'compact' ? 'px-3.5 py-1 text-[13px]' : 'gap-2 px-5 py-3 text-base'
               }`}
               style={{
-                background: isSelected ? '#0b84ff' : '#ffffff',
-                color: isSelected ? '#ffffff' : '#334155',
-                border: `1px solid ${isSelected ? '#0b84ff' : '#dbe3ef'}`,
-                boxShadow: isSelected ? '0 8px 18px -14px rgba(11,132,255,0.8)' : 'none',
+                background: isSelected ? 'var(--accent)' : 'var(--bg-surface)',
+                color: isSelected ? 'var(--text-on-accent)' : 'var(--text-secondary)',
+                border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border-soft)'}`,
+                boxShadow: isSelected ? '0 8px 18px -14px rgba(var(--color-accent-rgb), 0.8)' : 'none',
                 minHeight: density === 'compact' ? '32px' : '44px',
               }}
             >
@@ -135,10 +135,10 @@ const CategorySelectComponent = ({ selected, onChange, density = 'default' }: Ca
                 density === 'compact' ? 'px-3.5 py-1 text-[13px]' : 'gap-2 px-5 py-3 text-base'
               }`}
               style={{
-                background: isSelected ? '#0b84ff' : '#ffffff',
-                color: isSelected ? '#ffffff' : '#334155',
-                border: `1px solid ${isSelected ? '#0b84ff' : '#dbe3ef'}`,
-                boxShadow: isSelected ? '0 8px 18px -14px rgba(11,132,255,0.8)' : 'none',
+                background: isSelected ? 'var(--accent)' : 'var(--bg-surface)',
+                color: isSelected ? 'var(--text-on-accent)' : 'var(--text-secondary)',
+                border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border-soft)'}`,
+                boxShadow: isSelected ? '0 8px 18px -14px rgba(var(--color-accent-rgb), 0.8)' : 'none',
                 minHeight: density === 'compact' ? '32px' : '44px',
               }}
             >
@@ -156,9 +156,9 @@ const CategorySelectComponent = ({ selected, onChange, density = 'default' }: Ca
             density === 'compact' ? 'px-3.5 py-1 text-[13px]' : 'gap-2 px-5 py-3 text-base'
           }`}
           style={{
-            background: density === 'compact' ? '#ffffff' : 'var(--bg-surface-muted)',
-            color: density === 'compact' ? '#334155' : 'var(--text-secondary)',
-            border: density === 'compact' ? '1px dashed #cbd5e1' : '1px dashed var(--border-soft)',
+            background: density === 'compact' ? 'var(--bg-surface)' : 'var(--bg-surface-muted)',
+            color: 'var(--text-secondary)',
+            border: '1px dashed var(--border-soft)',
             minHeight: density === 'compact' ? '32px' : '44px',
           }}
           title="원하는 카테고리를 직접 입력하세요"

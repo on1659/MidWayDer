@@ -53,7 +53,7 @@ function haversineMeters(a: { lat: number; lng: number }, b: { lat: number; lng:
 }
 
 export default function V2HomePage() {
-  const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint, reset } = useRouteStore();
+  const { start, end, originalRoute, selectedWaypoint, setStart, setEnd, setOriginalRoute, selectWaypoint } = useRouteStore();
   const { category, results, isLoading, hasSearched, totalCandidates, setCategory, search, clearResults, cancelSearch } = useSearchStore();
 
   const [searchOpen, setSearchOpen] = useState(false);
@@ -62,7 +62,19 @@ export default function V2HomePage() {
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
-  const [previewRoute, setPreviewRoute] = useState<{ distance: number; duration: number } | null>(null);
+  const coordsKey = [
+    start?.coordinates?.lat, start?.coordinates?.lng,
+    end?.coordinates?.lat, end?.coordinates?.lng,
+  ].join(',');
+  const [fetchedPreview, setFetchedPreview] = useState<{ key: string; distance: number; duration: number } | null>(null);
+  // 좌표가 바뀌면 key 불일치로 stale 캐시가 자동 무시됨 (effect 내 setState 불필요)
+  const previewRoute = useMemo(() => {
+    if (originalRoute) return { distance: originalRoute.distance, duration: originalRoute.duration };
+    if (fetchedPreview && fetchedPreview.key === coordsKey) {
+      return { distance: fetchedPreview.distance, duration: fetchedPreview.duration };
+    }
+    return null;
+  }, [originalRoute, fetchedPreview, coordsKey]);
 
   const pendingDistance = useMemo(() => {
     if (!pendingPlace?.coordinates || !currentLocation) return null;
@@ -81,21 +93,13 @@ export default function V2HomePage() {
     );
   }, []);
 
-  // start/end 좌표 변경 시 previewRoute 캐시 무효화
-  useEffect(() => {
-    setPreviewRoute(null);
-  }, [start?.coordinates?.lat, start?.coordinates?.lng, end?.coordinates?.lat, end?.coordinates?.lng]);
-
   // both-slots 진입 시 원본 경로 미리 조회 (목업 화면 5의 "예상 경로" 통계)
   useEffect(() => {
     if (!start?.coordinates || !end?.coordinates || results.length > 0 || isLoading) {
       return;
     }
-    if (originalRoute) {
-      setPreviewRoute({ distance: originalRoute.distance, duration: originalRoute.duration });
-      return;
-    }
-    if (previewRoute) return; // 이미 캐싱돼있으면 재호출 금지
+    if (originalRoute) return; // previewRoute는 useMemo로 originalRoute에서 파생됨
+    if (fetchedPreview?.key === coordsKey) return; // 이미 캐싱돼있으면 재호출 금지
     let cancelled = false;
     const ctrl = new AbortController();
     fetch('/api/directions', {
@@ -109,7 +113,7 @@ export default function V2HomePage() {
         if (cancelled || !res?.success || !res.data) return;
         const route = res.data;
         if (typeof route.distance !== 'number' || typeof route.duration !== 'number') return;
-        setPreviewRoute({ distance: route.distance, duration: route.duration });
+        setFetchedPreview({ key: coordsKey, distance: route.distance, duration: route.duration });
         // 지도 폴리라인을 위해 originalRoute도 함께 설정 (목업 화면 5)
         if (Array.isArray(route.path) && route.path.length > 0) {
           setOriginalRoute(route);
@@ -120,7 +124,7 @@ export default function V2HomePage() {
       cancelled = true;
       ctrl.abort();
     };
-  }, [start?.coordinates, end?.coordinates, originalRoute, results.length, isLoading, previewRoute]);
+  }, [start?.coordinates, end?.coordinates, originalRoute, results.length, isLoading, fetchedPreview, coordsKey, setOriginalRoute]);
 
   const mapCenter = useMemo(() => {
     if (selectedWaypoint?.place.coordinates) return selectedWaypoint.place.coordinates;

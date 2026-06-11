@@ -308,6 +308,14 @@ test: Haversine 거리 계산 단위 테스트 추가
 
 ---
 
+## 운영 규칙
+
+### goal 완료 시 아카이브
+
+`docs/goal/*.md` 명세의 작업을 끝냈으면, 그 파일 경로(프로젝트 루트 기준, 예 `docs/goal/foo.md`)를 `.claude/.goal-applied-queue`에 한 줄로 append 한다. Stop 훅(`goal-archive.sh`)이 멈출 때 큐의 파일을 `docs/goal/applied/`로 옮기고 큐를 비운다. 미완 상태에서는 적지 않는다 — 조기 이동 방지.
+
+---
+
 ## 참고 자료
 
 ### Naver Cloud Platform API 문서
